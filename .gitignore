@@ -1,0 +1,18 @@
+# Følsomme filer
+db.html
+config.php
+db_setup.php
+.env
+
+# Systemfiler og caches
+*.log
+*.bak
+*.swp
+
+# IDE/Editor-filer
+.vscode/
+.idea/
+
+# uploads eller midlertidige filer (hvis relevant)
+uploads/
+cache/
