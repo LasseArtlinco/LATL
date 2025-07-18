@@ -1,5 +1,5 @@
 <?php
-// api/index.php - Hovedindgang til API'et
+// api/index.php - Hovedindgang til API'et - Opdateret med support for layout bands og globale stilarter
 require_once '../config.php';
 require_once '../db.php';
 
@@ -77,27 +77,24 @@ try {
             $pageId = $matches[1];
             handleRequestWithId($controller, $method, $pageId, $data);
             break;
+        
+        case 'layout/global/styles':
+            require_once 'layout.php';
+            $controller = new LayoutController($db);
+            handleGlobalStyles($controller, $method, $data);
+            break;
+            
+        case (preg_match('/^layout\/bands\/(\d+)/', $endpoint, $matches) ? true : false):
+            require_once 'layout.php';
+            $controller = new LayoutController($db);
+            $bandId = $matches[1];
+            handleBandRequest($controller, $method, $bandId, $data);
+            break;
             
         default:
             // Ukendt endpoint
             http_response_code(404);
             echo json_encode(['error' => 'Endpoint not found']);
-            break;
-       
-        // For globale stilarter
-        case 'layout/global-styles':
-            require_once 'layout.php';
-            $controller = new LayoutController($db);
-            if ($method == 'GET') {
-            $result = $controller->getGlobalStyles();
-            echo json_encode($result);
-        } else if ($method == 'PUT') {
-            $result = $controller->updateGlobalStyles($data);
-            echo json_encode($result);
-        } else {
-            http_response_code(405);
-            echo json_encode(['error' => 'Method not allowed']);
-            }
             break;
     }
 } catch (Exception $e) {
@@ -140,6 +137,42 @@ function handleRequestWithId($controller, $method, $id, $data) {
             break;
         case 'DELETE':
             $result = $controller->delete($id);
+            echo json_encode($result);
+            break;
+        default:
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            break;
+    }
+}
+
+// Ny hjælpefunktion til at håndtere globale stilarter
+function handleGlobalStyles($controller, $method, $data) {
+    switch ($method) {
+        case 'GET':
+            $result = $controller->getGlobalStyles();
+            echo json_encode($result);
+            break;
+        case 'PUT':
+            $result = $controller->updateGlobalStyles($data);
+            echo json_encode($result);
+            break;
+        default:
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            break;
+    }
+}
+
+// Ny hjælpefunktion til at håndtere band requests
+function handleBandRequest($controller, $method, $bandId, $data) {
+    switch ($method) {
+        case 'PUT':
+            $result = $controller->updateBand($bandId, $data);
+            echo json_encode($result);
+            break;
+        case 'DELETE':
+            $result = $controller->deleteBand($bandId);
             echo json_encode($result);
             break;
         default:
