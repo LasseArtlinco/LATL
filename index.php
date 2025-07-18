@@ -1,6 +1,7 @@
 <?php
-// standalone_index.php - Simpel statisk version af forsiden til test
-// Placer denne fil i roden af din webserver
+// complete_standalone_index.php - En komplet standalone version af forsiden
+// Indeholder alle nødvendige data og kræver ikke API-kald
+// Placer denne fil i roden af din webserver som index.php
 
 // Eksempel layout data
 $mockData = [
@@ -59,8 +60,6 @@ $mockData = [
             "band_content" => [
                 "title" => "Udvalgte produkter",
                 "description" => "Se vores mest populære håndlavede lædervarer",
-                "show_more_link" => "/shop",
-                "show_more_text" => "Se alle produkter",
                 "products" => [
                     [
                         "title" => "Læder Pung",
@@ -84,9 +83,23 @@ $mockData = [
             ]
         ],
         [
-            "band_type" => "link",
+            "band_type" => "cta",
             "band_height" => 1,
             "band_order" => 4,
+            "band_content" => [
+                "background_class" => "bg-bright",
+                "title" => "Se alle produkter",
+                "description" => "Udforsk hele vores sortiment af håndlavede lædervarer",
+                "button_link" => "/shop",
+                "button_text" => "Se alle produkter",
+                "button_color" => "#042940",
+                "button_text_color" => "#ffffff"
+            ]
+        ],
+        [
+            "band_type" => "link",
+            "band_height" => 1,
+            "band_order" => 5,
             "band_content" => [
                 "background_class" => "bg-accent",
                 "title" => "Design din egen læderprodukt",
@@ -101,11 +114,33 @@ $mockData = [
         [
             "band_type" => "html",
             "band_height" => 2,
-            "band_order" => 5,
+            "band_order" => 6,
             "band_content" => [
                 "title" => "Vores proces",
                 "max_width" => "1000",
                 "html" => "<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;'><div style='text-align: center;'><div style='background-color: var(--primary-color); color: white; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; border-radius: 50%; margin: 0 auto 1rem auto; font-size: 2rem; font-weight: bold;'>1</div><h3>Design</h3><p>Vi starter med et unikt design, der passer til dine behov og ønsker. For konfigurerbare produkter kan du selv stå for designet.</p></div><div style='text-align: center;'><div style='background-color: var(--primary-color); color: white; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; border-radius: 50%; margin: 0 auto 1rem auto; font-size: 2rem; font-weight: bold;'>2</div><h3>Laserskæring</h3><p>Med præcision og omhu laserskærer vi materialet efter designet, så alle detaljer kommer til deres ret.</p></div><div style='text-align: center;'><div style='background-color: var(--primary-color); color: white; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; border-radius: 50%; margin: 0 auto 1rem auto; font-size: 2rem; font-weight: bold;'>3</div><h3>Håndarbejde</h3><p>Hver produkt samles og færdiggøres i hånden for at sikre den højeste kvalitet og finish.</p></div><div style='text-align: center;'><div style='background-color: var(--primary-color); color: white; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; border-radius: 50%; margin: 0 auto 1rem auto; font-size: 2rem; font-weight: bold;'>4</div><h3>Levering</h3><p>Dit færdige produkt pakkes omhyggeligt ind og sendes direkte til din dør med hurtig levering.</p></div></div>"
+            ]
+        ],
+        [
+            "band_type" => "html",
+            "band_height" => 1,
+            "band_order" => 7,
+            "band_content" => [
+                "background_class" => "bg-secondary",
+                "align" => "center",
+                "html" => "<div style='padding: 3rem 0;'><h2 style='color: white; margin-bottom: 2rem;'>Følg os på Instagram</h2><div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; max-width: 1000px; margin: 0 auto;'><div style='background-color: #ffffff; aspect-ratio: 1/1;'></div><div style='background-color: #ffffff; aspect-ratio: 1/1;'></div><div style='background-color: #ffffff; aspect-ratio: 1/1;'></div><div style='background-color: #ffffff; aspect-ratio: 1/1;'></div></div><a href='https://instagram.com/latl.dk' style='display: inline-block; margin-top: 2rem; color: white; text-decoration: underline; font-weight: bold;'>@latl.dk</a></div>"
+            ]
+        ],
+        [
+            "band_type" => "link",
+            "band_height" => 1,
+            "band_order" => 8,
+            "band_content" => [
+                "title" => "Kontakt os",
+                "description" => "Har du spørgsmål eller særlige ønsker? Vi står klar til at hjælpe dig!",
+                "link" => "/contact",
+                "link_text" => "Skriv til os",
+                "link_style" => "arrow"
             ]
         ]
     ],
@@ -176,6 +211,7 @@ $mockData = [
             background-color: var(--background-color);
             color: var(--text-color);
             min-height: 100vh;
+            overflow-x: hidden; /* Forhindrer vandret scrolling */
         }
         
         h1, h2, h3, h4, h5, h6 {
@@ -193,6 +229,7 @@ $mockData = [
             align-items: center;
             background-color: var(--primary-color);
             color: white;
+            width: 100%;
         }
         
         .latl-logo {
@@ -219,6 +256,7 @@ $mockData = [
             margin-top: 2rem;
             background-color: var(--secondary-color);
             color: white;
+            width: 100%;
         }
         
         .latl-footer a {
@@ -229,6 +267,7 @@ $mockData = [
             width: 100%;
             box-sizing: border-box;
             overflow: hidden;
+            position: relative;
         }
         
         .band-content {
@@ -461,6 +500,52 @@ $mockData = [
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
+        .band-cta {
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .band-cta.bg-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .band-cta.bg-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .band-cta.bg-accent {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        
+        .band-cta.bg-bright {
+            background-color: var(--bright-color);
+            color: var(--primary-color);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            border-radius: 4px;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+            margin-top: 1.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background-color: var(--bright-color);
+        }
+        
         .cookie-banner {
             position: fixed;
             bottom: 0;
@@ -567,6 +652,10 @@ $mockData = [
                     
                 case 'link':
                     renderLinkBand($band);
+                    break;
+                    
+                case 'cta':
+                    renderCtaBand($band);
                     break;
                     
                 default:
@@ -676,7 +765,7 @@ $mockData = [
             
             if (isset($content['show_more_link'])) {
                 echo '<div style="text-align: center; margin-top: 3rem;">';
-                echo '<a href="' . $content['show_more_link'] . '" class="product-button" style="max-width: 300px;">' . ($content['show_more_text'] ?? 'Se flere produkter') . '</a>';
+                echo '<a href="' . $content['show_more_link'] . '" class="product-button" style="display: inline-block; max-width: 300px;">' . ($content['show_more_text'] ?? 'Se alle produkter') . '</a>';
                 echo '</div>';
             }
             
@@ -759,6 +848,40 @@ $mockData = [
                 echo '<a href="' . $content['link'] . '" class="' . $linkClass . '" style="' . $linkStyle . '">' . ($content['link_text'] ?? 'Læs mere') . '</a>';
                 
                 echo '</div>';
+            }
+            
+            echo '</div>';
+        }
+        
+        function renderCtaBand($band) {
+            $content = $band['band_content'];
+            
+            echo '<div class="band-content">';
+            
+            if (isset($content['title'])) {
+                echo '<h2 style="font-size: 2.5rem; margin-bottom: 1rem;">' . $content['title'] . '</h2>';
+            }
+            
+            if (isset($content['description'])) {
+                echo '<p style="font-size: 1.2rem; max-width: 800px; margin: 0 auto 1.5rem auto;">' . $content['description'] . '</p>';
+            }
+            
+            if (isset($content['button_link'])) {
+                $buttonStyle = 'display: inline-block; padding: 1rem 2.5rem; font-size: 1.1rem; font-weight: bold; text-decoration: none; border-radius: 4px;';
+                
+                if (isset($content['button_color'])) {
+                    $buttonStyle .= 'background-color: ' . $content['button_color'] . ';';
+                } else {
+                    $buttonStyle .= 'background-color: var(--accent-color);';
+                }
+                
+                if (isset($content['button_text_color'])) {
+                    $buttonStyle .= 'color: ' . $content['button_text_color'] . ';';
+                } else {
+                    $buttonStyle .= 'color: var(--primary-color);';
+                }
+                
+                echo '<a href="' . $content['button_link'] . '" class="cta-button" style="' . $buttonStyle . '">' . ($content['button_text'] ?? 'Klik her') . '</a>';
             }
             
             echo '</div>';
