@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LATL Frontend</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style id="globalStyles">
+        /* Global stilarter vil blive indsat her via JavaScript */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Open Sans', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .latl-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .latl-logo {
+            font-family: 'Allerta Stencil', sans-serif;
+            font-size: 1.5rem;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .latl-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .latl-nav a {
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+        
+        .latl-footer {
+            padding: 2rem 1rem;
+            margin-top: 2rem;
+        }
+        
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .cookie-banner button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .band {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .band-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Båndtyper */
+        .band-slideshow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slideshow-container {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        
+        .slideshow-slide {
+            flex: 0 0 100%;
+            height: 100%;
+            background-position: center;
+            background-size: cover;
+        }
+        
+        .slideshow-nav {
+            position: absolute;
+            bottom: 1rem;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .slideshow-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+        }
+        
+        .slideshow-dot.active {
+            background-color: white;
+        }
+        
+        .band-product {
+            padding: 2rem 0;
+        }
+        
+        .product-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .product-card {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 1rem;
+        }
+        
+        .product-title {
+            margin-top: 0;
+        }
+        
+        .product-price {
+            font-family: 'Allerta Stencil', sans-serif;
+            font-size: 1.2rem;
+        }
+        
+        .band-html {
+            padding: 2rem 0;
+        }
+        
+        .band-link {
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .band-link a {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .product-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="latl-header">
+        <a href="/" class="latl-logo">LATL.dk</a>
+        <nav class="latl-nav">
+            <a href="/shop">Shop</a>
+            <a href="/about">Om os</a>
+            <a href="/contact">Kontakt</a>
+            <a href="/cart">Kurv (0)</a>
+        </nav>
+    </header>
+    
+    <main id="page-content">
+        <!-- Dynamisk indhold vil blive indsat her -->
+        <div class="loading-container" style="display: flex; justify-content: center; align-items: center; height: 50vh;">
+            <p>Indlæser indhold...</p>
+        </div>
+    </main>
+    
+    <footer class="latl-footer">
+        <div class="band-content">
+            <div class="footer-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div>
+                    <h3>LATL.dk</h3>
+                    <p>Håndlavede lædervarer og laserskæring i høj kvalitet.</p>
+                </div>
+                <div>
+                    <h3>Kontakt</h3>
+                    <p>Email: info@latl.dk</p>
+                    <p>Telefon: +45 12345678</p>
+                </div>
+                <div>
+                    <h3>Information</h3>
+                    <p><a href="/about">Om os</a></p>
+                    <p><a href="/terms">Handelsbetingelser</a></p>
+                    <p><a href="/privacy">Privatlivspolitik</a></p>
+                </div>
+            </div>
+            <div style="margin-top: 2rem; text-align: center;">
+                <p>&copy; 2025 LATL.dk - Alle rettigheder forbeholdes</p>
+                <button id="cookieSettingsButton" style="background: none; border: none; text-decoration: underline; cursor: pointer;">Cookie-indstillinger</button>
+            </div>
+        </div>
+    </footer>
+    
+    <div id="cookieBanner" class="cookie-banner" style="display: none;">
+        <div>
+            <p>Vi bruger cookies for at forbedre din oplevelse på vores hjemmeside.</p>
+        </div>
+        <div>
+            <button id="acceptCookiesButton">Acceptér</button>
+            <button id="rejectCookiesButton">Afvis</button>
+        </div>
+    </div>
+    
+    <script>
+        // API-adresse - opdater denne baseret på din serveropsætning
+        const API_URL = '/api';
+        
+        // Globale variabler
+        let globalStyles = {};
+        let currentPageId = null;
+        
+        // Hjælpefunktion til at hente data fra API
+        async function fetchApi(endpoint) {
+            try {
+                const response = await fetch(`${API_URL}/${endpoint}`);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'Der skete en fejl');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                return null;
+            }
+        }
+        
+        // Indlæs globale stilarter
+        async function loadGlobalStyles() {
+            const result = await fetchApi('layout/global/styles');
+            
+            if (result && result.status === 'success' && result.data) {
+                globalStyles = result.data;
+                applyGlobalStyles();
+            }
+        }
+        
+        // Anvend globale stilarter
+        function applyGlobalStyles() {
+            const colorPalette = globalStyles.color_palette || {};
+            const fontConfig = globalStyles.font_config || {};
+            const styles = globalStyles.global_styles || {};
+            
+            // Opret CSS-variabler baseret på farvepaletten
+            let cssVars = `
+                :root {
+                    --primary-color: ${colorPalette.primary || '#042940'};
+                    --secondary-color: ${colorPalette.secondary || '#005C53'};
+                    --accent-color: ${colorPalette.accent || '#9FC131'};
+                    --bright-color: ${colorPalette.bright || '#DBF227'};
+                    --background-color: ${colorPalette.background || '#D6D58E'};
+                    --text-color: ${colorPalette.text || '#042940'};
+                }
+                
+                body {
+                    background-color: var(--background-color);
+                    color: var(--text-color);
+                }
+                
+                .latl-header {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .latl-logo {
+                    color: white;
+                }
+                
+                .latl-nav a {
+                    color: white;
+                }
+                
+                .latl-footer {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .latl-footer a {
+                    color: var(--bright-color);
+                }
+                
+                .band-link a {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-link a:hover {
+                    background-color: var(--bright-color);
+                }
+                
+                .cookie-banner button {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+            `;
+            
+            // Tilføj skrifttype-konfiguration
+            if (fontConfig.heading) {
+                cssVars += `
+                    h1, h2, h3, h4, h5, h6 {
+                        font-family: ${fontConfig.heading['font-family'] || "'Allerta Stencil', sans-serif"};
+                        font-weight: ${fontConfig.heading['font-weight'] || '400'};
+                    }
+                `;
+            }
+            
+            if (fontConfig.body) {
+                cssVars += `
+                    body {
+                        font-family: ${fontConfig.body['font-family'] || "'Open Sans', sans-serif"};
+                        font-weight: ${fontConfig.body['font-weight'] || '400'};
+                    }
+                `;
+            }
+            
+            if (fontConfig.price) {
+                cssVars += `
+                    .product-price {
+                        font-family: ${fontConfig.price['font-family'] || "'Allerta Stencil', sans-serif"};
+                        font-weight: ${fontConfig.price['font-weight'] || '400'};
+                    }
+                `;
+            }
+            
+            if (fontConfig.button) {
+                cssVars += `
+                    button, .button {
+                        font-family: ${fontConfig.button['font-family'] || "'Open Sans', sans-serif"};
+                        font-weight: ${fontConfig.button['font-weight'] || '600'};
+                    }
+                `;
+            }
+            
+            // Tilføj eventuelt custom CSS
+            if (styles.css) {
+                cssVars += styles.css;
+            }
+            
+            // Anvend CSS
+            document.getElementById('globalStyles').textContent += cssVars;
+        }
+        
+        // Indlæs layout for en side
+        async function loadPage(pageId) {
+            currentPageId = pageId || 'forside'; // Default til forside
+            
+            const result = await fetchApi(`layout/${currentPageId}`);
+            
+            if (result && result.status === 'success' && result.data) {
+                renderPage(result.data);
+            } else {
+                document.getElementById('page-content').innerHTML = `
+                    <div class="band-content" style="padding: 2rem 0; text-align: center;">
+                        <h1>Side ikke fundet</h1>
+                        <p>Beklager, men den ønskede side kunne ikke findes.</p>
+                        <a href="/" class="button" style="display: inline-block; padding: 0.5rem 1rem; background-color: var(--accent-color); color: var(--primary-color); text-decoration: none; border-radius: 4px; margin-top: 1rem;">Gå til forsiden</a>
+                    </div>
+                `;
+            }
+        }
+        
+        // Render en side baseret på layout data
+        function renderPage(layout) {
+            const pageContent = document.getElementById('page-content');
+            pageContent.innerHTML = ''; // Ryd eksisterende indhold
+            
+            // Få bånd i korrekt rækkefølge
+            const bands = layout.bands || [];
+            bands.sort((a, b) => a.band_order - b.band_order);
+            
+            // Render hvert bånd
+            bands.forEach(band => {
+                const bandElement = renderBand(band);
+                if (bandElement) {
+                    pageContent.appendChild(bandElement);
+                }
+            });
+            
+            // Hvis der ikke er nogen bånd, vis en fejlmeddelelse
+            if (bands.length === 0) {
+                pageContent.innerHTML = `
+                    <div class="band-content" style="padding: 2rem 0; text-align: center;">
+                        <p>Ingen indhold fundet for denne side.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Render et enkelt bånd
+        function renderBand(band) {
+            const bandElement = document.createElement('div');
+            bandElement.className = `band band-${band.band_type}`;
+            
+            // Beregn højden baseret på band_height (1x, 2x, 3x, 4x)
+            const baseHeight = 300; // Basis højde i pixels
+            const height = band.band_height * baseHeight;
+            bandElement.style.minHeight = `${height}px`;
+            
+            // Render forskelligt indhold baseret på båndtype
+            switch (band.band_type) {
+                case 'slideshow':
+                    renderSlideshowBand(bandElement, band);
+                    break;
+                    
+                case 'product':
+                case 'product_card':
+                case 'product_full':
+                    renderProductBand(bandElement, band);
+                    break;
+                    
+                case 'html':
+                    renderHtmlBand(bandElement, band);
+                    break;
+                    
+                case 'related_products':
+                    renderRelatedProductsBand(bandElement, band);
+                    break;
+                    
+                case 'link':
+                    renderLinkBand(bandElement, band);
+                    break;
+                    
+                default:
+                    const content = document.createElement('div');
+                    content.className = 'band-content';
+                    content.innerHTML = `<p>Ukendt båndtype: ${band.band_type}</p>`;
+                    bandElement.appendChild(content);
+            }
+            
+            return bandElement;
+        }
+        
+        // Render slideshow bånd
+        function renderSlideshowBand(bandElement, band) {
+            const content = band.band_content || {};
+            const slides = content.slides || [];
+            
+            if (slides.length === 0) {
+                bandElement.innerHTML = `
+                    <div class="band-content">
+                        <p>Ingen slides fundet for dette slideshow.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const slideshowContainer = document.createElement('div');
+            slideshowContainer.className = 'slideshow-container';
+            
+            slides.forEach((slide, index) => {
+                const slideElement = document.createElement('div');
+                slideElement.className = 'slideshow-slide';
+                slideElement.style.backgroundImage = `url('${slide.image}')`;
+                
+                if (slide.title || slide.description) {
+                    const slideContent = document.createElement('div');
+                    slideContent.className = 'slide-content';
+                    slideContent.style.position = 'absolute';
+                    slideContent.style.bottom = '2rem';
+                    slideContent.style.left = '2rem';
+                    slideContent.style.right = '2rem';
+                    slideContent.style.color = 'white';
+                    slideContent.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.6)';
+                    
+                    if (slide.title) {
+                        const title = document.createElement('h2');
+                        title.textContent = slide.title;
+                        slideContent.appendChild(title);
+                    }
+                    
+                    if (slide.description) {
+                        const description = document.createElement('p');
+                        description.textContent = slide.description;
+                        slideContent.appendChild(description);
+                    }
+                    
+                    if (slide.link) {
+                        const link = document.createElement('a');
+                        link.href = slide.link;
+                        link.textContent = slide.link_text || 'Læs mere';
+                        link.style.display = 'inline-block';
+                        link.style.padding = '0.5rem 1rem';
+                        link.style.backgroundColor = 'var(--accent-color)';
+                        link.style.color = 'var(--primary-color)';
+                        link.style.textDecoration = 'none';
+                        link.style.borderRadius = '4px';
+                        link.style.marginTop = '1rem';
+                        slideContent.appendChild(link);
+                    }
+                    
+                    slideElement.appendChild(slideContent);
+                }
+                
+                slideshowContainer.appendChild(slideElement);
+            });
+            
+            bandElement.appendChild(slideshowContainer);
+            
+            // Tilføj navigation dots
+            const slideshowNav = document.createElement('div');
+            slideshowNav.className = 'slideshow-nav';
+            
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'slideshow-dot';
+                if (index === 0) dot.classList.add('active');
+                
+                dot.addEventListener('click', () => {
+                    slideshowContainer.style.transform = `translateX(-${index * 100}%)`;
+                    
+                    // Opdater aktive dots
+                    const dots = slideshowNav.querySelectorAll('.slideshow-dot');
+                    dots.forEach(d => d.classList.remove('active'));
+                    dot.classList.add('active');
+                });
+                
+                slideshowNav.appendChild(dot);
+            });
+            
+            bandElement.appendChild(slideshowNav);
+            
+            // Automatisk skift
+            let currentSlide = 0;
+            setInterval(() => {
+                currentSlide = (currentSlide + 1) % slides.length;
+                slideshowContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+                
+                // Opdater aktive dots
+                const dots = slideshowNav.querySelectorAll('.slideshow-dot');
+                dots.forEach(d => d.classList.remove('active'));
+                dots[currentSlide].classList.add('active');
+            }, 5000);
+        }
+        
+        // Render produkt bånd
+        function renderProductBand(bandElement, band) {
+            const content = band.band_content || {};
+            const products = content.products || [];
+            
+            const bandContent = document.createElement('div');
+            bandContent.className = 'band-content';
+            
+            if (content.title) {
+                const title = document.createElement('h2');
+                title.textContent = content.title;
+                title.style.textAlign = 'center';
+                title.style.marginBottom = '2rem';
+                bandContent.appendChild(title);
+            }
+            
+            if (products.length === 0) {
+                const emptyMessage = document.createElement('p');
+                emptyMessage.textContent = 'Ingen produkter fundet.';
+                emptyMessage.style.textAlign = 'center';
+                bandContent.appendChild(emptyMessage);
+                bandElement.appendChild(bandContent);
+                return;
+            }
+            
+            const productContainer = document.createElement('div');
+            productContainer.className = 'product-container';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                if (product.image) {
+                    const image = document.createElement('img');
+                    image.src = product.image;
+                    image.alt = product.title || 'Produkt';
+                    image.className = 'product-image';
+                    productCard.appendChild(image);
+                }
+                
+                const productInfo = document.createElement('div');
+                productInfo.className = 'product-info';
+                
+                if (product.title) {
+                    const title = document.createElement('h3');
+                    title.className = 'product-title';
+                    title.textContent = product.title;
+                    productInfo.appendChild(title);
+                }
+                
+                if (product.description) {
+                    const description = document.createElement('p');
+                    description.textContent = product.description;
+                    productInfo.appendChild(description);
+                }
+                
+                if (product.price) {
+                    const price = document.createElement('div');
+                    price.className = 'product-price';
+                    price.textContent = `${product.price} kr.`;
+                    productInfo.appendChild(price);
+                }
+                
+                const addToCartButton = document.createElement('button');
+                addToCartButton.textContent = 'Læg i kurv';
+                addToCartButton.style.marginTop = '1rem';
+                addToCartButton.style.padding = '0.5rem 1rem';
+                addToCartButton.style.backgroundColor = 'var(--accent-color)';
+                addToCartButton.style.color = 'var(--primary-color)';
+                addToCartButton.style.border = 'none';
+                addToCartButton.style.borderRadius = '4px';
+                addToCartButton.style.cursor = 'pointer';
+                
+                addToCartButton.addEventListener('click', () => {
+                    alert(`Produkt tilføjet til kurven: ${product.title}`);
+                });
+                
+                productInfo.appendChild(addToCartButton);
+                productCard.appendChild(productInfo);
+                productContainer.appendChild(productCard);
+            });
+            
+            bandContent.appendChild(productContainer);
+            bandElement.appendChild(bandContent);
+        }
+        
+        // Render HTML bånd
+        function renderHtmlBand(bandElement, band) {
+            const content = band.band_content || {};
+            const html = content.html || '';
+            
+            const bandContent = document.createElement('div');
+            bandContent.className = 'band-content';
+            bandContent.innerHTML = html;
+            
+            bandElement.appendChild(bandContent);
+        }
+        
+        // Render relaterede produkter bånd
+        function renderRelatedProductsBand(bandElement, band) {
+            const content = band.band_content || {};
+            
+            const bandContent = document.createElement('div');
+            bandContent.className = 'band-content';
+            
+            const title = document.createElement('h2');
+            title.textContent = content.title || 'Relaterede produkter';
+            title.style.textAlign = 'center';
+            title.style.marginBottom = '2rem';
+            bandContent.appendChild(title);
+            
+            // I en rigtig implementering ville vi hente relaterede produkter fra API
+            // For nu bruger vi nogle dummy produkter
+            const products = [
+                {
+                    title: 'Relateret produkt 1',
+                    description: 'Beskrivelse af relateret produkt 1',
+                    price: 299,
+                    image: 'https://via.placeholder.com/300x200?text=Produkt+1'
+                },
+                {
+                    title: 'Relateret produkt 2',
+                    description: 'Beskrivelse af relateret produkt 2',
+                    price: 399,
+                    image: 'https://via.placeholder.com/300x200?text=Produkt+2'
+                },
+                {
+                    title: 'Relateret produkt 3',
+                    description: 'Beskrivelse af relateret produkt 3',
+                    price: 499,
+                    image: 'https://via.placeholder.com/300x200?text=Produkt+3'
+                }
+            ];
+            
+            const productContainer = document.createElement('div');
+            productContainer.className = 'product-container';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                if (product.image) {
+                    const image = document.createElement('img');
+                    image.src = product.image;
+                    image.alt = product.title || 'Produkt';
+                    image.className = 'product-image';
+                    productCard.appendChild(image);
+                }
+                
+                const productInfo = document.createElement('div');
+                productInfo.className = 'product-info';
+                
+                if (product.title) {
+                    const title = document.createElement('h3');
+                    title.className = 'product-title';
+                    title.textContent = product.title;
+                    productInfo.appendChild(title);
+                }
+                
+                if (product.description) {
+                    const description = document.createElement('p');
+                    description.textContent = product.description;
+                    productInfo.appendChild(description);
+                }
+                
+                if (product.price) {
+                    const price = document.createElement('div');
+                    price.className = 'product-price';
+                    price.textContent = `${product.price} kr.`;
+                    productInfo.appendChild(price);
+                }
+                
+                const addToCartButton = document.createElement('button');
+                addToCartButton.textContent = 'Læg i kurv';
+                addToCartButton.style.marginTop = '1rem';
+                addToCartButton.style.padding = '0.5rem 1rem';
+                addToCartButton.style.backgroundColor = 'var(--accent-color)';
+                addToCartButton.style.color = 'var(--primary-color)';
+                addToCartButton.style.border = 'none';
+                addToCartButton.style.borderRadius = '4px';
+                addToCartButton.style.cursor = 'pointer';
+                
+                addToCartButton.addEventListener('click', () => {
+                    alert(`Produkt tilføjet til kurven: ${product.title}`);
+                });
+                
+                productInfo.appendChild(addToCartButton);
+                productCard.appendChild(productInfo);
+                productContainer.appendChild(productCard);
+            });
+            
+            bandContent.appendChild(productContainer);
+            bandElement.appendChild(bandContent);
+        }
+        
+        // Render link bånd
+        function renderLinkBand(bandElement, band) {
+            const content = band.band_content || {};
+            
+            const bandContent = document.createElement('div');
+            bandContent.className = 'band-content';
+            
+            if (content.title) {
+                const title = document.createElement('h2');
+                title.textContent = content.title;
+                bandContent.appendChild(title);
+            }
+            
+            if (content.description) {
+                const description = document.createElement('p');
+                description.textContent = content.description;
+                bandContent.appendChild(description);
+            }
+            
+            if (content.link) {
+                const linkContainer = document.createElement('div');
+                linkContainer.style.marginTop = '1rem';
+                
+                const link = document.createElement('a');
+                link.href = content.link;
+                link.textContent = content.link_text || 'Læs mere';
+                link.className = 'button';
+                
+                linkContainer.appendChild(link);
+                bandContent.appendChild(linkContainer);
+            }
+            
+            bandElement.appendChild(bandContent);
+        }
+        
+        // Cookie-håndtering
+        function initCookieBanner() {
+            const cookieBanner = document.getElementById('cookieBanner');
+            const acceptButton = document.getElementById('acceptCookiesButton');
+            const rejectButton = document.getElementById('rejectCookiesButton');
+            const settingsButton = document.getElementById('cookieSettingsButton');
+            
+            // Tjek om brugeren allerede har taget stilling til cookies
+            const cookieConsent = localStorage.getItem('cookieConsent');
+            
+            if (cookieConsent === null) {
+                // Hvis der ikke er taget stilling, vis banner
+                cookieBanner.style.display = 'flex';
+            }
+            
+            // Håndter accept af cookies
+            acceptButton.addEventListener('click', () => {
+                localStorage.setItem('cookieConsent', 'accepted');
+                cookieBanner.style.display = 'none';
+            });
+            
+            // Håndter afvisning af cookies
+            rejectButton.addEventListener('click', () => {
+                localStorage.setItem('cookieConsent', 'rejected');
+                cookieBanner.style.display = 'none';
+            });
+            
+            // Håndter klik på cookie-indstillinger
+            settingsButton.addEventListener('click', () => {
+                cookieBanner.style.display = 'flex';
+            });
+        }
+        
+        // Initialisering
+        async function init() {
+            // Indlæs globale stilarter
+            await loadGlobalStyles();
+            
+            // Bestem hvilken side der skal vises baseret på URL
+            const url = new URL(window.location.href);
+            const pathSegments = url.pathname.split('/').filter(segment => segment);
+            
+            let pageId = 'forside'; // Default til forside
+            
+            if (pathSegments.length > 0) {
+                pageId = pathSegments[0];
+            }
+            
+            // Indlæs side
+            await loadPage(pageId);
+            
+            // Initialisér cookie-banner
+            initCookieBanner();
+        }
+        
+        // Start app
+        init();
+    </script>
+</body>
+</html>
