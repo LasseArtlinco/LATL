@@ -83,6 +83,22 @@ try {
             http_response_code(404);
             echo json_encode(['error' => 'Endpoint not found']);
             break;
+       
+        // For globale stilarter
+        case 'layout/global-styles':
+            require_once 'layout.php';
+            $controller = new LayoutController($db);
+            if ($method == 'GET') {
+            $result = $controller->getGlobalStyles();
+            echo json_encode($result);
+        } else if ($method == 'PUT') {
+            $result = $controller->updateGlobalStyles($data);
+            echo json_encode($result);
+        } else {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed']);
+            }
+            break;
     }
 } catch (Exception $e) {
     if (DEBUG_MODE) {
