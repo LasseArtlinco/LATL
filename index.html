@@ -370,15 +370,20 @@
         // API-adresse - opdater denne baseret på din serveropsætning
         const API_URL = '/api';
         
-        // Globale variabler
+        // Debug flag
+        const DEBUG = true;
         let globalStyles = {};
         let currentPageId = null;
         
         // Hjælpefunktion til at hente data fra API
         async function fetchApi(endpoint) {
             try {
+                if (DEBUG) console.log(`Fetching from: ${API_URL}/${endpoint}`);
+                
                 const response = await fetch(`${API_URL}/${endpoint}`);
                 const result = await response.json();
+                
+                if (DEBUG) console.log('API response:', result);
                 
                 if (!response.ok) {
                     throw new Error(result.message || 'Der skete en fejl');
@@ -387,6 +392,26 @@
                 return result;
             } catch (error) {
                 console.error('API Error:', error);
+                
+                // Vis fejl på siden hvis vi er i debug mode
+                if (DEBUG) {
+                    const pageContent = document.getElementById('page-content');
+                    pageContent.innerHTML = `
+                        <div class="band-content" style="padding: 2rem 0;">
+                            <h1>API Fejl</h1>
+                            <p>Der opstod en fejl ved kommunikation med API'et:</p>
+                            <pre style="background: #f1f1f1; padding: 1rem; overflow: auto;">${error.toString()}</pre>
+                            <p>Endpoint: ${API_URL}/${endpoint}</p>
+                            <p>Kontrollér at:</p>
+                            <ul>
+                                <li>API_URL variablen er korrekt indstillet (nuværende værdi: ${API_URL})</li>
+                                <li>API'et kører og er tilgængeligt</li>
+                                <li>CORS-headers er korrekt konfigureret</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+                
                 return null;
             }
         }
@@ -510,19 +535,121 @@
         async function loadPage(pageId) {
             currentPageId = pageId || 'forside'; // Default til forside
             
+            if (DEBUG) console.log(`Loading page: ${currentPageId}`);
+            
             const result = await fetchApi(`layout/${currentPageId}`);
             
             if (result && result.status === 'success' && result.data) {
                 renderPage(result.data);
             } else {
+                // Hvis API-kaldet mislykkedes eller siden ikke blev fundet
                 document.getElementById('page-content').innerHTML = `
                     <div class="band-content" style="padding: 2rem 0; text-align: center;">
                         <h1>Side ikke fundet</h1>
                         <p>Beklager, men den ønskede side kunne ikke findes.</p>
+                        <p>Dette kan skyldes at:</p>
+                        <ul style="list-style: none; padding: 0;">
+                            <li>Siden ikke eksisterer</li>
+                            <li>API'et ikke er tilgængeligt</li>
+                            <li>Der er problemer med forbindelsen til API'et</li>
+                        </ul>
                         <a href="/" class="button" style="display: inline-block; padding: 0.5rem 1rem; background-color: var(--accent-color); color: var(--primary-color); text-decoration: none; border-radius: 4px; margin-top: 1rem;">Gå til forsiden</a>
                     </div>
                 `;
+                
+                // Hvis vi ikke kan nå API'et, tilbyd manuel indlæsning af mockdata
+                if (DEBUG) {
+                    const pageContent = document.getElementById('page-content');
+                    pageContent.innerHTML += `
+                        <div class="band-content" style="padding: 2rem 0; text-align: center; border-top: 1px solid #ddd; margin-top: 2rem;">
+                            <h2>Debug Værktøjer</h2>
+                            <p>Kan ikke forbinde til API'et. Vil du indlæse mock data for at teste layout?</p>
+                            <button id="loadMockData" style="padding: 0.5rem 1rem; background-color: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">Indlæs Mock Data</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('loadMockData').addEventListener('click', loadMockData);
+                }
             }
+        }
+        
+        // Mock data til testformål
+        function loadMockData() {
+            const mockLayout = {
+                page_id: "forside",
+                layout_data: {
+                    title: "LATL.dk - Læder og Laserskæring",
+                    meta_description: "Håndlavede lædervarer og laserskæring i høj kvalitet fra LATL.dk."
+                },
+                bands: [
+                    {
+                        id: 1,
+                        layout_id: 1,
+                        band_type: "slideshow",
+                        band_height: 3,
+                        band_order: 1,
+                        band_content: {
+                            full_width: true,
+                            slides: [
+                                {
+                                    image: "https://images.unsplash.com/photo-1605030753481-64d14b4d4251?q=80&w=1974&auto=format&fit=crop",
+                                    title: "Håndlavede lædervarer",
+                                    description: "Unikke og holdbare produkter lavet med omhu og kærlighed til håndværket.",
+                                    link: "/shop",
+                                    link_text: "Se vores udvalg"
+                                },
+                                {
+                                    image: "https://images.unsplash.com/photo-1551717551-7d5f490d201f?q=80&w=2070&auto=format&fit=crop",
+                                    title: "Laserskæring i højeste kvalitet",
+                                    description: "Præcision og detaljer, der gør hvert produkt unikt og personligt.",
+                                    link: "/custom",
+                                    link_text: "Design dit eget produkt"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        id: 2,
+                        layout_id: 1,
+                        band_type: "html",
+                        band_height: 1,
+                        band_order: 2,
+                        band_content: {
+                            background_class: "bg-primary",
+                            align: "center",
+                            padding: "3rem 1rem",
+                            html: "<h2 style='color: white; font-size: 2.2rem; margin-bottom: 1.5rem;'>Velkommen til LATL.dk</h2><p style='color: white; max-width: 800px; margin: 0 auto; font-size: 1.1rem;'>Vi specialiserer os i håndlavede lædervarer og laserskæring af højeste kvalitet. Hvert produkt er skabt med omhu, præcision og kærlighed til håndværket.</p>"
+                        }
+                    },
+                    {
+                        id: 3,
+                        layout_id: 1,
+                        band_type: "product",
+                        band_height: 2,
+                        band_order: 3,
+                        band_content: {
+                            title: "Udvalgte produkter",
+                            description: "Se vores mest populære håndlavede lædervarer",
+                            products: [
+                                {
+                                    title: "Læder Pung",
+                                    description: "Håndlavet pung i førsteklasses læder. Holdbar og elegant med plads til kort og sedler.",
+                                    price: 599,
+                                    image: "https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=1974&auto=format&fit=crop"
+                                },
+                                {
+                                    title: "Nøglering med monogram",
+                                    description: "Personlig nøglering i læder med dit valgte monogram laserskåret i materialet.",
+                                    price: 249,
+                                    image: "https://images.unsplash.com/photo-1626871550973-99d0644f8b12?q=80&w=1974&auto=format&fit=crop"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            };
+            
+            renderPage(mockLayout);
         }
         
         // Render en side baseret på layout data
