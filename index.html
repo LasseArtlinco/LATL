@@ -74,12 +74,18 @@
         .band {
             width: 100%;
             box-sizing: border-box;
+            overflow: hidden;
         }
         
         .band-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 1rem;
+        }
+        
+        .band.full-width .band-content {
+            max-width: 100%;
+            padding: 0;
         }
         
         /* Båndtyper */
@@ -91,6 +97,8 @@
         .slideshow-container {
             display: flex;
             transition: transform 0.5s ease-in-out;
+            width: 100%;
+            height: 100%;
         }
         
         .slideshow-slide {
@@ -98,6 +106,29 @@
             height: 100%;
             background-position: center;
             background-size: cover;
+            position: relative;
+        }
+        
+        .slide-content {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 1200px;
+            width: 100%;
+            padding: 0 2rem;
+            box-sizing: border-box;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        
+        .slide-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 50%);
         }
         
         .slideshow-nav {
@@ -123,7 +154,7 @@
         }
         
         .band-product {
-            padding: 2rem 0;
+            padding: 4rem 0;
         }
         
         .product-container {
@@ -136,34 +167,128 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .product-image-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
         }
         
         .product-image {
             width: 100%;
-            height: 200px;
+            height: 100%;
             object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .product-card:hover .product-image {
+            transform: scale(1.05);
         }
         
         .product-info {
-            padding: 1rem;
+            padding: 1.5rem;
         }
         
         .product-title {
             margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
         }
         
         .product-price {
             font-family: 'Allerta Stencil', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
+            margin: 1rem 0;
+            color: var(--primary-color);
+        }
+        
+        .product-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.2s;
+            text-align: center;
+            text-decoration: none;
+            width: 100%;
+        }
+        
+        .product-button:hover {
+            background-color: var(--bright-color);
+            transform: translateY(-2px);
         }
         
         .band-html {
-            padding: 2rem 0;
+            padding: 4rem 0;
+        }
+        
+        .band-html.bg-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .band-html.bg-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .band-html.bg-accent {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        
+        .band-html.bg-bright {
+            background-color: var(--bright-color);
+            color: var(--primary-color);
         }
         
         .band-link {
-            padding: 2rem 0;
+            padding: 4rem 0;
             text-align: center;
+        }
+        
+        .band-link.bg-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .band-link.bg-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .band-link.bg-accent {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        
+        .band-link.bg-bright {
+            background-color: var(--bright-color);
+            color: var(--primary-color);
+        }
+        
+        .band-link h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .band-link p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
         }
         
         .band-link a {
@@ -172,6 +297,12 @@
             border-radius: 4px;
             text-decoration: none;
             font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .band-link a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
         @media (max-width: 768px) {
@@ -426,10 +557,35 @@
             const bandElement = document.createElement('div');
             bandElement.className = `band band-${band.band_type}`;
             
+            const content = band.band_content || {};
+            
+            // Tilføj ekstra klasser baseret på indstillinger
+            if (content.full_width === true) {
+                bandElement.classList.add('full-width');
+            }
+            
+            if (content.background_color) {
+                bandElement.style.backgroundColor = content.background_color;
+            }
+            
+            if (content.text_color) {
+                bandElement.style.color = content.text_color;
+            }
+            
+            if (content.background_class) {
+                bandElement.classList.add(content.background_class);
+            }
+            
             // Beregn højden baseret på band_height (1x, 2x, 3x, 4x)
             const baseHeight = 300; // Basis højde i pixels
             const height = band.band_height * baseHeight;
-            bandElement.style.minHeight = `${height}px`;
+            
+            // For slideshow anvender vi altid en fast højde
+            if (band.band_type === 'slideshow') {
+                bandElement.style.height = `${height}px`;
+            } else {
+                bandElement.style.minHeight = `${height}px`;
+            }
             
             // Render forskelligt indhold baseret på båndtype
             switch (band.band_type) {
@@ -456,10 +612,10 @@
                     break;
                     
                 default:
-                    const content = document.createElement('div');
-                    content.className = 'band-content';
-                    content.innerHTML = `<p>Ukendt båndtype: ${band.band_type}</p>`;
-                    bandElement.appendChild(content);
+                    const contentElement = document.createElement('div');
+                    contentElement.className = 'band-content';
+                    contentElement.innerHTML = `<p>Ukendt båndtype: ${band.band_type}</p>`;
+                    bandElement.appendChild(contentElement);
             }
             
             return bandElement;
@@ -471,11 +627,12 @@
             const slides = content.slides || [];
             
             if (slides.length === 0) {
-                bandElement.innerHTML = `
-                    <div class="band-content">
-                        <p>Ingen slides fundet for dette slideshow.</p>
-                    </div>
+                const emptyContent = document.createElement('div');
+                emptyContent.className = 'band-content';
+                emptyContent.innerHTML = `
+                    <p>Ingen slides fundet for dette slideshow.</p>
                 `;
+                bandElement.appendChild(emptyContent);
                 return;
             }
             
@@ -487,25 +644,29 @@
                 slideElement.className = 'slideshow-slide';
                 slideElement.style.backgroundImage = `url('${slide.image}')`;
                 
-                if (slide.title || slide.description) {
+                // Tilføj overlay for bedre læsbarhed
+                const overlay = document.createElement('div');
+                overlay.className = 'slide-overlay';
+                slideElement.appendChild(overlay);
+                
+                if (slide.title || slide.description || slide.link) {
                     const slideContent = document.createElement('div');
                     slideContent.className = 'slide-content';
-                    slideContent.style.position = 'absolute';
-                    slideContent.style.bottom = '2rem';
-                    slideContent.style.left = '2rem';
-                    slideContent.style.right = '2rem';
-                    slideContent.style.color = 'white';
-                    slideContent.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.6)';
                     
                     if (slide.title) {
                         const title = document.createElement('h2');
                         title.textContent = slide.title;
+                        title.style.fontSize = '2.5rem';
+                        title.style.marginBottom = '1rem';
                         slideContent.appendChild(title);
                     }
                     
                     if (slide.description) {
                         const description = document.createElement('p');
                         description.textContent = slide.description;
+                        description.style.fontSize = '1.2rem';
+                        description.style.maxWidth = '800px';
+                        description.style.marginBottom = '1.5rem';
                         slideContent.appendChild(description);
                     }
                     
@@ -514,12 +675,24 @@
                         link.href = slide.link;
                         link.textContent = slide.link_text || 'Læs mere';
                         link.style.display = 'inline-block';
-                        link.style.padding = '0.5rem 1rem';
+                        link.style.padding = '0.75rem 1.5rem';
                         link.style.backgroundColor = 'var(--accent-color)';
                         link.style.color = 'var(--primary-color)';
                         link.style.textDecoration = 'none';
                         link.style.borderRadius = '4px';
-                        link.style.marginTop = '1rem';
+                        link.style.fontWeight = 'bold';
+                        link.style.transition = 'background-color 0.3s, transform 0.3s';
+                        
+                        link.addEventListener('mouseover', () => {
+                            link.style.backgroundColor = 'var(--bright-color)';
+                            link.style.transform = 'translateY(-3px)';
+                        });
+                        
+                        link.addEventListener('mouseout', () => {
+                            link.style.backgroundColor = 'var(--accent-color)';
+                            link.style.transform = 'translateY(0)';
+                        });
+                        
                         slideContent.appendChild(link);
                     }
                     
@@ -580,7 +753,18 @@
                 title.textContent = content.title;
                 title.style.textAlign = 'center';
                 title.style.marginBottom = '2rem';
+                title.style.fontSize = '2.2rem';
                 bandContent.appendChild(title);
+            }
+            
+            if (content.description) {
+                const description = document.createElement('p');
+                description.textContent = content.description;
+                description.style.textAlign = 'center';
+                description.style.maxWidth = '800px';
+                description.style.margin = '0 auto 3rem auto';
+                description.style.fontSize = '1.1rem';
+                bandContent.appendChild(description);
             }
             
             if (products.length === 0) {
@@ -600,11 +784,16 @@
                 productCard.className = 'product-card';
                 
                 if (product.image) {
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'product-image-container';
+                    
                     const image = document.createElement('img');
                     image.src = product.image;
                     image.alt = product.title || 'Produkt';
                     image.className = 'product-image';
-                    productCard.appendChild(image);
+                    
+                    imageContainer.appendChild(image);
+                    productCard.appendChild(imageContainer);
                 }
                 
                 const productInfo = document.createElement('div');
@@ -632,13 +821,7 @@
                 
                 const addToCartButton = document.createElement('button');
                 addToCartButton.textContent = 'Læg i kurv';
-                addToCartButton.style.marginTop = '1rem';
-                addToCartButton.style.padding = '0.5rem 1rem';
-                addToCartButton.style.backgroundColor = 'var(--accent-color)';
-                addToCartButton.style.color = 'var(--primary-color)';
-                addToCartButton.style.border = 'none';
-                addToCartButton.style.borderRadius = '4px';
-                addToCartButton.style.cursor = 'pointer';
+                addToCartButton.className = 'product-button';
                 
                 addToCartButton.addEventListener('click', () => {
                     alert(`Produkt tilføjet til kurven: ${product.title}`);
@@ -650,6 +833,22 @@
             });
             
             bandContent.appendChild(productContainer);
+            
+            if (content.show_more_link) {
+                const moreContainer = document.createElement('div');
+                moreContainer.style.textAlign = 'center';
+                moreContainer.style.marginTop = '3rem';
+                
+                const moreLink = document.createElement('a');
+                moreLink.href = content.show_more_link;
+                moreLink.textContent = content.show_more_text || 'Se flere produkter';
+                moreLink.className = 'product-button';
+                moreLink.style.maxWidth = '300px';
+                
+                moreContainer.appendChild(moreLink);
+                bandContent.appendChild(moreContainer);
+            }
+            
             bandElement.appendChild(bandContent);
         }
         
