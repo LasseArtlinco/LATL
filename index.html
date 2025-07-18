@@ -968,8 +968,9 @@
                 
                 const moreLink = document.createElement('a');
                 moreLink.href = content.show_more_link;
-                moreLink.textContent = content.show_more_text || 'Se flere produkter';
+                moreLink.textContent = content.show_more_text || 'Se alle produkter';
                 moreLink.className = 'product-button';
+                moreLink.style.display = 'inline-block';
                 moreLink.style.maxWidth = '300px';
                 
                 moreContainer.appendChild(moreLink);
