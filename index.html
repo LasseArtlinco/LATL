@@ -1,4 +1,47 @@
-<!DOCTYPE html>
+// Render CTA bånd
+        function renderCtaBand(bandElement, band) {
+            const content = band.band_content || {};
+            
+            const bandContent = document.createElement('div');
+            bandContent.className = 'band-content';
+            
+            if (content.title) {
+                const title = document.createElement('h2');
+                title.textContent = content.title;
+                title.style.fontSize = '2.5rem';
+                title.style.marginBottom = '1rem';
+                bandContent.appendChild(title);
+            }
+            
+            if (content.description) {
+                const description = document.createElement('p');
+                description.textContent = content.description;
+                description.style.fontSize = '1.2rem';
+                description.style.maxWidth = '800px';
+                description.style.margin = '0 auto 1.5rem auto';
+                bandContent.appendChild(description);
+            }
+            
+            if (content.button_link) {
+                const button = document.createElement('a');
+                button.href = content.button_link;
+                button.textContent = content.button_text || 'Klik her';
+                button.className = 'cta-button';
+                
+                // Tilføj speciel stil baseret på indstillinger
+                if (content.button_color) {
+                    button.style.backgroundColor = content.button_color;
+                }
+                
+                if (content.button_text_color) {
+                    button.style.color = content.button_text_color;
+                }
+                
+                bandContent.appendChild(button);
+            }
+            
+            bandElement.appendChild(bandContent);
+        }<!DOCTYPE html>
 <html lang="da">
 <head>
     <meta charset="UTF-8">
@@ -273,6 +316,53 @@
         .band-link.bg-accent {
             background-color: var(--accent-color);
             color: var(--primary-color);
+        }
+        
+                // CSS for CTA bånd
+        .band-cta {
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .band-cta.bg-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .band-cta.bg-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .band-cta.bg-accent {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        
+        .band-cta.bg-bright {
+            background-color: var(--bright-color);
+            color: var(--primary-color);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            border-radius: 4px;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+            margin-top: 1.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background-color: var(--bright-color);
         }
         
         .band-link.bg-bright {
@@ -736,6 +826,10 @@
                     
                 case 'link':
                     renderLinkBand(bandElement, band);
+                    break;
+                    
+                case 'cta':
+                    renderCtaBand(bandElement, band);
                     break;
                     
                 default:
