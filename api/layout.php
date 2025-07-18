@@ -1,5 +1,5 @@
 <?php
-// api/layout.php - Udvidet Layout controller
+// api/layout.php - Layout controller - Opdateret med support for global_styles, font_config, color_palette og bands
 class LayoutController {
     private $db;
     
@@ -7,16 +7,28 @@ class LayoutController {
         $this->db = $db;
     }
     
+    /**
+     * Hent alle layout konfigurationer
+     */
     public function getAll() {
         try {
-            $result = $this->db->select("SELECT * FROM layout_config ORDER BY page_id");
-            return ['status' => 'success', 'data' => $result];
+            $layouts = $this->db->select("SELECT * FROM layout_config ORDER BY page_id");
+            
+            // For hvert layout, dekoder vi JSON-felterne
+            foreach ($layouts as &$layout) {
+                $this->decodeJsonFields($layout);
+            }
+            
+            return ['status' => 'success', 'data' => $layouts];
         } catch (Exception $e) {
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
     
+    /**
+     * Hent layout konfiguration baseret på page_id
+     */
     public function getById($pageId) {
         try {
             $layout = $this->db->selectOne("SELECT * FROM layout_config WHERE page_id = ?", [$pageId]);
@@ -26,22 +38,11 @@ class LayoutController {
                 return ['status' => 'error', 'message' => 'Layout not found'];
             }
             
-            // Konverter JSON data til arrays
-            if ($layout['layout_data']) {
-                $layout['layout_data'] = json_decode($layout['layout_data'], true);
-            }
-            if ($layout['global_styles']) {
-                $layout['global_styles'] = json_decode($layout['global_styles'], true);
-            }
-            if ($layout['font_config']) {
-                $layout['font_config'] = json_decode($layout['font_config'], true);
-            }
-            if ($layout['color_palette']) {
-                $layout['color_palette'] = json_decode($layout['color_palette'], true);
-            }
+            // Konverter JSON-felter til arrays
+            $this->decodeJsonFields($layout);
             
-            // Hent bånd for dette layout
-            $bands = $this->getBandsForLayout($layout['id']);
+            // Hent bands knyttet til dette layout
+            $bands = $this->getBands($layout['id']);
             $layout['bands'] = $bands;
             
             return ['status' => 'success', 'data' => $layout];
@@ -51,6 +52,9 @@ class LayoutController {
         }
     }
     
+    /**
+     * Opret nyt layout
+     */
     public function create($data) {
         try {
             // Valider input data
@@ -66,31 +70,21 @@ class LayoutController {
                 return ['status' => 'error', 'message' => 'Layout for this page already exists'];
             }
             
-            // Konverter JSON data
-            $layoutData = isset($data['layout_data']) ? 
-                (is_array($data['layout_data']) ? json_encode($data['layout_data']) : $data['layout_data']) : null;
-            
-            $globalStyles = isset($data['global_styles']) ? 
-                (is_array($data['global_styles']) ? json_encode($data['global_styles']) : $data['global_styles']) : null;
-            
-            $fontConfig = isset($data['font_config']) ? 
-                (is_array($data['font_config']) ? json_encode($data['font_config']) : $data['font_config']) : null;
-            
-            $colorPalette = isset($data['color_palette']) ? 
-                (is_array($data['color_palette']) ? json_encode($data['color_palette']) : $data['color_palette']) : null;
+            // Forbered data til indsættelse - konverter arrays til JSON
+            $layoutData = [
+                'page_id' => $data['page_id'],
+                'layout_data' => isset($data['layout_data']) ? $this->prepareJsonField($data['layout_data']) : null,
+                'global_styles' => isset($data['global_styles']) ? $this->prepareJsonField($data['global_styles']) : null,
+                'font_config' => isset($data['font_config']) ? $this->prepareJsonField($data['font_config']) : null,
+                'color_palette' => isset($data['color_palette']) ? $this->prepareJsonField($data['color_palette']) : null
+            ];
             
             // Opret layout
-            $layoutId = $this->db->insert('layout_config', [
-                'page_id' => $data['page_id'],
-                'layout_data' => $layoutData,
-                'global_styles' => $globalStyles,
-                'font_config' => $fontConfig,
-                'color_palette' => $colorPalette
-            ]);
+            $layoutId = $this->db->insert('layout_config', $layoutData);
             
-            // Håndter bånd, hvis de er inkluderet
+            // Hvis der er bands med i data, opretter vi dem
             if (isset($data['bands']) && is_array($data['bands'])) {
-                $this->saveBands($layoutId, $data['bands']);
+                $this->createBands($layoutId, $data['bands']);
             }
             
             // Hent det nye layout
@@ -101,6 +95,9 @@ class LayoutController {
         }
     }
     
+    /**
+     * Opdater eksisterende layout
+     */
     public function update($pageId, $data) {
         try {
             // Tjek om layout eksisterer
@@ -110,44 +107,38 @@ class LayoutController {
                 return ['status' => 'error', 'message' => 'Layout not found'];
             }
             
+            $layoutId = $layout['id'];
             $updateData = [];
             
-            // Opdater layout data hvis den er sat
+            // Opdater layout felter hvis de er inkluderet i request
             if (isset($data['layout_data'])) {
-                $updateData['layout_data'] = is_array($data['layout_data']) ? 
-                    json_encode($data['layout_data']) : $data['layout_data'];
+                $updateData['layout_data'] = $this->prepareJsonField($data['layout_data']);
             }
             
-            // Opdater global styles hvis de er sat
             if (isset($data['global_styles'])) {
-                $updateData['global_styles'] = is_array($data['global_styles']) ? 
-                    json_encode($data['global_styles']) : $data['global_styles'];
+                $updateData['global_styles'] = $this->prepareJsonField($data['global_styles']);
             }
             
-            // Opdater font config hvis den er sat
             if (isset($data['font_config'])) {
-                $updateData['font_config'] = is_array($data['font_config']) ? 
-                    json_encode($data['font_config']) : $data['font_config'];
+                $updateData['font_config'] = $this->prepareJsonField($data['font_config']);
             }
             
-            // Opdater color palette hvis den er sat
             if (isset($data['color_palette'])) {
-                $updateData['color_palette'] = is_array($data['color_palette']) ? 
-                    json_encode($data['color_palette']) : $data['color_palette'];
+                $updateData['color_palette'] = $this->prepareJsonField($data['color_palette']);
             }
             
-            // Opdater layout data i databasen
+            // Udfør opdatering hvis der er data at opdatere
             if (!empty($updateData)) {
-                $this->db->update('layout_config', $updateData, 'id = ?', [$layout['id']]);
+                $this->db->update('layout_config', $updateData, 'id = ?', [$layoutId]);
             }
             
-            // Håndter bands, hvis de er inkluderet
+            // Hvis der er bands med i data, opdaterer vi dem
             if (isset($data['bands']) && is_array($data['bands'])) {
                 // Slet eksisterende bands først
-                $this->db->delete('layout_bands', 'layout_id = ?', [$layout['id']]);
+                $this->db->delete('layout_bands', 'layout_id = ?', [$layoutId]);
                 
-                // Gem de nye bands
-                $this->saveBands($layout['id'], $data['bands']);
+                // Opret nye bands
+                $this->createBands($layoutId, $data['bands']);
             }
             
             // Hent det opdaterede layout
@@ -158,6 +149,9 @@ class LayoutController {
         }
     }
     
+    /**
+     * Slet layout
+     */
     public function delete($pageId) {
         try {
             // Tjek om layout eksisterer
@@ -167,8 +161,13 @@ class LayoutController {
                 return ['status' => 'error', 'message' => 'Layout not found'];
             }
             
-            // Slet layout (kaskade-delete vil også slette tilknyttede bands)
-            $this->db->delete('layout_config', 'page_id = ?', [$pageId]);
+            $layoutId = $layout['id'];
+            
+            // Slet bands knyttet til dette layout
+            $this->db->delete('layout_bands', 'layout_id = ?', [$layoutId]);
+            
+            // Slet layout
+            $this->db->delete('layout_config', 'id = ?', [$layoutId]);
             
             return ['status' => 'success', 'message' => 'Layout deleted successfully'];
         } catch (Exception $e) {
@@ -177,135 +176,225 @@ class LayoutController {
         }
     }
     
-    // Metode til at gemme bands
-    private function saveBands($layoutId, $bands) {
-        $order = 1;
-        foreach ($bands as $band) {
-            // Valider at de nødvendige felter er til stede
-            if (!isset($band['band_type'])) {
-                continue; // Spring over bands uden type
-            }
-            
-            $bandContent = isset($band['band_content']) ? 
-                (is_array($band['band_content']) ? json_encode($band['band_content']) : $band['band_content']) : null;
-            
-            $bandHeight = isset($band['band_height']) ? intval($band['band_height']) : 1;
-            // Sikre at band_height er mellem 1 og 4
-            $bandHeight = max(1, min(4, $bandHeight));
-            
-            $this->db->insert('layout_bands', [
-                'layout_id' => $layoutId,
-                'band_type' => $band['band_type'],
-                'band_height' => $bandHeight,
-                'band_content' => $bandContent,
-                'band_order' => $order++
-            ]);
-        }
-    }
-    
-    // Metode til at hente bands for et layout
-    private function getBandsForLayout($layoutId) {
-        $bands = $this->db->select("SELECT * FROM layout_bands WHERE layout_id = ? ORDER BY band_order", [$layoutId]);
-        
-        // Konverter band_content til arrays
-        foreach ($bands as &$band) {
-            if ($band['band_content']) {
-                $band['band_content'] = json_decode($band['band_content'], true);
-            }
-        }
-        
-        return $bands;
-    }
-    
-    // Metode til at hente globale stilarter
+    /**
+     * Hent globale stilarter
+     */
     public function getGlobalStyles() {
         try {
-            $styles = $this->db->selectOne("SELECT * FROM layout_config WHERE page_id = 'global'");
+            // Hent layout med global_styles, font_config og color_palette
+            $globalStyles = $this->db->selectOne("
+                SELECT global_styles, font_config, color_palette 
+                FROM layout_config 
+                WHERE page_id = 'global'
+            ");
             
-            if (!$styles) {
-                // Opret default global styles, hvis de ikke eksisterer
-                $defaultStyles = [
-                    'colors' => [
-                        'primary' => '#333333',
-                        'secondary' => '#666666',
-                        'accent' => '#ff4500',
-                        'background' => '#ffffff',
-                        'text' => '#333333',
-                        'link' => '#0066cc'
-                    ],
-                    'fonts' => [
-                        'heading' => 'Arial, sans-serif',
-                        'body' => 'Arial, sans-serif',
-                        'price' => 'Arial, sans-serif',
-                        'button' => 'Arial, sans-serif'
-                    ],
-                    'spacing' => [
-                        'base' => '8px',
-                        'small' => '4px',
-                        'medium' => '16px',
-                        'large' => '32px'
+            if (!$globalStyles) {
+                // Hvis der ikke findes en global konfiguration, returnerer vi tom data
+                return [
+                    'status' => 'success',
+                    'data' => [
+                        'global_styles' => null,
+                        'font_config' => null,
+                        'color_palette' => null
                     ]
                 ];
-                
-                $globalStylesJson = json_encode($defaultStyles);
-                
-                $this->db->insert('layout_config', [
-                    'page_id' => 'global',
-                    'global_styles' => $globalStylesJson
-                ]);
-                
-                return ['status' => 'success', 'data' => $defaultStyles];
             }
             
-            // Parse JSON data
-            $data = [
-                'colors' => json_decode($styles['color_palette'] ?? '{}', true),
-                'fonts' => json_decode($styles['font_config'] ?? '{}', true),
-                'global' => json_decode($styles['global_styles'] ?? '{}', true)
-            ];
+            // Konverter JSON-felter til arrays
+            $this->decodeJsonFields($globalStyles);
             
-            return ['status' => 'success', 'data' => $data];
+            return ['status' => 'success', 'data' => $globalStyles];
         } catch (Exception $e) {
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
     
-    // Metode til at opdatere globale stilarter
+    /**
+     * Opdater globale stilarter
+     */
     public function updateGlobalStyles($data) {
         try {
-            $styles = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = 'global'");
+            // Tjek om global layout eksisterer
+            $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = 'global'");
             
-            $updateData = [];
-            
-            if (isset($data['colors'])) {
-                $updateData['color_palette'] = is_array($data['colors']) ? 
-                    json_encode($data['colors']) : $data['colors'];
-            }
-            
-            if (isset($data['fonts'])) {
-                $updateData['font_config'] = is_array($data['fonts']) ? 
-                    json_encode($data['fonts']) : $data['fonts'];
-            }
-            
-            if (isset($data['global'])) {
-                $updateData['global_styles'] = is_array($data['global']) ? 
-                    json_encode($data['global']) : $data['global'];
-            }
-            
-            if (!$styles) {
-                // Opret global styles, hvis de ikke eksisterer
-                $updateData['page_id'] = 'global';
-                $this->db->insert('layout_config', $updateData);
+            if (!$layout) {
+                // Hvis der ikke findes en global konfiguration, opretter vi en
+                $layoutData = [
+                    'page_id' => 'global',
+                    'layout_data' => null,
+                    'global_styles' => isset($data['global_styles']) ? $this->prepareJsonField($data['global_styles']) : null,
+                    'font_config' => isset($data['font_config']) ? $this->prepareJsonField($data['font_config']) : null,
+                    'color_palette' => isset($data['color_palette']) ? $this->prepareJsonField($data['color_palette']) : null
+                ];
+                
+                $this->db->insert('layout_config', $layoutData);
             } else {
-                // Opdater eksisterende global styles
-                $this->db->update('layout_config', $updateData, 'id = ?', [$styles['id']]);
+                // Opdater eksisterende global konfiguration
+                $updateData = [];
+                
+                if (isset($data['global_styles'])) {
+                    $updateData['global_styles'] = $this->prepareJsonField($data['global_styles']);
+                }
+                
+                if (isset($data['font_config'])) {
+                    $updateData['font_config'] = $this->prepareJsonField($data['font_config']);
+                }
+                
+                if (isset($data['color_palette'])) {
+                    $updateData['color_palette'] = $this->prepareJsonField($data['color_palette']);
+                }
+                
+                if (!empty($updateData)) {
+                    $this->db->update('layout_config', $updateData, 'id = ?', [$layout['id']]);
+                }
             }
             
+            // Hent de opdaterede globale stilarter
             return $this->getGlobalStyles();
         } catch (Exception $e) {
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Hent bands for et specifikt layout
+     */
+    public function getBands($layoutId) {
+        try {
+            $bands = $this->db->select("
+                SELECT * FROM layout_bands 
+                WHERE layout_id = ? 
+                ORDER BY band_order
+            ", [$layoutId]);
+            
+            // Konverter band_content fra JSON til array for hvert band
+            foreach ($bands as &$band) {
+                if (isset($band['band_content']) && $band['band_content']) {
+                    $band['band_content'] = json_decode($band['band_content'], true);
+                }
+            }
+            
+            return $bands;
+        } catch (Exception $e) {
+            throw new Exception("Error fetching bands: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Opret bands for et layout
+     */
+    private function createBands($layoutId, $bands) {
+        foreach ($bands as $band) {
+            // Validering af nødvendige felter
+            if (!isset($band['band_type']) || !isset($band['band_order'])) {
+                continue; // Spring over dette band hvis nødvendige felter mangler
+            }
+            
+            $bandData = [
+                'layout_id' => $layoutId,
+                'band_type' => $band['band_type'],
+                'band_height' => isset($band['band_height']) ? $band['band_height'] : 1,
+                'band_content' => isset($band['band_content']) ? $this->prepareJsonField($band['band_content']) : null,
+                'band_order' => $band['band_order']
+            ];
+            
+            $this->db->insert('layout_bands', $bandData);
+        }
+    }
+    
+    /**
+     * Opdater et specifikt band
+     */
+    public function updateBand($bandId, $data) {
+        try {
+            // Tjek om bandet eksisterer
+            $band = $this->db->selectOne("SELECT id FROM layout_bands WHERE id = ?", [$bandId]);
+            if (!$band) {
+                http_response_code(404);
+                return ['status' => 'error', 'message' => 'Band not found'];
+            }
+            
+            $updateData = [];
+            
+            if (isset($data['band_type'])) {
+                $updateData['band_type'] = $data['band_type'];
+            }
+            
+            if (isset($data['band_height'])) {
+                $updateData['band_height'] = $data['band_height'];
+            }
+            
+            if (isset($data['band_content'])) {
+                $updateData['band_content'] = $this->prepareJsonField($data['band_content']);
+            }
+            
+            if (isset($data['band_order'])) {
+                $updateData['band_order'] = $data['band_order'];
+            }
+            
+            if (!empty($updateData)) {
+                $this->db->update('layout_bands', $updateData, 'id = ?', [$bandId]);
+            }
+            
+            // Hent det opdaterede band
+            $updatedBand = $this->db->selectOne("SELECT * FROM layout_bands WHERE id = ?", [$bandId]);
+            
+            // Konverter band_content fra JSON til array
+            if ($updatedBand['band_content']) {
+                $updatedBand['band_content'] = json_decode($updatedBand['band_content'], true);
+            }
+            
+            return ['status' => 'success', 'data' => $updatedBand];
+        } catch (Exception $e) {
+            http_response_code(500);
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Slet et specifikt band
+     */
+    public function deleteBand($bandId) {
+        try {
+            // Tjek om bandet eksisterer
+            $band = $this->db->selectOne("SELECT id FROM layout_bands WHERE id = ?", [$bandId]);
+            if (!$band) {
+                http_response_code(404);
+                return ['status' => 'error', 'message' => 'Band not found'];
+            }
+            
+            // Slet bandet
+            $this->db->delete('layout_bands', 'id = ?', [$bandId]);
+            
+            return ['status' => 'success', 'message' => 'Band deleted successfully'];
+        } catch (Exception $e) {
+            http_response_code(500);
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Hjælpefunktion til at konvertere arrays til JSON-strenge
+     */
+    private function prepareJsonField($data) {
+        if (is_array($data)) {
+            return json_encode($data, JSON_UNESCAPED_UNICODE);
+        }
+        return $data;
+    }
+    
+    /**
+     * Hjælpefunktion til at konvertere JSON-strenge til arrays
+     */
+    private function decodeJsonFields(&$layout) {
+        $jsonFields = ['layout_data', 'global_styles', 'font_config', 'color_palette'];
+        
+        foreach ($jsonFields as $field) {
+            if (isset($layout[$field]) && $layout[$field]) {
+                $layout[$field] = json_decode($layout[$field], true);
+            }
         }
     }
 }
