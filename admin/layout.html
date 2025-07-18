@@ -4,13 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LATL Layout Admin</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1a73e8;
-            --secondary-color: #34a853;
-            --accent-color: #fbbc05;
-            --background-color: #f8f9fa;
-            --text-color: #333333;
+            --primary-color: #042940;
+            --secondary-color: #005C53;
+            --accent-color: #9FC131;
+            --bright-color: #DBF227;
+            --background-color: #D6D58E;
+            --text-color: #042940;
             --light-gray: #f1f3f4;
             --medium-gray: #dadce0;
             --dark-gray: #5f6368;
@@ -23,7 +28,7 @@
         }
         
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Open Sans', sans-serif;
             line-height: 1.6;
             color: var(--text-color);
             background-color: var(--background-color);
@@ -31,6 +36,7 @@
         }
         
         h1, h2, h3 {
+            font-family: 'Allerta Stencil', sans-serif;
             margin-bottom: 20px;
             color: var(--primary-color);
         }
@@ -280,42 +286,50 @@
                     <h3>Farvepalette</h3>
                     <div id="colorPalette">
                         <div class="form-group">
-                            <label>Primær farve</label>
+                            <label>Primær farve (#042940)</label>
                             <div class="form-row">
-                                <input type="color" id="primaryColor" value="#1a73e8">
-                                <input type="text" id="primaryColorHex" value="#1a73e8">
+                                <input type="color" id="primaryColor" value="#042940">
+                                <input type="text" id="primaryColorHex" value="#042940">
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Sekundær farve</label>
+                            <label>Sekundær farve (#005C53)</label>
                             <div class="form-row">
-                                <input type="color" id="secondaryColor" value="#34a853">
-                                <input type="text" id="secondaryColorHex" value="#34a853">
+                                <input type="color" id="secondaryColor" value="#005C53">
+                                <input type="text" id="secondaryColorHex" value="#005C53">
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Accent farve</label>
+                            <label>Accent farve (#9FC131)</label>
                             <div class="form-row">
-                                <input type="color" id="accentColor" value="#fbbc05">
-                                <input type="text" id="accentColorHex" value="#fbbc05">
+                                <input type="color" id="accentColor" value="#9FC131">
+                                <input type="text" id="accentColorHex" value="#9FC131">
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Baggrund</label>
+                            <label>Lys accent farve (#DBF227)</label>
                             <div class="form-row">
-                                <input type="color" id="backgroundColor" value="#ffffff">
-                                <input type="text" id="backgroundColorHex" value="#ffffff">
+                                <input type="color" id="brightColor" value="#DBF227">
+                                <input type="text" id="brightColorHex" value="#DBF227">
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Tekstfarve</label>
+                            <label>Baggrund (#D6D58E)</label>
                             <div class="form-row">
-                                <input type="color" id="textColor" value="#333333">
-                                <input type="text" id="textColorHex" value="#333333">
+                                <input type="color" id="backgroundColor" value="#D6D58E">
+                                <input type="text" id="backgroundColorHex" value="#D6D58E">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tekstfarve (#042940)</label>
+                            <div class="form-row">
+                                <input type="color" id="textColor" value="#042940">
+                                <input type="text" id="textColorHex" value="#042940">
                             </div>
                         </div>
                     </div>
@@ -327,10 +341,11 @@
                         <div class="form-group">
                             <label>Overskrift skrifttype</label>
                             <select id="headingFontFamily">
+                                <option value="'Allerta Stencil', sans-serif" selected>Allerta Stencil</option>
+                                <option value="'Open Sans', sans-serif">Open Sans</option>
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
                                 <option value="'Roboto', sans-serif">Roboto</option>
-                                <option value="'Open Sans', sans-serif">Open Sans</option>
                                 <option value="'Montserrat', sans-serif">Montserrat</option>
                                 <option value="'Raleway', sans-serif">Raleway</option>
                                 <option value="'Playfair Display', serif">Playfair Display</option>
@@ -340,10 +355,10 @@
                         <div class="form-group">
                             <label>Overskrift tykkelse</label>
                             <select id="headingFontWeight">
-                                <option value="400">Normal (400)</option>
+                                <option value="400" selected>Normal (400)</option>
                                 <option value="500">Medium (500)</option>
                                 <option value="600">Semi-bold (600)</option>
-                                <option value="700" selected>Bold (700)</option>
+                                <option value="700">Bold (700)</option>
                                 <option value="800">Extra-bold (800)</option>
                             </select>
                         </div>
@@ -351,10 +366,11 @@
                         <div class="form-group">
                             <label>Brødtekst skrifttype</label>
                             <select id="bodyFontFamily">
+                                <option value="'Open Sans', sans-serif" selected>Open Sans</option>
+                                <option value="'Allerta Stencil', sans-serif">Allerta Stencil</option>
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
                                 <option value="'Roboto', sans-serif">Roboto</option>
-                                <option value="'Open Sans', sans-serif">Open Sans</option>
                                 <option value="'Lato', sans-serif">Lato</option>
                                 <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
                                 <option value="'PT Sans', sans-serif">PT Sans</option>
@@ -374,10 +390,11 @@
                         <div class="form-group">
                             <label>Pris skrifttype</label>
                             <select id="priceFontFamily">
+                                <option value="'Allerta Stencil', sans-serif" selected>Allerta Stencil</option>
+                                <option value="'Open Sans', sans-serif">Open Sans</option>
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
                                 <option value="'Roboto', sans-serif">Roboto</option>
-                                <option value="'Open Sans', sans-serif">Open Sans</option>
                                 <option value="'Montserrat', sans-serif">Montserrat</option>
                             </select>
                         </div>
@@ -385,20 +402,21 @@
                         <div class="form-group">
                             <label>Pris tykkelse</label>
                             <select id="priceFontWeight">
-                                <option value="400">Normal (400)</option>
+                                <option value="400" selected>Normal (400)</option>
                                 <option value="500">Medium (500)</option>
                                 <option value="600">Semi-bold (600)</option>
-                                <option value="700" selected>Bold (700)</option>
+                                <option value="700">Bold (700)</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label>Knap skrifttype</label>
                             <select id="buttonFontFamily">
+                                <option value="'Open Sans', sans-serif" selected>Open Sans</option>
+                                <option value="'Allerta Stencil', sans-serif">Allerta Stencil</option>
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
                                 <option value="'Roboto', sans-serif">Roboto</option>
-                                <option value="'Open Sans', sans-serif">Open Sans</option>
                             </select>
                         </div>
                         
@@ -406,8 +424,8 @@
                             <label>Knap tykkelse</label>
                             <select id="buttonFontWeight">
                                 <option value="400">Normal (400)</option>
-                                <option value="500" selected>Medium (500)</option>
-                                <option value="600">Semi-bold (600)</option>
+                                <option value="500">Medium (500)</option>
+                                <option value="600" selected>Semi-bold (600)</option>
                                 <option value="700">Bold (700)</option>
                             </select>
                         </div>
@@ -742,6 +760,11 @@ body {
                         document.getElementById('accentColorHex').value = colorPalette.accent;
                     }
                     
+                    if (colorPalette.bright) {
+                        document.getElementById('brightColor').value = colorPalette.bright;
+                        document.getElementById('brightColorHex').value = colorPalette.bright;
+                    }
+                    
                     if (colorPalette.background) {
                         document.getElementById('backgroundColor').value = colorPalette.background;
                         document.getElementById('backgroundColorHex').value = colorPalette.background;
@@ -810,6 +833,7 @@ body {
                     primary: document.getElementById('primaryColor').value,
                     secondary: document.getElementById('secondaryColor').value,
                     accent: document.getElementById('accentColor').value,
+                    bright: document.getElementById('brightColor').value,
                     background: document.getElementById('backgroundColor').value,
                     text: document.getElementById('textColor').value
                 };
