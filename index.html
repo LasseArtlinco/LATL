@@ -510,12 +510,43 @@
         
         // Indlæs globale stilarter
         async function loadGlobalStyles() {
-            const result = await fetchApi('layout/global/styles');
-            
-            if (result && result.status === 'success' && result.data) {
-                globalStyles = result.data;
-                applyGlobalStyles();
+            try {
+                const result = await fetchApi('layout/global/styles');
+                
+                if (result && result.status === 'success' && result.data) {
+                    globalStyles = result.data;
+                    applyGlobalStyles();
+                    return true;
+                }
+            } catch (error) {
+                console.error('Failed to load global styles:', error);
             }
+            
+            // Prøv at hente stilarter fra layout_config direkte
+            try {
+                const pageResult = await fetchApi('layout/forside');
+                if (pageResult && pageResult.status === 'success' && pageResult.data) {
+                    // Prøv at finde globale stilarter i layout_config
+                    if (pageResult.data.global_styles) {
+                        globalStyles.global_styles = pageResult.data.global_styles;
+                    }
+                    if (pageResult.data.font_config) {
+                        globalStyles.font_config = pageResult.data.font_config;
+                    }
+                    if (pageResult.data.color_palette) {
+                        globalStyles.color_palette = pageResult.data.color_palette;
+                    }
+                    
+                    applyGlobalStyles();
+                    return true;
+                }
+            } catch (error) {
+                console.error('Failed to get styles from layout_config:', error);
+            }
+            
+            // Hvis vi når hertil, brug standardværdier
+            applyGlobalStyles();
+            return false;
         }
         
         // Anvend globale stilarter
@@ -631,37 +662,59 @@
             
             const result = await fetchApi(`layout/${currentPageId}`);
             
-            if (result && result.status === 'success' && result.data) {
-                renderPage(result.data);
+            if (result && result.status === 'success') {
+                // Tjek for data
+                if (result.data) {
+                    // Debug udskrivning af data struktur
+                    if (DEBUG) {
+                        console.log('Layout data structure:', {
+                            hasData: result.data !== undefined,
+                            pageId: result.data.page_id,
+                            hasBands: result.data.bands !== undefined,
+                            bandsLength: result.data.bands ? result.data.bands.length : 0
+                        });
+                    }
+                    
+                    renderPage(result.data);
+                } else {
+                    // Manglende data
+                    showErrorPage('Ingen data modtaget fra API');
+                }
             } else {
-                // Hvis API-kaldet mislykkedes eller siden ikke blev fundet
-                document.getElementById('page-content').innerHTML = `
-                    <div class="band-content" style="padding: 2rem 0; text-align: center;">
-                        <h1>Side ikke fundet</h1>
-                        <p>Beklager, men den ønskede side kunne ikke findes.</p>
-                        <p>Dette kan skyldes at:</p>
-                        <ul style="list-style: none; padding: 0;">
-                            <li>Siden ikke eksisterer</li>
-                            <li>API'et ikke er tilgængeligt</li>
-                            <li>Der er problemer med forbindelsen til API'et</li>
-                        </ul>
-                        <a href="/" class="button" style="display: inline-block; padding: 0.5rem 1rem; background-color: var(--accent-color); color: var(--primary-color); text-decoration: none; border-radius: 4px; margin-top: 1rem;">Gå til forsiden</a>
+                // API-kald fejlede eller siden ikke fundet
+                showErrorPage('Side ikke fundet eller API-fejl');
+            }
+        }
+        
+        // Vis fejlside
+        function showErrorPage(errorMessage) {
+            const pageContent = document.getElementById('page-content');
+            pageContent.innerHTML = `
+                <div class="band-content" style="padding: 2rem 0; text-align: center;">
+                    <h1>Side ikke fundet</h1>
+                    <p>Beklager, men den ønskede side kunne ikke findes.</p>
+                    <p>Dette kan skyldes at:</p>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>Siden ikke eksisterer</li>
+                        <li>API'et ikke er tilgængeligt</li>
+                        <li>Der er problemer med forbindelsen til API'et</li>
+                    </ul>
+                    <p>Fejlmeddelelse: ${errorMessage}</p>
+                    <a href="/" class="button" style="display: inline-block; padding: 0.5rem 1rem; background-color: var(--accent-color); color: var(--primary-color); text-decoration: none; border-radius: 4px; margin-top: 1rem;">Gå til forsiden</a>
+                </div>
+            `;
+            
+            // Hvis vi ikke kan nå API'et, tilbyd manuel indlæsning af mockdata
+            if (DEBUG) {
+                pageContent.innerHTML += `
+                    <div class="band-content" style="padding: 2rem 0; text-align: center; border-top: 1px solid #ddd; margin-top: 2rem;">
+                        <h2>Debug Værktøjer</h2>
+                        <p>Kan ikke forbinde til API'et. Vil du indlæse mock data for at teste layout?</p>
+                        <button id="loadMockData" style="padding: 0.5rem 1rem; background-color: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">Indlæs Mock Data</button>
                     </div>
                 `;
                 
-                // Hvis vi ikke kan nå API'et, tilbyd manuel indlæsning af mockdata
-                if (DEBUG) {
-                    const pageContent = document.getElementById('page-content');
-                    pageContent.innerHTML += `
-                        <div class="band-content" style="padding: 2rem 0; text-align: center; border-top: 1px solid #ddd; margin-top: 2rem;">
-                            <h2>Debug Værktøjer</h2>
-                            <p>Kan ikke forbinde til API'et. Vil du indlæse mock data for at teste layout?</p>
-                            <button id="loadMockData" style="padding: 0.5rem 1rem; background-color: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">Indlæs Mock Data</button>
-                        </div>
-                    `;
-                    
-                    document.getElementById('loadMockData').addEventListener('click', loadMockData);
-                }
+                document.getElementById('loadMockData').addEventListener('click', loadMockData);
             }
         }
         
@@ -745,27 +798,68 @@
         }
         
         // Render en side baseret på layout data
-        function renderPage(layout) {
+        function renderPage(layoutData) {
             const pageContent = document.getElementById('page-content');
             pageContent.innerHTML = ''; // Ryd eksisterende indhold
             
+            if (DEBUG) console.log('Rendering page with data:', layoutData);
+            
+            // Hent bånd fra layoutData
+            let bands = [];
+            
+            // Tjek datastrukturen - bands kan være direkte i layoutData eller i layoutData.bands
+            if (Array.isArray(layoutData.bands)) {
+                // Hvis bands er direkte i layoutData
+                bands = layoutData.bands;
+            } else if (layoutData.layout_data && Array.isArray(layoutData.layout_data.bands)) {
+                // Hvis bands er i layoutData.layout_data.bands
+                bands = layoutData.layout_data.bands;
+            }
+            
+            if (DEBUG) {
+                console.log('Found bands:', {
+                    bandsCount: bands.length,
+                    firstBand: bands.length > 0 ? bands[0] : null
+                });
+            }
+            
             // Få bånd i korrekt rækkefølge
-            const bands = layout.bands || [];
-            bands.sort((a, b) => a.band_order - b.band_order);
-            
-            // Render hvert bånd
-            bands.forEach(band => {
-                const bandElement = renderBand(band);
-                if (bandElement) {
-                    pageContent.appendChild(bandElement);
-                }
-            });
-            
-            // Hvis der ikke er nogen bånd, vis en fejlmeddelelse
-            if (bands.length === 0) {
+            if (bands.length > 0) {
+                bands.sort((a, b) => a.band_order - b.band_order);
+                
+                // Render hvert bånd
+                bands.forEach(band => {
+                    try {
+                        const bandElement = renderBand(band);
+                        if (bandElement) {
+                            pageContent.appendChild(bandElement);
+                        }
+                    } catch (error) {
+                        console.error('Error rendering band:', error, band);
+                        
+                        // Vis fejlinfo hvis vi er i debug-tilstand
+                        if (DEBUG) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'band-content';
+                            errorDiv.style.padding = '1rem';
+                            errorDiv.style.backgroundColor = '#ffeeee';
+                            errorDiv.style.border = '1px solid #ffcccc';
+                            errorDiv.style.margin = '1rem 0';
+                            errorDiv.innerHTML = `
+                                <h3>Fejl ved rendering af bånd</h3>
+                                <p>${error.message}</p>
+                                <pre>${JSON.stringify(band, null, 2)}</pre>
+                            `;
+                            pageContent.appendChild(errorDiv);
+                        }
+                    }
+                });
+            } else {
+                // Ingen bånd fundet
                 pageContent.innerHTML = `
                     <div class="band-content" style="padding: 2rem 0; text-align: center;">
-                        <p>Ingen indhold fundet for denne side.</p>
+                        <p>Ingen bånd fundet for denne side.</p>
+                        <pre style="text-align: left; background: #f5f5f5; padding: 1rem; max-height: 300px; overflow: auto; margin-top: 1rem; font-size: 12px;">${JSON.stringify(layoutData, null, 2)}</pre>
                     </div>
                 `;
             }
@@ -773,6 +867,8 @@
         
         // Render et enkelt bånd
         function renderBand(band) {
+            if (DEBUG) console.log('Rendering band:', band);
+            
             const bandElement = document.createElement('div');
             bandElement.className = `band band-${band.band_type}`;
             
