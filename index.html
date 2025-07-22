@@ -473,12 +473,17 @@
                 if (DEBUG) console.log(`Fetching from: ${API_URL}/${endpoint}`);
                 
                 const response = await fetch(`${API_URL}/${endpoint}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                
                 const result = await response.json();
                 
                 if (DEBUG) console.log('API response:', result);
                 
-                if (!response.ok) {
-                    throw new Error(result.message || 'Der skete en fejl');
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'API returned error status');
                 }
                 
                 return result;
@@ -500,8 +505,20 @@
                                 <li>API'et kører og er tilgængeligt</li>
                                 <li>CORS-headers er korrekt konfigureret</li>
                             </ul>
+                            <p>Fejlmeddelelse: Side ikke fundet eller API-fejl</p>
                         </div>
                     `;
+                    
+                    // Tilbyd indlæsning af mock data
+                    pageContent.innerHTML += `
+                        <div class="band-content" style="padding: 2rem 0; text-align: center; border-top: 1px solid #ddd; margin-top: 2rem;">
+                            <h2>Debug Værktøjer</h2>
+                            <p>Kan ikke forbinde til API'et. Vil du indlæse mock data for at teste layout?</p>
+                            <button id="loadMockData" style="padding: 0.5rem 1rem; background-color: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">Indlæs Mock Data</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('loadMockData').addEventListener('click', loadMockData);
                 }
                 
                 return null;
@@ -511,6 +528,7 @@
         // Indlæs globale stilarter
         async function loadGlobalStyles() {
             try {
+                // Prøv at hente stilarter fra layout/global/styles endpointet
                 const result = await fetchApi('layout/global/styles');
                 
                 if (result && result.status === 'success' && result.data) {
@@ -519,7 +537,7 @@
                     return true;
                 }
             } catch (error) {
-                console.error('Failed to load global styles:', error);
+                console.error('Failed to load global styles from dedicated endpoint:', error);
             }
             
             // Prøv at hente stilarter fra layout_config direkte
@@ -662,24 +680,9 @@
             
             const result = await fetchApi(`layout/${currentPageId}`);
             
-            if (result && result.status === 'success') {
-                // Tjek for data
-                if (result.data) {
-                    // Debug udskrivning af data struktur
-                    if (DEBUG) {
-                        console.log('Layout data structure:', {
-                            hasData: result.data !== undefined,
-                            pageId: result.data.page_id,
-                            hasBands: result.data.bands !== undefined,
-                            bandsLength: result.data.bands ? result.data.bands.length : 0
-                        });
-                    }
-                    
-                    renderPage(result.data);
-                } else {
-                    // Manglende data
-                    showErrorPage('Ingen data modtaget fra API');
-                }
+            if (result && result.status === 'success' && result.data) {
+                // Success! Render siden med data
+                renderPage(result.data);
             } else {
                 // API-kald fejlede eller siden ikke fundet
                 showErrorPage('Side ikke fundet eller API-fejl');
@@ -804,17 +807,8 @@
             
             if (DEBUG) console.log('Rendering page with data:', layoutData);
             
-            // Hent bånd fra layoutData
-            let bands = [];
-            
-            // Tjek datastrukturen - bands kan være direkte i layoutData eller i layoutData.bands
-            if (Array.isArray(layoutData.bands)) {
-                // Hvis bands er direkte i layoutData
-                bands = layoutData.bands;
-            } else if (layoutData.layout_data && Array.isArray(layoutData.layout_data.bands)) {
-                // Hvis bands er i layoutData.layout_data.bands
-                bands = layoutData.layout_data.bands;
-            }
+            // VIGTIGT: Baseret på API-testen, ved vi at båndene er direkte i 'bands' egenskaben
+            const bands = layoutData.bands || [];
             
             if (DEBUG) {
                 console.log('Found bands:', {
@@ -823,8 +817,8 @@
                 });
             }
             
-            // Få bånd i korrekt rækkefølge
             if (bands.length > 0) {
+                // Sortér bånd efter band_order
                 bands.sort((a, b) => a.band_order - b.band_order);
                 
                 // Render hvert bånd
@@ -858,7 +852,9 @@
                 // Ingen bånd fundet
                 pageContent.innerHTML = `
                     <div class="band-content" style="padding: 2rem 0; text-align: center;">
-                        <p>Ingen bånd fundet for denne side.</p>
+                        <h1>Ingen bånd fundet</h1>
+                        <p>Der blev ikke fundet nogen bånd til denne side.</p>
+                        <p>Data modtaget fra API:</p>
                         <pre style="text-align: left; background: #f5f5f5; padding: 1rem; max-height: 300px; overflow: auto; margin-top: 1rem; font-size: 12px;">${JSON.stringify(layoutData, null, 2)}</pre>
                     </div>
                 `;
