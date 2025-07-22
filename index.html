@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style id="globalStyles">
-        /* Global stilarter vil blive indsat her via JavaScript */
+        /* Grundlæggende stilarter - vil blive udvidet/overskrevet af dynamisk indlæste stilarter */
         body {
             margin: 0;
             padding: 0;
@@ -208,14 +208,11 @@
             font-family: 'Allerta Stencil', sans-serif;
             font-size: 1.4rem;
             margin: 1rem 0;
-            color: var(--primary-color);
         }
         
         .product-button {
             display: inline-block;
             padding: 0.75rem 1.5rem;
-            background-color: var(--accent-color);
-            color: var(--primary-color);
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -227,52 +224,11 @@
         }
         
         .product-button:hover {
-            background-color: var(--bright-color);
             transform: translateY(-2px);
         }
         
         .band-html {
             padding: 4rem 0;
-        }
-        
-        .band-html.bg-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .band-html.bg-secondary {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        
-        .band-html.bg-accent {
-            background-color: var(--accent-color);
-            color: var(--primary-color);
-        }
-        
-        .band-html.bg-bright {
-            background-color: var(--bright-color);
-            color: var(--primary-color);
-        }
-        
-        .band-link {
-            padding: 4rem 0;
-            text-align: center;
-        }
-        
-        .band-link.bg-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .band-link.bg-secondary {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        
-        .band-link.bg-accent {
-            background-color: var(--accent-color);
-            color: var(--primary-color);
         }
         
         /* CSS for CTA bånd */
@@ -281,33 +237,11 @@
             text-align: center;
         }
         
-        .band-cta.bg-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .band-cta.bg-secondary {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-        
-        .band-cta.bg-accent {
-            background-color: var(--accent-color);
-            color: var(--primary-color);
-        }
-        
-        .band-cta.bg-bright {
-            background-color: var(--bright-color);
-            color: var(--primary-color);
-        }
-        
         .cta-button {
             display: inline-block;
             padding: 1rem 2.5rem;
             font-size: 1.1rem;
             font-weight: bold;
-            background-color: var(--accent-color);
-            color: var(--primary-color);
             border-radius: 4px;
             text-decoration: none;
             transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
@@ -319,12 +253,6 @@
         .cta-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            background-color: var(--bright-color);
-        }
-        
-        .band-link.bg-bright {
-            background-color: var(--bright-color);
-            color: var(--primary-color);
         }
         
         .band-link h2 {
@@ -459,23 +387,19 @@
             bandElement.appendChild(bandContent);
         }
         
-        // IMPORTANT: Use direct API endpoint path to avoid 404 on root API endpoint
-        // Instead of just '/api' which fails with 404
-        const API_BASE_URL = '/api';
+        // API-adresse
+        const API_URL = '/api';
         
         // Debug flag
         const DEBUG = true;
         let globalStyles = {};
-        let currentPageId = null;
         
         // Hjælpefunktion til at hente data fra API
         async function fetchApi(endpoint) {
             try {
-                // Build the full URL - don't try to check the base API
-                const fullUrl = `${API_BASE_URL}/${endpoint}`;
-                if (DEBUG) console.log(`Fetching from: ${fullUrl}`);
+                if (DEBUG) console.log(`Fetching from: ${API_URL}/${endpoint}`);
                 
-                const response = await fetch(fullUrl);
+                const response = await fetch(`${API_URL}/${endpoint}`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error ${response.status}`);
@@ -493,7 +417,7 @@
             } catch (error) {
                 console.error('API Error:', error);
                 
-                // Show error on page if in debug mode
+                // Vis fejl på siden hvis vi er i debug mode
                 if (DEBUG) {
                     const pageContent = document.getElementById('page-content');
                     pageContent.innerHTML = `
@@ -501,18 +425,16 @@
                             <h1>API Fejl</h1>
                             <p>Der opstod en fejl ved kommunikation med API'et:</p>
                             <pre style="background: #f1f1f1; padding: 1rem; overflow: auto;">${error.toString()}</pre>
-                            <p>Endpoint: ${API_BASE_URL}/${endpoint}</p>
+                            <p>Endpoint: ${API_URL}/${endpoint}</p>
                             <p>Kontrollér at:</p>
                             <ul>
                                 <li>API'et kører og er tilgængeligt</li>
-                                <li>Endpoint stien er korrekt</li>
                                 <li>CORS-headers er korrekt konfigureret</li>
                             </ul>
-                            <p>Fejlmeddelelse: Side ikke fundet eller API-fejl</p>
                         </div>
                     `;
                     
-                    // Offer to load mock data
+                    // Tilbyd indlæsning af mock data
                     pageContent.innerHTML += `
                         <div class="band-content" style="padding: 2rem 0; text-align: center; border-top: 1px solid #ddd; margin-top: 2rem;">
                             <h2>Debug Værktøjer</h2>
@@ -528,10 +450,236 @@
             }
         }
         
-        // Skip trying to load global styles from a dedicated endpoint
-        // and set reasonable defaults immediately
-        function setDefaultStyles() {
-            const cssVars = `
+        // Indlæs og anvend globale stilarter
+        async function loadGlobalStyles() {
+            try {
+                // Forsøg at hente globale stilarter fra layout data
+                const result = await fetchApi('layout/forside');
+                
+                if (result && result.status === 'success' && result.data) {
+                    // Hent farvepalet, skrifttypekonfiguration og globale stilarter
+                    const layoutData = result.data;
+                    
+                    if (layoutData.color_palette) {
+                        globalStyles.color_palette = layoutData.color_palette;
+                    }
+                    
+                    if (layoutData.font_config) {
+                        globalStyles.font_config = layoutData.font_config;
+                    }
+                    
+                    if (layoutData.global_styles) {
+                        globalStyles.global_styles = layoutData.global_styles;
+                    }
+                    
+                    applyGlobalStyles();
+                    return true;
+                }
+            } catch (error) {
+                console.error('Failed to load global styles:', error);
+            }
+            
+            // Anvend standard stilarter hvis API-kald fejler
+            applyDefaultStyles();
+            return false;
+        }
+        
+        // Anvend globale stilarter
+        function applyGlobalStyles() {
+            const colorPalette = globalStyles.color_palette || {};
+            const fontConfig = globalStyles.font_config || {};
+            const styles = globalStyles.global_styles || {};
+            
+            // Hvis ingen farvepalette blev fundet, anvend standardværdier
+            if (Object.keys(colorPalette).length === 0) {
+                applyDefaultStyles();
+                return;
+            }
+            
+            // Opret CSS-variabler baseret på farvepaletten
+            let cssVars = `
+                :root {
+                    --primary-color: ${colorPalette.primary || '#042940'};
+                    --secondary-color: ${colorPalette.secondary || '#005C53'};
+                    --accent-color: ${colorPalette.accent || '#9FC131'};
+                    --bright-color: ${colorPalette.bright || '#DBF227'};
+                    --background-color: ${colorPalette.background || '#D6D58E'};
+                    --text-color: ${colorPalette.text || '#042940'};
+                }
+                
+                body {
+                    background-color: var(--background-color);
+                    color: var(--text-color);
+                }
+                
+                .latl-header {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .latl-logo {
+                    color: white;
+                }
+                
+                .latl-nav a {
+                    color: white;
+                }
+                
+                .latl-footer {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .latl-footer a {
+                    color: var(--bright-color);
+                }
+                
+                .band-link a {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-link a:hover {
+                    background-color: var(--bright-color);
+                }
+                
+                .cookie-banner button {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .product-button {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .product-button:hover {
+                    background-color: var(--bright-color);
+                }
+                
+                .product-price {
+                    color: var(--primary-color);
+                }
+                
+                .cta-button {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .cta-button:hover {
+                    background-color: var(--bright-color);
+                }
+                
+                .band-html.bg-primary {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .band-html.bg-secondary {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .band-html.bg-accent {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-html.bg-bright {
+                    background-color: var(--bright-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-link.bg-primary {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .band-link.bg-secondary {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .band-link.bg-accent {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-link.bg-bright {
+                    background-color: var(--bright-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-cta.bg-primary {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .band-cta.bg-secondary {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .band-cta.bg-accent {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-cta.bg-bright {
+                    background-color: var(--bright-color);
+                    color: var(--primary-color);
+                }
+            `;
+            
+            // Tilføj skrifttype-konfiguration
+            if (fontConfig.heading) {
+                cssVars += `
+                    h1, h2, h3, h4, h5, h6 {
+                        font-family: ${fontConfig.heading['font-family'] || "'Allerta Stencil', sans-serif"};
+                        font-weight: ${fontConfig.heading['font-weight'] || '400'};
+                    }
+                `;
+            }
+            
+            if (fontConfig.body) {
+                cssVars += `
+                    body {
+                        font-family: ${fontConfig.body['font-family'] || "'Open Sans', sans-serif"};
+                        font-weight: ${fontConfig.body['font-weight'] || '400'};
+                    }
+                `;
+            }
+            
+            if (fontConfig.price) {
+                cssVars += `
+                    .product-price {
+                        font-family: ${fontConfig.price['font-family'] || "'Allerta Stencil', sans-serif"};
+                        font-weight: ${fontConfig.price['font-weight'] || '400'};
+                    }
+                `;
+            }
+            
+            if (fontConfig.button) {
+                cssVars += `
+                    button, .button {
+                        font-family: ${fontConfig.button['font-family'] || "'Open Sans', sans-serif"};
+                        font-weight: ${fontConfig.button['font-weight'] || '600'};
+                    }
+                `;
+            }
+            
+            // Tilføj eventuelt custom CSS
+            if (styles.css) {
+                cssVars += styles.css;
+            }
+            
+            // Anvend CSS
+            document.getElementById('globalStyles').textContent += cssVars;
+        }
+        
+        // Anvend standard stilarter som fallback
+        function applyDefaultStyles() {
+            let cssVars = `
                 :root {
                     --primary-color: #042940;
                     --secondary-color: #005C53;
@@ -581,30 +729,114 @@
                     background-color: var(--accent-color);
                     color: var(--primary-color);
                 }
+                
+                .product-button {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .product-button:hover {
+                    background-color: var(--bright-color);
+                }
+                
+                .product-price {
+                    color: var(--primary-color);
+                }
+                
+                .cta-button {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .cta-button:hover {
+                    background-color: var(--bright-color);
+                }
+                
+                .band-html.bg-primary {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .band-html.bg-secondary {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .band-html.bg-accent {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-html.bg-bright {
+                    background-color: var(--bright-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-link.bg-primary {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .band-link.bg-secondary {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .band-link.bg-accent {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-link.bg-bright {
+                    background-color: var(--bright-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-cta.bg-primary {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .band-cta.bg-secondary {
+                    background-color: var(--secondary-color);
+                    color: white;
+                }
+                
+                .band-cta.bg-accent {
+                    background-color: var(--accent-color);
+                    color: var(--primary-color);
+                }
+                
+                .band-cta.bg-bright {
+                    background-color: var(--bright-color);
+                    color: var(--primary-color);
+                }
             `;
             
-            // Apply CSS
+            // Anvend CSS
             document.getElementById('globalStyles').textContent += cssVars;
         }
         
-        // Load page layout
+        // Indlæs layout for en side
         async function loadPage(pageId) {
-            currentPageId = pageId || 'forside'; // Default to front page
+            // VIGTIGT: Brug altid 'forside' som pageId for index.html
+            // Dette løser problemet med at siden prøver at indlæse 'index.html' som layout
+            const safePageId = 'forside';
             
-            if (DEBUG) console.log(`Loading page: ${currentPageId}`);
+            if (DEBUG) console.log(`Loading page: ${safePageId}`);
             
-            const result = await fetchApi(`layout/${currentPageId}`);
+            const result = await fetchApi(`layout/${safePageId}`);
             
             if (result && result.status === 'success' && result.data) {
-                // Success! Render the page with data
+                // Success! Render siden med data
                 renderPage(result.data);
             } else {
-                // API call failed or page not found
+                // API-kald fejlede eller siden ikke fundet
                 showErrorPage('Side ikke fundet eller API-fejl');
             }
         }
         
-        // Show error page
+        // Vis fejlside
         function showErrorPage(errorMessage) {
             const pageContent = document.getElementById('page-content');
             pageContent.innerHTML = `
@@ -618,11 +850,11 @@
                         <li>Der er problemer med forbindelsen til API'et</li>
                     </ul>
                     <p>Fejlmeddelelse: ${errorMessage}</p>
-                    <a href="/" class="button" style="display: inline-block; padding: 0.5rem 1rem; background-color: var(--accent-color); color: var(--primary-color); text-decoration: none; border-radius: 4px; margin-top: 1rem;">Gå til forsiden</a>
+                    <a href="/" class="button" style="display: inline-block; padding: 0.5rem 1rem; background-color: #9FC131; color: #042940; text-decoration: none; border-radius: 4px; margin-top: 1rem;">Gå til forsiden</a>
                 </div>
             `;
             
-            // If we can't reach the API, offer to load mock data
+            // Hvis vi ikke kan nå API'et, tilbyd manuel indlæsning af mockdata
             if (DEBUG) {
                 pageContent.innerHTML += `
                     <div class="band-content" style="padding: 2rem 0; text-align: center; border-top: 1px solid #ddd; margin-top: 2rem;">
@@ -636,7 +868,7 @@
             }
         }
         
-        // Mock data for testing
+        // Mock data til testformål
         function loadMockData() {
             const mockLayout = {
                 page_id: "forside",
@@ -715,14 +947,14 @@
             renderPage(mockLayout);
         }
         
-        // Render a page based on layout data
+        // Render en side baseret på layout data
         function renderPage(layoutData) {
             const pageContent = document.getElementById('page-content');
-            pageContent.innerHTML = ''; // Clear existing content
+            pageContent.innerHTML = ''; // Ryd eksisterende indhold
             
             if (DEBUG) console.log('Rendering page with data:', layoutData);
             
-            // IMPORTANT: Based on API test, we know bands are directly in 'bands' property
+            // Hent bånd fra layoutData
             const bands = layoutData.bands || [];
             
             if (DEBUG) {
@@ -733,10 +965,10 @@
             }
             
             if (bands.length > 0) {
-                // Sort bands by band_order
+                // Sortér bånd efter band_order
                 bands.sort((a, b) => a.band_order - b.band_order);
                 
-                // Render each band
+                // Render hvert bånd
                 bands.forEach(band => {
                     try {
                         const bandElement = renderBand(band);
@@ -746,7 +978,7 @@
                     } catch (error) {
                         console.error('Error rendering band:', error, band);
                         
-                        // Show error info if in debug mode
+                        // Vis fejlinfo hvis vi er i debug-tilstand
                         if (DEBUG) {
                             const errorDiv = document.createElement('div');
                             errorDiv.className = 'band-content';
@@ -764,7 +996,7 @@
                     }
                 });
             } else {
-                // No bands found
+                // Ingen bånd fundet
                 pageContent.innerHTML = `
                     <div class="band-content" style="padding: 2rem 0; text-align: center;">
                         <h1>Ingen bånd fundet</h1>
@@ -776,7 +1008,7 @@
             }
         }
         
-        // Render a single band
+        // Render et enkelt bånd
         function renderBand(band) {
             if (DEBUG) console.log('Rendering band:', band);
             
@@ -785,7 +1017,7 @@
             
             const content = band.band_content || {};
             
-            // Add extra classes based on settings
+            // Tilføj ekstra klasser baseret på indstillinger
             if (content.full_width === true) {
                 bandElement.classList.add('full-width');
             }
@@ -802,18 +1034,18 @@
                 bandElement.classList.add(content.background_class);
             }
             
-            // Calculate height based on band_height (1x, 2x, 3x, 4x)
-            const baseHeight = 300; // Base height in pixels
+            // Beregn højden baseret på band_height (1x, 2x, 3x, 4x)
+            const baseHeight = 300; // Basis højde i pixels
             const height = band.band_height * baseHeight;
             
-            // For slideshow we always use a fixed height
+            // For slideshow anvender vi altid en fast højde
             if (band.band_type === 'slideshow') {
                 bandElement.style.height = `${height}px`;
             } else {
                 bandElement.style.minHeight = `${height}px`;
             }
             
-            // Render different content based on band type
+            // Render forskelligt indhold baseret på båndtype
             switch (band.band_type) {
                 case 'slideshow':
                     renderSlideshowBand(bandElement, band);
@@ -851,7 +1083,7 @@
             return bandElement;
         }
         
-        // Render slideshow band
+        // Render slideshow bånd
         function renderSlideshowBand(bandElement, band) {
             const content = band.band_content || {};
             const slides = content.slides || [];
@@ -874,7 +1106,7 @@
                 slideElement.className = 'slideshow-slide';
                 slideElement.style.backgroundImage = `url('${slide.image}')`;
                 
-                // Add overlay for better readability
+                // Tilføj overlay for bedre læsbarhed
                 const overlay = document.createElement('div');
                 overlay.className = 'slide-overlay';
                 slideElement.appendChild(overlay);
@@ -934,7 +1166,7 @@
             
             bandElement.appendChild(slideshowContainer);
             
-            // Add navigation dots
+            // Tilføj navigation dots
             const slideshowNav = document.createElement('div');
             slideshowNav.className = 'slideshow-nav';
             
@@ -946,7 +1178,7 @@
                 dot.addEventListener('click', () => {
                     slideshowContainer.style.transform = `translateX(-${index * 100}%)`;
                     
-                    // Update active dots
+                    // Opdater aktive dots
                     const dots = slideshowNav.querySelectorAll('.slideshow-dot');
                     dots.forEach(d => d.classList.remove('active'));
                     dot.classList.add('active');
@@ -957,20 +1189,20 @@
             
             bandElement.appendChild(slideshowNav);
             
-            // Automatic slide change
+            // Automatisk skift
             let currentSlide = 0;
             setInterval(() => {
                 currentSlide = (currentSlide + 1) % slides.length;
                 slideshowContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
                 
-                // Update active dots
+                // Opdater aktive dots
                 const dots = slideshowNav.querySelectorAll('.slideshow-dot');
                 dots.forEach(d => d.classList.remove('active'));
                 dots[currentSlide].classList.add('active');
             }, 5000);
         }
         
-        // Render product band
+        // Render produkt bånd
         function renderProductBand(bandElement, band) {
             const content = band.band_content || {};
             const products = content.products || [];
@@ -1083,7 +1315,7 @@
             bandElement.appendChild(bandContent);
         }
         
-        // Render HTML band
+        // Render HTML bånd
         function renderHtmlBand(bandElement, band) {
             const content = band.band_content || {};
             const html = content.html || '';
@@ -1095,7 +1327,7 @@
             bandElement.appendChild(bandContent);
         }
         
-        // Render related products band
+        // Render relaterede produkter bånd
         function renderRelatedProductsBand(bandElement, band) {
             const content = band.band_content || {};
             
@@ -1108,8 +1340,8 @@
             title.style.marginBottom = '2rem';
             bandContent.appendChild(title);
             
-            // In a real implementation we would fetch related products from API
-            // For now we use dummy products
+            // I en rigtig implementering ville vi hente relaterede produkter fra API
+            // For nu bruger vi nogle dummy produkter
             const products = [
                 {
                     title: 'Relateret produkt 1',
@@ -1171,13 +1403,7 @@
                 
                 const addToCartButton = document.createElement('button');
                 addToCartButton.textContent = 'Læg i kurv';
-                addToCartButton.style.marginTop = '1rem';
-                addToCartButton.style.padding = '0.5rem 1rem';
-                addToCartButton.style.backgroundColor = 'var(--accent-color)';
-                addToCartButton.style.color = 'var(--primary-color)';
-                addToCartButton.style.border = 'none';
-                addToCartButton.style.borderRadius = '4px';
-                addToCartButton.style.cursor = 'pointer';
+                addToCartButton.className = 'product-button';
                 
                 addToCartButton.addEventListener('click', () => {
                     alert(`Produkt tilføjet til kurven: ${product.title}`);
@@ -1192,7 +1418,7 @@
             bandElement.appendChild(bandContent);
         }
         
-        // Render link band
+        // Render link bånd
         function renderLinkBand(bandElement, band) {
             const content = band.band_content || {};
             
@@ -1227,58 +1453,49 @@
             bandElement.appendChild(bandContent);
         }
         
-        // Cookie handling
+        // Cookie-håndtering
         function initCookieBanner() {
             const cookieBanner = document.getElementById('cookieBanner');
             const acceptButton = document.getElementById('acceptCookiesButton');
             const rejectButton = document.getElementById('rejectCookiesButton');
             const settingsButton = document.getElementById('cookieSettingsButton');
             
-            // Check if user has already made a decision about cookies
+            // Tjek om brugeren allerede har taget stilling til cookies
             const cookieConsent = localStorage.getItem('cookieConsent');
             
             if (cookieConsent === null) {
-                // If no decision has been made, show banner
+                // Hvis der ikke er taget stilling, vis banner
                 cookieBanner.style.display = 'flex';
             }
             
-            // Handle cookie acceptance
+            // Håndter accept af cookies
             acceptButton.addEventListener('click', () => {
                 localStorage.setItem('cookieConsent', 'accepted');
                 cookieBanner.style.display = 'none';
             });
             
-            // Handle cookie rejection
+            // Håndter afvisning af cookies
             rejectButton.addEventListener('click', () => {
                 localStorage.setItem('cookieConsent', 'rejected');
                 cookieBanner.style.display = 'none';
             });
             
-            // Handle click on cookie settings
+            // Håndter klik på cookie-indstillinger
             settingsButton.addEventListener('click', () => {
                 cookieBanner.style.display = 'flex';
             });
         }
         
-        // Initialization
+        // Initialisering
         async function init() {
-            // Set default styles immediately
-            setDefaultStyles();
+            // Indlæs globale stilarter (farver, skrifttyper)
+            await loadGlobalStyles();
             
-            // Determine which page to show based on URL
-            const url = new URL(window.location.href);
-            const pathSegments = url.pathname.split('/').filter(segment => segment);
+            // Indlæs altid forsiden for index.html
+            // Dette er den vigtige ændring!
+            await loadPage('forside');
             
-            let pageId = 'forside'; // Default to front page
-            
-            if (pathSegments.length > 0) {
-                pageId = pathSegments[0];
-            }
-            
-            // Load page
-            await loadPage(pageId);
-            
-            // Initialize cookie banner
+            // Initialisér cookie-banner
             initCookieBanner();
         }
         
