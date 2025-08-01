@@ -1,6 +1,28 @@
+# api/.htaccess
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # Allow direct access to specific files if needed
+    # RewriteCond %{REQUEST_FILENAME} -f
+    # RewriteRule .* - [L]
+    
+    # Route all API requests through index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Prevent direct access to PHP files (optional but recommended)
+# <FilesMatch "\.php$">
+#    Deny from all
+# </FilesMatch>
+# <FilesMatch "index\.php$">
+#    Allow from all
+# </FilesMatch>
+
+# Set proper headers
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
 </IfModule>
