@@ -1,13 +1,13 @@
 /**
  * LATL Bånd Frontend JavaScript
- * 
- * Dette script håndterer funktionaliteten af bånd på frontend.
- * Tilføj dette script til slutningen af din HTML, lige før </body>.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialiser alle slideshows på siden
+    // Initialiser alle slideshows
     initSlideshows();
+    
+    // Initialiser lazy loading
+    initLazyLoading();
 });
 
 /**
@@ -83,13 +83,6 @@ function initSlideshows() {
             slideInterval = setInterval(nextSlide, 5000);
         }
         
-        // Sæt første slide som aktivt
-        slides[0].classList.add('active');
-        
-        if (dots.length > 0) {
-            dots[0].classList.add('active');
-        }
-        
         // Tilføj event listeners til knapper
         if (prevBtn) {
             prevBtn.addEventListener('click', prevSlide);
@@ -148,9 +141,6 @@ function initSlideshows() {
 
 /**
  * Lazy loading af billeder i bånd
- * 
- * Dette hjælper med at forbedre sideindlæsningstiden ved kun at indlæse billeder, 
- * når de kommer ind i viewporten.
  */
 function initLazyLoading() {
     // Tjek om IntersectionObserver er understøttet
@@ -198,8 +188,3 @@ function initLazyLoading() {
         });
     }
 }
-
-// Initialiser lazy loading når siden er indlæst
-document.addEventListener('DOMContentLoaded', function() {
-    initLazyLoading();
-});
