@@ -3,12 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LATL Bånd Editor</title>
+    <title>LATL Admin - Bånd Editor</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/admin-style.css">
+    <style>
+        .slide-container {
+            position: relative;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .slide-container:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dadce0;
+        }
+        
+        .slide-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+        }
+        
+        .slide-preview img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        
+        .slide-preview h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        
+        .slide-preview p {
+            margin-top: 0;
+        }
+        
+        .band-type-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .band-type-option {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            border: 2px solid #dadce0;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .band-type-option:hover {
+            border-color: var(--secondary-color);
+            background-color: #f8f9fa;
+        }
+        
+        .band-type-option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(4, 41, 64, 0.05);
+        }
+        
+        .band-type-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .band-type-name {
+            font-weight: bold;
+        }
+        
+        .band-height-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .band-height-option {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #dadce0;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .band-height-option:hover {
+            border-color: var(--secondary-color);
+        }
+        
+        .band-height-option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(4, 41, 64, 0.05);
+        }
+        
+        .band-preview {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .band-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dadce0;
+        }
+        
+        .color-preview {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            vertical-align: middle;
+            border: 1px solid #dadce0;
+        }
+        
+        .admin-breadcrumb {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .admin-breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .admin-breadcrumb .separator {
+            margin: 0 10px;
+            color: var(--dark-gray);
+        }
+        
+        .admin-breadcrumb .current {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+    </style>
 </head>
 <body>
     <div class="loading">
@@ -18,8 +179,16 @@
     <div class="toast" id="toast"></div>
     
     <div class="container">
+        <div class="admin-breadcrumb">
+            <a href="index.html">Dashboard</a>
+            <span class="separator">/</span>
+            <a href="layout.html?tab=bandManagement">Layout</a>
+            <span class="separator">/</span>
+            <span class="current">Bånd Editor</span>
+        </div>
+        
         <div class="header">
-            <h1>LATL Bånd Editor</h1>
+            <h1 id="page-title">LATL Bånd Editor</h1>
             <div>
                 <button id="cancel-button" class="secondary">Annuller</button>
                 <button id="save-button" class="primary">Gem bånd</button>
@@ -29,31 +198,6 @@
         <div class="form-section">
             <h2>Grundlæggende bånd information</h2>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="band-type">Bånd type</label>
-                    <select id="band-type">
-                        <option value="slideshow">Slideshow</option>
-                        <option value="product">Produkt (konfigurerbart)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="band-height">Bånd højde</label>
-                    <select id="band-height">
-                        <option value="1">1x</option>
-                        <option value="2">2x</option>
-                        <option value="3">3x</option>
-                        <option value="4">4x</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="band-order">Rækkefølge</label>
-                    <input type="number" id="band-order" min="1" value="1">
-                </div>
-            </div>
-            
             <div class="form-group">
                 <label for="band-page">Side</label>
                 <select id="band-page">
@@ -61,13 +205,71 @@
                     <!-- Sider hentes fra API -->
                 </select>
             </div>
+            
+            <h3>Vælg båndtype</h3>
+            <div class="band-type-selector">
+                <div class="band-type-option" data-type="slideshow">
+                    <div class="band-type-icon">🖼️</div>
+                    <div class="band-type-name">Slideshow</div>
+                </div>
+                <div class="band-type-option" data-type="product">
+                    <div class="band-type-icon">🛍️</div>
+                    <div class="band-type-name">Produkt</div>
+                </div>
+                <div class="band-type-option" data-type="product_card">
+                    <div class="band-type-icon">📇</div>
+                    <div class="band-type-name">Produkt kort</div>
+                </div>
+                <div class="band-type-option" data-type="product_full">
+                    <div class="band-type-icon">📋</div>
+                    <div class="band-type-name">Produkt fuld</div>
+                </div>
+                <div class="band-type-option" data-type="html">
+                    <div class="band-type-icon">🧩</div>
+                    <div class="band-type-name">HTML</div>
+                </div>
+                <div class="band-type-option" data-type="related_products">
+                    <div class="band-type-icon">🔄</div>
+                    <div class="band-type-name">Relaterede produkter</div>
+                </div>
+                <div class="band-type-option" data-type="link">
+                    <div class="band-type-icon">🔗</div>
+                    <div class="band-type-name">Link</div>
+                </div>
+                <div class="band-type-option" data-type="cta">
+                    <div class="band-type-icon">📢</div>
+                    <div class="band-type-name">Call to Action</div>
+                </div>
+            </div>
+            
+            <h3>Vælg bånd højde</h3>
+            <div class="band-height-selector">
+                <div class="band-height-option" data-height="1">
+                    <div class="band-height-name">1x</div>
+                </div>
+                <div class="band-height-option" data-height="2">
+                    <div class="band-height-name">2x</div>
+                </div>
+                <div class="band-height-option" data-height="3">
+                    <div class="band-height-name">3x</div>
+                </div>
+                <div class="band-height-option" data-height="4">
+                    <div class="band-height-name">4x</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="band-order">Rækkefølge</label>
+                <input type="number" id="band-order" min="1" value="1">
+                <p class="help-text">Angiver rækkefølgen båndet vises i på siden. Lavere tal vises først.</p>
+            </div>
         </div>
         
         <!-- Slideshow Editor -->
         <div id="slideshow-editor" class="form-section">
             <h2>Slideshow indstillinger</h2>
             
-            <button class="add-slide-btn" id="add-slide">Tilføj nyt slide</button>
+            <button class="add-slide-btn primary" id="add-slide">Tilføj nyt slide</button>
             
             <div id="slides-container">
                 <!-- Slides tilføjes her dynamisk -->
@@ -98,6 +300,7 @@
                 <div class="form-row">
                     <input type="color" id="product-background" value="#ffffff">
                     <input type="text" id="product-background-hex" value="#ffffff">
+                    <span class="color-preview" id="background-color-preview" style="background-color: #ffffff;"></span>
                 </div>
             </div>
             
@@ -107,6 +310,79 @@
                     <img src="" alt="Produkt forhåndsvisning">
                 </div>
                 <input type="file" id="product-image" accept="image/png">
+            </div>
+        </div>
+        
+        <!-- HTML Editor -->
+        <div id="html-editor" class="form-section hidden-tab">
+            <h2>HTML indstillinger</h2>
+            
+            <div class="form-group">
+                <label for="html-content">HTML indhold</label>
+                <textarea id="html-content" rows="15" placeholder="Indtast HTML kode her..."></textarea>
+                <p class="help-text">Indsæt din egen HTML kode for specialfunktionalitet som Instagram feed eller anden tilpasset indhold.</p>
+            </div>
+        </div>
+        
+        <!-- Link Editor -->
+        <div id="link-editor" class="form-section hidden-tab">
+            <h2>Link indstillinger</h2>
+            
+            <div class="form-group">
+                <label for="link-title">Titel</label>
+                <input type="text" id="link-title" placeholder="Indtast link titel">
+            </div>
+            
+            <div class="form-group">
+                <label for="link-url">URL</label>
+                <input type="text" id="link-url" placeholder="Indtast URL (f.eks. https://example.com)">
+            </div>
+            
+            <div class="form-group">
+                <label for="link-description">Beskrivelse (valgfrit)</label>
+                <textarea id="link-description" rows="3" placeholder="Indtast beskrivelse"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="link-image">Billede (valgfrit)</label>
+                <div id="link-image-preview" class="image-preview" style="display: none;">
+                    <img src="" alt="Link forhåndsvisning">
+                </div>
+                <input type="file" id="link-image" accept="image/*">
+            </div>
+        </div>
+        
+        <!-- Call to Action Editor -->
+        <div id="cta-editor" class="form-section hidden-tab">
+            <h2>Call to Action indstillinger</h2>
+            
+            <div class="form-group">
+                <label for="cta-headline">Overskrift</label>
+                <input type="text" id="cta-headline" placeholder="Indtast overskrift">
+            </div>
+            
+            <div class="form-group">
+                <label for="cta-text">Tekst</label>
+                <textarea id="cta-text" rows="3" placeholder="Indtast call to action tekst"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="cta-button-text">Knap tekst</label>
+                <input type="text" id="cta-button-text" placeholder="Indtast knap tekst (f.eks. 'Køb nu')">
+            </div>
+            
+            <div class="form-group">
+                <label for="cta-button-url">Knap URL</label>
+                <input type="text" id="cta-button-url" placeholder="Indtast URL (f.eks. /kontakt)">
+            </div>
+            
+            <div class="form-group">
+                <label for="cta-background">Baggrundsfarve</label>
+                <div class="form-row">
+                    <input type="color" id="cta-background" value="#9FC131">
+                    <input type="text" id="cta-background-hex" value="#9FC131">
+                    <span class="color-preview" id="cta-color-preview" style="background-color: #9FC131;"></span>
+                </div>
             </div>
         </div>
         
@@ -134,59 +410,12 @@
         </div>
         
         <!-- Preview section -->
-        <div class="preview-section">
-            <h2>Forhåndsvisning</h2>
+        <div class="band-preview">
+            <div class="band-preview-header">
+                <h2>Forhåndsvisning</h2>
+                <div id="band-type-display">Slideshow band</div>
+            </div>
             <div id="preview-container">
                 <!-- Preview renderes her dynamisk -->
             </div>
         </div>
-    </div>
-    
-    <!-- Slide template (skjult) -->
-    <template id="slide-template">
-        <div class="slide-container" data-slide-index="{index}">
-            <button class="remove-slide" title="Fjern slide">&times;</button>
-            
-            <div class="slide-header">
-                <h3>Slide {index_human}</h3>
-                <div class="slide-controls">
-                    <button class="move-slide-up" title="Flyt op">&#8593;</button>
-                    <button class="move-slide-down" title="Flyt ned">&#8595;</button>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-title-{index}">Titel</label>
-                <input type="text" id="slide-title-{index}" class="slide-title" placeholder="Indtast slide titel">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-subtitle-{index}">Undertitel</label>
-                <input type="text" id="slide-subtitle-{index}" class="slide-subtitle" placeholder="Indtast undertitel">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-link-{index}">Link (valgfrit)</label>
-                <input type="text" id="slide-link-{index}" class="slide-link" placeholder="f.eks. /produkt/læderprodukt">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-image-{index}">Slide billede</label>
-                <div class="image-preview slide-image-preview" style="display: none;">
-                    <img src="" alt="Slide forhåndsvisning">
-                </div>
-                <input type="file" id="slide-image-{index}" class="slide-image" accept="image/jpeg,image/png,image/webp">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-alt-{index}">Billedtekst (alt-tekst)</label>
-                <input type="text" id="slide-alt-{index}" class="slide-alt" placeholder="Beskrivende tekst til billedet for SEO">
-                <p class="help-text">En beskrivende tekst til billedet, der hjælper med tilgængelighed og SEO.</p>
-            </div>
-        </div>
-    </template>
-    
-    <script src="js/admin-common.js"></script>
-    <script src="js/band-editor.js"></script>
-</body>
-</html>
