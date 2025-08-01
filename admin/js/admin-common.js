@@ -1,95 +1,68 @@
 /**
- * LATL Admin Common JS
- * Fælles JavaScript funktioner til admin området
+ * LATL Admin Common JavaScript Functions
  */
 
-// Konstanter
+// API URL konfiguration - juster efter din serveropsætning
 const API_URL = '/api';
 
+// Global loading state
+let isLoading = false;
+
 /**
- * Vis loading indikator
+ * Vis loading spinner
  */
 function showLoading() {
-    const loading = document.querySelector('.loading');
-    if (loading) {
-        loading.classList.add('show');
-    }
+    document.querySelector('.loading').classList.add('show');
+    isLoading = true;
 }
 
 /**
- * Skjul loading indikator
+ * Skjul loading spinner
  */
 function hideLoading() {
-    const loading = document.querySelector('.loading');
-    if (loading) {
-        loading.classList.remove('show');
-    }
+    document.querySelector('.loading').classList.remove('show');
+    isLoading = false;
 }
 
 /**
- * Vis toast notifikation
- * @param {string} message - Besked der skal vises
- * @param {boolean} isError - Om det er en fejlbesked
- * @param {number} duration - Hvor længe beskeden skal vises (ms)
+ * Vis toast besked
+ * @param {string} message - Besked til at vise
+ * @param {boolean} isError - Om beskeden er en fejl
  */
-function showToast(message, isError = false, duration = 3000) {
+function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
-    if (!toast) return;
-    
     toast.textContent = message;
     toast.className = isError ? 'toast error show' : 'toast show';
     
     setTimeout(() => {
         toast.className = toast.className.replace('show', '');
-    }, duration);
+    }, 3000);
 }
 
 /**
  * Hent sider fra API
- * @returns {Promise<Array>} - Array af sider
+ * @returns {Promise<Array>} Array af sider
  */
 async function fetchPages() {
     try {
         showLoading();
         
         const response = await fetch(`${API_URL}/layout`);
-        const result = await response.json();
         
-        if (result.status === 'success' && result.data) {
-            return result.data.filter(page => page.page_id !== 'global');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
-        return [];
-    } catch (error) {
-        console.error('Fejl ved indlæsning af sider:', error);
-        showToast('Fejl ved indlæsning af sider', true);
-        return [];
-    } finally {
-        hideLoading();
-    }
-}
-
-/**
- * Hent bånd for en side
- * @param {string} pageId - Sidens ID
- * @returns {Promise<Array>} - Array af bånd
- */
-async function fetchBands(pageId) {
-    try {
-        showLoading();
-        
-        const response = await fetch(`${API_URL}/bands/${pageId}`);
         const result = await response.json();
         
         if (result.status === 'success') {
             return result.data || [];
+        } else {
+            throw new Error(result.message || 'Der skete en fejl ved hentning af sider');
         }
-        
-        showToast(result.message || 'Fejl ved indlæsning af bånd', true);
-        return [];
     } catch (error) {
-        console.error('Fejl ved indlæsning af bånd:', error);
-        showToast('Fejl ved indlæsning af bånd', true);
+        console.error('Fejl ved hentning af sider:', error);
+        showToast('Fejl ved hentning af sider', true);
         return [];
     } finally {
         hideLoading();
@@ -97,27 +70,31 @@ async function fetchBands(pageId) {
 }
 
 /**
- * Hent et specifikt bånd
- * @param {string} pageId - Sidens ID
- * @param {string} bandId - Båndets ID
- * @returns {Promise<Object>} - Bånd objekt
+ * Hent et specifikt bånd fra API
+ * @param {string} pageId - Side ID
+ * @param {string} bandId - Bånd ID
+ * @returns {Promise<Object>} Bånd-objekt
  */
 async function fetchBand(pageId, bandId) {
     try {
         showLoading();
         
         const response = await fetch(`${API_URL}/bands/${pageId}/${bandId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
         const result = await response.json();
         
         if (result.status === 'success') {
-            return result.data;
+            return result.data || null;
+        } else {
+            throw new Error(result.message || 'Der skete en fejl ved hentning af bånd');
         }
-        
-        showToast(result.message || 'Fejl ved indlæsning af bånd', true);
-        return null;
     } catch (error) {
-        console.error('Fejl ved indlæsning af bånd:', error);
-        showToast('Fejl ved indlæsning af bånd', true);
+        console.error('Fejl ved hentning af bånd:', error);
+        showToast('Fejl ved hentning af bånd', true);
         return null;
     } finally {
         hideLoading();
@@ -125,16 +102,42 @@ async function fetchBand(pageId, bandId) {
 }
 
 /**
- * Gå tilbage til forrige side
+ * Konverter fil til data URL
+ * @param {File} file - Fil objekt
+ * @returns {Promise<string>} Data URL
  */
-function goBack() {
-    window.history.back();
+function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            resolve(e.target.result);
+        };
+        
+        reader.onerror = function(e) {
+            reject(e);
+        };
+        
+        reader.readAsDataURL(file);
+    });
 }
 
 /**
- * Få URL parameter
+ * Gå tilbage til forrige side eller specificeret URL
+ * @param {string} url - URL at gå til (valgfri)
+ */
+function goBack(url) {
+    if (url) {
+        window.location.href = url;
+    } else {
+        window.history.back();
+    }
+}
+
+/**
+ * Hent URL parameter
  * @param {string} name - Parameter navn
- * @returns {string|null} - Parameter værdi
+ * @returns {string|null} Parameter værdi eller null
  */
 function getUrlParam(name) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -142,23 +145,43 @@ function getUrlParam(name) {
 }
 
 /**
- * Generer et unikt ID
- * @returns {string} - Unikt ID
+ * Valider input objekt
+ * @param {Object} input - Input objekt at validere
+ * @param {Array} requiredFields - Påkrævede felter
+ * @returns {boolean} Om input er gyldigt
  */
-function generateUniqueId() {
-    return 'band_' + Math.random().toString(36).substr(2, 9);
+function validateInput(input, requiredFields) {
+    for (const field of requiredFields) {
+        if (!input[field]) {
+            showToast(`Felt '${field}' er påkrævet`, true);
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
- * Konverter en fil til en data URL
- * @param {File} file - Fil der skal konverteres
- * @returns {Promise<string>} - Data URL
+ * Formatér dato til dansk format
+ * @param {Date|string} date - Dato objekt eller dato-streng
+ * @returns {string} Formateret dato
  */
-function fileToDataUrl(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+function formatDate(date) {
+    const d = new Date(date);
+    return d.toLocaleDateString('da-DK', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
     });
+}
+
+/**
+ * Format pris til dansk format
+ * @param {number} price - Pris
+ * @returns {string} Formateret pris
+ */
+function formatPrice(price) {
+    return new Intl.NumberFormat('da-DK', {
+        style: 'currency',
+        currency: 'DKK'
+    }).format(price);
 }
