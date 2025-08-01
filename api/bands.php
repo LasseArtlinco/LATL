@@ -1,9 +1,6 @@
 <?php
-// api/bands.php - Band controller for LATL.dk
+// api/bands.php - Bands controller
 
-/**
- * Controller til håndtering af bånd (bands) på websitet
- */
 class BandsController {
     private $db;
     
@@ -12,303 +9,402 @@ class BandsController {
     }
     
     /**
-     * Hent alle bånd for en side
+     * Get all bands for a specific page
      */
     public function getBands($pageId) {
         try {
-            // Først, få layout_id for den angivne side
+            // Check if the page exists in the layout_config table
             $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
             
             if (!$layout) {
-                // Hvis layout ikke findes, opret det først
-                require_once dirname(__FILE__) . '/layout.php';
-                $layoutController = new LayoutController($this->db);
-                $result = $layoutController->create(['page_id' => $pageId]);
-                
-                if ($result['status'] !== 'success') {
-                    return ['status' => 'error', 'message' => 'Failed to create layout'];
-                }
-                
-                $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
-                
-                if (!$layout) {
-                    return ['status' => 'error', 'message' => 'Layout not found after creation'];
-                }
+                http_response_code(404);
+                return ['status' => 'error', 'message' => 'Page not found'];
             }
             
-            $layoutId = $layout['id'];
-            
-            // Hent bands fra layout_bands tabellen
+            // Get bands for this page
             $bands = $this->db->select(
                 "SELECT * FROM layout_bands WHERE layout_id = ? ORDER BY band_order",
-                [$layoutId]
+                [$layout['id']]
             );
             
-            // Konverter band_content fra JSON til arrays
+            // Process band content (JSON to array)
             foreach ($bands as &$band) {
                 if (isset($band['band_content']) && !empty($band['band_content'])) {
-                    $bandContent = json_decode($band['band_content'], true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        $band['band_content'] = $bandContent;
-                    } else {
-                        error_log('JSON decode error in band_content: ' . json_last_error_msg());
-                        $band['band_content'] = [];
-                    }
-                } else {
-                    $band['band_content'] = [];
-                }
-                
-                // Tilføj band_id hvis det ikke findes
-                if (!isset($band['band_id'])) {
-                    $band['band_id'] = 'band_' . $band['id'];
+                    $band['band_content'] = json_decode($band['band_content'], true);
                 }
             }
             
             return ['status' => 'success', 'data' => $bands];
         } catch (Exception $e) {
-            error_log('Error in getBands: ' . $e->getMessage());
+            error_log('BandsController getBands error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
     
     /**
-     * Hent et specifikt bånd
+     * Get a specific band
      */
     public function getBand($pageId, $bandId) {
         try {
-            // Først, få layout_id for den angivne side
+            // Get the layout ID
             $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
             
             if (!$layout) {
                 http_response_code(404);
-                return ['status' => 'error', 'message' => 'Layout not found'];
+                return ['status' => 'error', 'message' => 'Page not found'];
             }
             
-            $layoutId = $layout['id'];
-            
-            // Tjek om bandId er et numerisk ID eller et band_id med prefix
-            if (is_numeric($bandId)) {
-                $band = $this->db->selectOne(
-                    "SELECT * FROM layout_bands WHERE layout_id = ? AND id = ?",
-                    [$layoutId, $bandId]
-                );
-            } else {
-                // Antag at bandId er et unikt band_id med prefix (f.eks. 'band_123')
-                $band = $this->db->selectOne(
-                    "SELECT * FROM layout_bands WHERE layout_id = ? AND id = ?",
-                    [$layoutId, str_replace('band_', '', $bandId)]
-                );
-                
-                // Hvis det ikke blev fundet, prøv at søge i JSON-indholdet
-                if (!$band) {
-                    $allBands = $this->db->select(
-                        "SELECT * FROM layout_bands WHERE layout_id = ?",
-                        [$layoutId]
-                    );
-                    
-                    foreach ($allBands as $currentBand) {
-                        $content = json_decode($currentBand['band_content'], true);
-                        if (isset($content['band_id']) && $content['band_id'] === $bandId) {
-                            $band = $currentBand;
-                            break;
-                        }
-                    }
-                }
-            }
+            // Get the specific band
+            $band = $this->db->selectOne(
+                "SELECT * FROM layout_bands WHERE layout_id = ? AND band_id = ?",
+                [$layout['id'], $bandId]
+            );
             
             if (!$band) {
                 http_response_code(404);
                 return ['status' => 'error', 'message' => 'Band not found'];
             }
             
-            // Konverter band_content fra JSON til array
+            // Process band content (JSON to array)
             if (isset($band['band_content']) && !empty($band['band_content'])) {
-                $bandContent = json_decode($band['band_content'], true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $band['band_content'] = $bandContent;
-                } else {
-                    error_log('JSON decode error in band_content: ' . json_last_error_msg());
-                    $band['band_content'] = [];
-                }
-            } else {
-                $band['band_content'] = [];
-            }
-            
-            // Tilføj band_id hvis det ikke findes
-            if (!isset($band['band_id'])) {
-                $band['band_id'] = 'band_' . $band['id'];
+                $band['band_content'] = json_decode($band['band_content'], true);
             }
             
             return ['status' => 'success', 'data' => $band];
         } catch (Exception $e) {
-            error_log('Error in getBand: ' . $e->getMessage());
+            error_log('BandsController getBand error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
     
     /**
-     * Opret et nyt bånd til en side
+     * Create a new band
      */
     public function createBand($pageId, $bandData) {
         try {
-            // Valider input data
-            if (!isset($bandData['band_type']) || !isset($bandData['band_height']) || !isset($bandData['band_order'])) {
+            // Validate input data
+            if (!isset($bandData['band_type']) || !isset($bandData['band_content'])) {
                 http_response_code(400);
-                return ['status' => 'error', 'message' => 'Band type, height and order are required'];
+                return [
+                    'status' => 'error', 
+                    'message' => 'Band type and content are required'
+                ];
             }
             
-            // Få layout_id for den angivne side
+            // Get the layout ID
             $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
             
             if (!$layout) {
-                // Hvis layout ikke findes, opret det først
-                require_once dirname(__FILE__) . '/layout.php';
-                $layoutController = new LayoutController($this->db);
-                $result = $layoutController->create(['page_id' => $pageId]);
-                
-                if ($result['status'] !== 'success') {
-                    return ['status' => 'error', 'message' => 'Failed to create layout'];
-                }
-                
-                $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
-                
-                if (!$layout) {
-                    return ['status' => 'error', 'message' => 'Layout not found after creation'];
-                }
+                http_response_code(404);
+                return ['status' => 'error', 'message' => 'Page not found'];
             }
             
-            $layoutId = $layout['id'];
+            // Generate a unique band ID if not provided
+            if (!isset($bandData['band_id'])) {
+                $bandData['band_id'] = 'band_' . time() . '_' . rand(1000, 9999);
+            }
             
-            // Forbered band data
-            $dbData = [
-                'layout_id' => $layoutId,
+            // Get the highest band order and add 1 for the new band
+            $highestOrder = $this->db->selectOne(
+                "SELECT MAX(band_order) as max_order FROM layout_bands WHERE layout_id = ?",
+                [$layout['id']]
+            );
+            
+            $newOrder = (isset($highestOrder['max_order'])) ? $highestOrder['max_order'] + 1 : 1;
+            
+            // Convert band_content to JSON if it's an array
+            $bandContent = is_array($bandData['band_content']) 
+                ? json_encode($bandData['band_content']) 
+                : $bandData['band_content'];
+            
+            // Insert the new band
+            $this->db->insert('layout_bands', [
+                'layout_id' => $layout['id'],
                 'band_type' => $bandData['band_type'],
-                'band_height' => $bandData['band_height'],
-                'band_order' => $bandData['band_order']
-            ];
+                'band_height' => isset($bandData['band_height']) ? $bandData['band_height'] : 1,
+                'band_content' => $bandContent,
+                'band_order' => isset($bandData['band_order']) ? $bandData['band_order'] : $newOrder,
+                'band_id' => $bandData['band_id']
+            ]);
             
-            // Konverter band_content til JSON hvis det findes
-            if (isset($bandData['band_content'])) {
-                $dbData['band_content'] = json_encode($bandData['band_content']);
-            } else {
-                $dbData['band_content'] = '{}';
-            }
-            
-            // Indsæt i databasen
-            $bandId = $this->db->insert('layout_bands', $dbData);
-            
-            // Hent det nyoprettede bånd
-            return $this->getBand($pageId, $bandId);
+            // Get the newly created band
+            return $this->getBand($pageId, $bandData['band_id']);
         } catch (Exception $e) {
-            error_log('Error in createBand: ' . $e->getMessage());
+            error_log('BandsController createBand error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
     
     /**
-     * Opdater et eksisterende bånd
+     * Update an existing band
      */
     public function updateBand($pageId, $bandId, $bandData) {
         try {
-            // Få layout_id for den angivne side
+            // Get the layout ID
             $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
             
             if (!$layout) {
                 http_response_code(404);
-                return ['status' => 'error', 'message' => 'Layout not found'];
+                return ['status' => 'error', 'message' => 'Page not found'];
             }
             
-            $layoutId = $layout['id'];
-            
-            // Find det eksisterende bånd
-            $actualBandId = is_numeric($bandId) ? $bandId : str_replace('band_', '', $bandId);
-            $existingBand = $this->db->selectOne(
-                "SELECT * FROM layout_bands WHERE layout_id = ? AND id = ?",
-                [$layoutId, $actualBandId]
+            // Check if band exists
+            $band = $this->db->selectOne(
+                "SELECT id FROM layout_bands WHERE layout_id = ? AND band_id = ?",
+                [$layout['id'], $bandId]
             );
             
-            if (!$existingBand) {
+            if (!$band) {
                 http_response_code(404);
                 return ['status' => 'error', 'message' => 'Band not found'];
             }
             
-            // Forbered data til opdatering
-            $dbData = [];
+            // Prepare update data
+            $updateData = [];
             
             if (isset($bandData['band_type'])) {
-                $dbData['band_type'] = $bandData['band_type'];
+                $updateData['band_type'] = $bandData['band_type'];
             }
             
             if (isset($bandData['band_height'])) {
-                $dbData['band_height'] = $bandData['band_height'];
+                $updateData['band_height'] = $bandData['band_height'];
             }
             
             if (isset($bandData['band_order'])) {
-                $dbData['band_order'] = $bandData['band_order'];
+                $updateData['band_order'] = $bandData['band_order'];
             }
             
-            // Opdater band_content hvis det findes
             if (isset($bandData['band_content'])) {
-                $dbData['band_content'] = json_encode($bandData['band_content']);
+                $updateData['band_content'] = is_array($bandData['band_content']) 
+                    ? json_encode($bandData['band_content']) 
+                    : $bandData['band_content'];
             }
             
-            // Hvis der er data at opdatere
-            if (!empty($dbData)) {
+            if (!empty($updateData)) {
+                // Update the band
                 $this->db->update(
-                    'layout_bands', 
-                    $dbData, 
-                    'id = ?', 
-                    [$actualBandId]
+                    'layout_bands',
+                    $updateData,
+                    'layout_id = ? AND band_id = ?',
+                    [$layout['id'], $bandId]
                 );
             }
             
-            // Hent det opdaterede bånd
-            return $this->getBand($pageId, $actualBandId);
+            // Get the updated band
+            return $this->getBand($pageId, $bandId);
         } catch (Exception $e) {
-            error_log('Error in updateBand: ' . $e->getMessage());
+            error_log('BandsController updateBand error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
     }
     
     /**
-     * Slet et bånd
+     * Delete a band
      */
     public function deleteBand($pageId, $bandId) {
         try {
-            // Få layout_id for den angivne side
+            // Get the layout ID
             $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
             
             if (!$layout) {
                 http_response_code(404);
-                return ['status' => 'error', 'message' => 'Layout not found'];
+                return ['status' => 'error', 'message' => 'Page not found'];
             }
             
-            $layoutId = $layout['id'];
-            
-            // Find det eksisterende bånd
-            $actualBandId = is_numeric($bandId) ? $bandId : str_replace('band_', '', $bandId);
-            $existingBand = $this->db->selectOne(
-                "SELECT * FROM layout_bands WHERE layout_id = ? AND id = ?",
-                [$layoutId, $actualBandId]
+            // Check if band exists
+            $band = $this->db->selectOne(
+                "SELECT id, band_order FROM layout_bands WHERE layout_id = ? AND band_id = ?",
+                [$layout['id'], $bandId]
             );
             
-            if (!$existingBand) {
+            if (!$band) {
                 http_response_code(404);
                 return ['status' => 'error', 'message' => 'Band not found'];
             }
             
-            // Slet båndet
-            $this->db->delete('layout_bands', 'id = ?', [$actualBandId]);
+            // Delete the band
+            $this->db->delete(
+                'layout_bands',
+                'layout_id = ? AND band_id = ?',
+                [$layout['id'], $bandId]
+            );
+            
+            // Re-order remaining bands
+            $this->reorderBands($layout['id'], $band['band_order']);
             
             return ['status' => 'success', 'message' => 'Band deleted successfully'];
         } catch (Exception $e) {
-            error_log('Error in deleteBand: ' . $e->getMessage());
+            error_log('BandsController deleteBand error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Re-order bands after deletion
+     */
+    private function reorderBands($layoutId, $deletedOrder) {
+        try {
+            // Get all bands with higher order than the deleted one
+            $bands = $this->db->select(
+                "SELECT id, band_order FROM layout_bands WHERE layout_id = ? AND band_order > ? ORDER BY band_order",
+                [$layoutId, $deletedOrder]
+            );
+            
+            // Decrement the order of each band
+            foreach ($bands as $band) {
+                $this->db->update(
+                    'layout_bands',
+                    ['band_order' => $band['band_order'] - 1],
+                    'id = ?',
+                    [$band['id']]
+                );
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log('BandsController reorderBands error: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Handle product image upload
+     */
+    public function handleProductImageUpload($file, $pageId, $bandId) {
+        try {
+            require_once 'image_handler.php';
+            $imageHandler = new ImageHandler();
+            
+            // Define upload path
+            $uploadDir = ROOT_PATH . '/uploads/images/bands/product/';
+            
+            // Create directory if it doesn't exist
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            // Generate a unique filename
+            $filename = $pageId . '_' . $bandId . '_' . time() . '_' . uniqid() . '.jpg';
+            $uploadPath = $uploadDir . $filename;
+            
+            // Process and save the image
+            $result = $imageHandler->processAndSaveImage($file, $uploadPath);
+            
+            if (!$result) {
+                throw new Exception('Failed to process and save product image');
+            }
+            
+            // Get the band data
+            $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
+            $band = $this->db->selectOne(
+                "SELECT * FROM layout_bands WHERE layout_id = ? AND band_id = ?",
+                [$layout['id'], $bandId]
+            );
+            
+            if (!$band) {
+                throw new Exception('Band not found');
+            }
+            
+            // Update band content with the image URL
+            $bandContent = json_decode($band['band_content'], true);
+            
+            // Update the image URL in band content based on band type
+            if ($band['band_type'] === 'product') {
+                $bandContent['image'] = BASE_URL . '/uploads/images/bands/product/' . $filename;
+            } else {
+                // Generic handling for other band types
+                $bandContent['product_image'] = BASE_URL . '/uploads/images/bands/product/' . $filename;
+            }
+            
+            // Update the band content
+            $this->db->update(
+                'layout_bands',
+                ['band_content' => json_encode($bandContent)],
+                'id = ?',
+                [$band['id']]
+            );
+            
+            return true;
+        } catch (Exception $e) {
+            error_log('BandsController handleProductImageUpload error: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Handle slide image upload for slideshow bands
+     */
+    public function handleSlideImageUpload($file, $pageId, $bandId, $slideIndex) {
+        try {
+            require_once 'image_handler.php';
+            $imageHandler = new ImageHandler();
+            
+            // Define upload path
+            $uploadDir = ROOT_PATH . '/uploads/images/bands/slideshow/slides/';
+            
+            // Create directory if it doesn't exist
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            // Generate a unique filename
+            $filename = $pageId . '_' . $bandId . '_slide_' . $slideIndex . '_' . time() . '_' . uniqid() . '.jpg';
+            $uploadPath = $uploadDir . $filename;
+            
+            // Process and save the image
+            $result = $imageHandler->processAndSaveImage($file, $uploadPath);
+            
+            if (!$result) {
+                throw new Exception('Failed to process and save slide image');
+            }
+            
+            // Get the band data
+            $layout = $this->db->selectOne("SELECT id FROM layout_config WHERE page_id = ?", [$pageId]);
+            $band = $this->db->selectOne(
+                "SELECT * FROM layout_bands WHERE layout_id = ? AND band_id = ?",
+                [$layout['id'], $bandId]
+            );
+            
+            if (!$band) {
+                throw new Exception('Band not found');
+            }
+            
+            // Update band content with the image URL
+            $bandContent = json_decode($band['band_content'], true);
+            
+            // Update the image URL in band content based on band type
+            if ($band['band_type'] === 'slideshow' && isset($bandContent['slides'][$slideIndex])) {
+                $bandContent['slides'][$slideIndex]['image'] = BASE_URL . '/uploads/images/bands/slideshow/slides/' . $filename;
+            } else {
+                // Generic handling for other band types or missing slides
+                if (!isset($bandContent['slides'])) {
+                    $bandContent['slides'] = [];
+                }
+                
+                if (!isset($bandContent['slides'][$slideIndex])) {
+                    $bandContent['slides'][$slideIndex] = [];
+                }
+                
+                $bandContent['slides'][$slideIndex]['image'] = BASE_URL . '/uploads/images/bands/slideshow/slides/' . $filename;
+            }
+            
+            // Update the band content
+            $this->db->update(
+                'layout_bands',
+                ['band_content' => json_encode($bandContent)],
+                'id = ?',
+                [$band['id']]
+            );
+            
+            return true;
+        } catch (Exception $e) {
+            error_log('BandsController handleSlideImageUpload error: ' . $e->getMessage());
+            return false;
         }
     }
 }
