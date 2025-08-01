@@ -486,7 +486,10 @@ body {
     <script src="js/admin-common.js"></script>
     <script>
         // API-adresse - opdater denne baseret på din serveropsætning
-        const API_URL = '/api';
+        // Tjek om API_URL allerede er defineret i admin-common.js
+        if (typeof API_URL === 'undefined') {
+            var API_URL = '/api';
+        }
         
         // DOM elementer
         const tabButtons = document.querySelectorAll('.nav-tab');
@@ -595,6 +598,34 @@ body {
                         loadBands();
                     }
                 }
+            }
+            
+            // Tjek om der findes en forside, ellers tilbyd at oprette en
+            const pageSelect = document.getElementById('pageSelect');
+            const forsideOption = Array.from(pageSelect.options).find(option => option.value === 'forside');
+            
+            if (!forsideOption) {
+                const createForsideButton = document.createElement('button');
+                createForsideButton.textContent = 'Opret forside';
+                createForsideButton.classList.add('primary');
+                createForsideButton.style.marginLeft = '10px';
+                createForsideButton.addEventListener('click', createForsidePage);
+                
+                const introElement = document.querySelector('#layoutPages > p');
+                if (introElement) {
+                    introElement.insertAdjacentHTML('afterend', '<div class="info-message" style="margin-bottom: 20px;">Der er ikke oprettet en forside endnu. Klik på knappen for at oprette en.</div>');
+                    introElement.nextElementSibling.appendChild(createForsideButton);
+                }
+            }
+        }
+        
+        // Opret forside
+        async function createForsidePage() {
+            try {
+                document.getElementById('newPageId').value = 'forside';
+                await createNewPage();
+            } catch (error) {
+                console.error('Error creating forside:', error);
             }
         }
         
@@ -719,14 +750,35 @@ body {
                     options.body = JSON.stringify(data);
                 }
                 
-                const response = await fetch(`${API_URL}/${endpoint}`, options);
-                const result = await response.json();
+                // Tilføj timeout til fetch for at undgå at hænge uendeligt
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sekunder timeout
+                options.signal = controller.signal;
                 
-                if (!response.ok) {
-                    throw new Error(result.message || 'Der skete en fejl');
+                try {
+                    const response = await fetch(`${API_URL}/${endpoint}`, options);
+                    clearTimeout(timeoutId);
+                    
+                    // Håndter HTTP fejl
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`HTTP Error: ${response.status} - ${errorText}`);
+                        throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+                    }
+                    
+                    try {
+                        const result = await response.json();
+                        return result;
+                    } catch (jsonError) {
+                        console.error('JSON Parsing Error:', jsonError);
+                        throw new Error('Kunne ikke læse svar fra serveren (JSON fejl)');
+                    }
+                } catch (fetchError) {
+                    if (fetchError.name === 'AbortError') {
+                        throw new Error('Forbindelsen til serveren tidsudløb');
+                    }
+                    throw fetchError;
                 }
-                
-                return result;
             } catch (error) {
                 console.error('API Error:', error);
                 showToast(error.message || 'Der skete en fejl ved kommunikation med serveren', true);
@@ -903,50 +955,83 @@ body {
         // Load layouts
         async function loadLayouts() {
             try {
-                const result = await fetchApi('layout');
+                let result;
+                try {
+                    result = await fetchApi('layout');
+                } catch (error) {
+                    console.error('API Error:', error);
+                    
+                    // Hvis API ikke svarer, brug mock data for at undgå at UI'en bryder sammen
+                    const mockLayouts = [
+                        { page_id: 'forside', layout_data: {} },
+                        { page_id: 'produkter', layout_data: {} },
+                        { page_id: 'om-os', layout_data: {} },
+                        { page_id: 'kontakt', layout_data: {} }
+                    ];
+                    
+                    showToast('Kunne ikke forbinde til API. Viser demo data.', true);
+                    
+                    layouts = mockLayouts;
+                    updateLayoutsUI(mockLayouts);
+                    return;
+                }
                 
                 if (result.status === 'success' && result.data) {
                     layouts = result.data;
+                    updateLayoutsUI(layouts);
+                } else {
+                    // Hvis API svarer, men der ikke er data, vis en mock liste
+                    showToast('Ingen layouts fundet. Opretter standard layouts.', true);
                     
-                    // Opdater side dropdown
-                    const pageSelect = document.getElementById('pageSelect');
-                    const bandPageSelect = document.getElementById('bandPageSelect');
+                    const mockLayouts = [
+                        { page_id: 'forside', layout_data: {} }
+                    ];
                     
-                    // Ryd eksisterende muligheder
-                    pageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
-                    bandPageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
-                    
-                    // Tilføj layouts til dropdown
-                    layouts.forEach(layout => {
-                        if (layout.page_id !== 'global') {
-                            const option = document.createElement('option');
-                            option.value = layout.page_id;
-                            option.textContent = layout.page_id;
-                            
-                            const bandOption = option.cloneNode(true);
-                            
-                            pageSelect.appendChild(option);
-                            bandPageSelect.appendChild(bandOption);
-                        }
-                    });
-                    
-                    // Tjek URL parametre
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const pageId = urlParams.get('page');
-                    
-                    if (pageId) {
-                        // Indstil valgt side baseret på URL
-                        if (document.querySelector('.nav-tab[data-tab="layoutPages"]').classList.contains('active')) {
-                            pageSelect.value = pageId;
-                            handlePageChange();
-                        } else if (document.querySelector('.nav-tab[data-tab="bandManagement"]').classList.contains('active')) {
-                            bandPageSelect.value = pageId;
-                            loadBands();
-                        }
-                    }
+                    layouts = mockLayouts;
+                    updateLayoutsUI(mockLayouts);
                 }
             } catch (error) {
                 console.error('Error loading layouts:', error);
+            }
+        }
+        
+        // Opdater UI med layouts
+        function updateLayoutsUI(layoutsList) {
+            // Opdater side dropdown
+            const pageSelect = document.getElementById('pageSelect');
+            const bandPageSelect = document.getElementById('bandPageSelect');
+            
+            // Ryd eksisterende muligheder
+            pageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
+            bandPageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
+            
+            // Tilføj layouts til dropdown
+            layoutsList.forEach(layout => {
+                if (layout.page_id !== 'global') {
+                    const option = document.createElement('option');
+                    option.value = layout.page_id;
+                    option.textContent = layout.page_id;
+                    
+                    const bandOption = option.cloneNode(true);
+                    
+                    pageSelect.appendChild(option);
+                    bandPageSelect.appendChild(bandOption);
+                }
+            });
+            
+            // Tjek URL parametre
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageId = urlParams.get('page');
+            
+            if (pageId) {
+                // Indstil valgt side baseret på URL
+                if (document.querySelector('.nav-tab[data-tab="layoutPages"]').classList.contains('active')) {
+                    pageSelect.value = pageId;
+                    handlePageChange();
+                } else if (document.querySelector('.nav-tab[data-tab="bandManagement"]').classList.contains('active')) {
+                    bandPageSelect.value = pageId;
+                    loadBands();
+                }
             }
         }
         
@@ -956,7 +1041,20 @@ body {
             
             if (selectedPageId) {
                 try {
-                    const result = await fetchApi(`layout/${selectedPageId}`);
+                    let result;
+                    try {
+                        result = await fetchApi(`layout/${selectedPageId}`);
+                    } catch (error) {
+                        console.error('Error fetching page details:', error);
+                        
+                        // Vis en tom layout hvis API fejler
+                        currentPageId = selectedPageId;
+                        document.getElementById('currentPageId').value = selectedPageId;
+                        document.getElementById('layoutData').value = '{}';
+                        document.getElementById('pageDetails').style.display = 'block';
+                        updateUrlWithPage(selectedPageId);
+                        return;
+                    }
                     
                     if (result.status === 'success' && result.data) {
                         const layout = result.data;
@@ -971,7 +1069,8 @@ body {
                         updateUrlWithPage(selectedPageId);
                     }
                 } catch (error) {
-                    console.error('Error loading page details:', error);
+                    console.error('Error handling page change:', error);
+                    showToast('Der opstod en fejl ved indlæsning af siden', true);
                 }
             } else {
                 document.getElementById('pageDetails').style.display = 'none';
@@ -980,10 +1079,16 @@ body {
         
         // Opret ny side
         async function createNewPage() {
-            const pageId = document.getElementById('newPageId').value.trim();
+            const pageId = document.getElementById('newPageId').value.trim().toLowerCase();
             
             if (!pageId) {
                 showToast('Indtast et gyldigt side-id', true);
+                return;
+            }
+            
+            // Valider page-id (kun alfanumeriske tegn, bindestreg og understregning)
+            if (!/^[a-z0-9\-_]+$/.test(pageId)) {
+                showToast('Side-id må kun indeholde små bogstaver, tal, bindestreg og understregning', true);
                 return;
             }
             
@@ -993,19 +1098,42 @@ body {
                     layout_data: {}
                 };
                 
-                const result = await fetchApi('layout', 'POST', data);
-                
-                if (result.status === 'success') {
-                    showToast(`Siden "${pageId}" blev oprettet`);
-                    document.getElementById('newPageId').value = '';
-                    await loadLayouts();
+                try {
+                    // Forsøg at oprette siden gennem API
+                    const result = await fetchApi('layout', 'POST', data);
+                    
+                    if (result.status === 'success') {
+                        showToast(`Siden "${pageId}" blev oprettet`);
+                        document.getElementById('newPageId').value = '';
+                        await loadLayouts();
+                        
+                        // Vælg den nye side
+                        document.getElementById('pageSelect').value = pageId;
+                        handlePageChange();
+                    }
+                } catch (apiError) {
+                    console.error('API Error creating page:', apiError);
+                    
+                    // Håndter situationen hvor API'en fejler men vi stadig vil opdatere UI
+                    showToast(`Kunne ikke oprette side gennem API. Opretter lokalt.`, true);
+                    
+                    // Tilføj siden til vores lokale layouts array
+                    layouts.push({ page_id: pageId, layout_data: {} });
+                    
+                    // Opdater UI
+                    updateLayoutsUI(layouts);
                     
                     // Vælg den nye side
                     document.getElementById('pageSelect').value = pageId;
-                    handlePageChange();
+                    currentPageId = pageId;
+                    document.getElementById('currentPageId').value = pageId;
+                    document.getElementById('layoutData').value = '{}';
+                    document.getElementById('pageDetails').style.display = 'block';
+                    document.getElementById('newPageId').value = '';
                 }
             } catch (error) {
                 console.error('Error creating page:', error);
+                showToast('Der skete en uventet fejl ved oprettelse af siden', true);
             }
         }
         
