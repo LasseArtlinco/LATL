@@ -8,7 +8,275 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/admin-style.css">
+    <style>
+        :root {
+            --primary-color: #042940;
+            --secondary-color: #005C53;
+            --accent-color: #9FC131;
+            --bright-color: #DBF227;
+            --background-color: #D6D58E;
+            --text-color: #042940;
+            --light-gray: #f1f3f4;
+            --medium-gray: #dadce0;
+            --dark-gray: #5f6368;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Allerta Stencil', sans-serif;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .nav-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            background-color: var(--light-gray);
+        }
+        
+        .nav-tab.active {
+            background-color: white;
+            border-color: var(--medium-gray);
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid var(--medium-gray);
+            border-top: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #0d62d1;
+        }
+        
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        button.secondary:hover {
+            background-color: #2d9249;
+        }
+        
+        button.danger {
+            background-color: #ea4335;
+        }
+        
+        button.danger:hover {
+            background-color: #d33426;
+        }
+        
+        input, select, textarea {
+            padding: 8px 12px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .form-row > div {
+            flex: 1;
+        }
+        
+        .band {
+            background-color: var(--light-gray);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .band-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .band-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .color-preview {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--medium-gray);
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table, th, td {
+            border: 1px solid var(--medium-gray);
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--light-gray);
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+        
+        .spinner {
+            border: 4px solid var(--light-gray);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1001;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .toast.error {
+            background-color: #ea4335;
+        }
+        
+        #colorPalette, #fontConfig {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .error-banner {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+            display: none;
+        }
+        
+        .retry-button {
+            background-color: #c62828;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="loading">
@@ -19,8 +287,13 @@
     
     <div class="container">
         <div class="header">
-            <h1>LATL Admin Dashboard</h1>
-            <button id="saveButton" class="primary">Gem ændringer</button>
+            <h1>LATL Layout Admin</h1>
+            <button id="saveButton">Gem ændringer</button>
+        </div>
+        
+        <div class="error-banner" id="errorBanner">
+            Der opstod en fejl ved indlæsning af data. 
+            <button class="retry-button" id="retryButton">Prøv igen</button>
         </div>
         
         <div class="nav-tabs">
@@ -29,7 +302,6 @@
             <div class="nav-tab" data-tab="bandManagement">Bånd-styring</div>
         </div>
         
-        <!-- Global Styles Tab -->
         <div class="tab-content active" id="globalStyles">
             <h2>Globale stilarter</h2>
             <p>Her kan du konfigurere globale stilarter, der anvendes på hele webstedet.</p>
@@ -83,17 +355,6 @@
                             <div class="form-row">
                                 <input type="color" id="textColor" value="#042940">
                                 <input type="text" id="textColorHex" value="#042940">
-                            </div>
-                        </div>
-                        
-                        <div class="form-section" style="margin-top: 20px;">
-                            <h4>Farvepalette forhåndsvisning</h4>
-                            <div id="color-preview-container" style="display: flex; gap: 10px; margin-top: 10px;">
-                                <div style="width: 80px; height: 80px; background-color: #042940; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Primær</div>
-                                <div style="width: 80px; height: 80px; background-color: #005C53; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Sekundær</div>
-                                <div style="width: 80px; height: 80px; background-color: #9FC131; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Accent</div>
-                                <div style="width: 80px; height: 80px; background-color: #DBF227; display: flex; align-items: center; justify-content: center; color: #042940; border-radius: 4px;">Lys Accent</div>
-                                <div style="width: 80px; height: 80px; background-color: #D6D58E; display: flex; align-items: center; justify-content: center; color: #042940; border-radius: 4px;">Baggrund</div>
                             </div>
                         </div>
                     </div>
@@ -193,13 +454,6 @@
                                 <option value="700">Bold (700)</option>
                             </select>
                         </div>
-                        
-                        <div class="form-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 4px;">
-                            <h4 style="font-family: var(--heading-font); margin-bottom: 10px;" class="preview-heading">Skrifttype Forhåndsvisning</h4>
-                            <p style="font-family: var(--body-font); margin-bottom: 10px;" class="preview-body">Dette er et eksempel på brødtekst, der viser hvordan den valgte skrifttype ser ud i praksis.</p>
-                            <div style="font-family: var(--price-font); font-size: 1.2rem; margin-bottom: 10px;" class="preview-price">299,00 kr.</div>
-                            <button style="font-family: var(--button-font); padding: 8px 16px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px;" class="preview-button">Køb nu</button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -229,7 +483,6 @@ body {
             </div>
         </div>
         
-        <!-- Layout Pages Tab -->
         <div class="tab-content" id="layoutPages">
             <h2>Layout sider</h2>
             <p>Her kan du se og redigere layouts for forskellige sider.</p>
@@ -270,273 +523,121 @@ body {
             </div>
         </div>
         
-        <!-- Band Management Tab -->
         <div class="tab-content" id="bandManagement">
             <h2>Bånd-styring</h2>
             <p>Her kan du styre bånd for den valgte side.</p>
             
-            <!-- Band List View -->
-            <div id="band-list-view">
+            <div class="form-group">
+                <label>Vælg side</label>
+                <select id="bandPageSelect">
+                    <option value="">-- Vælg side --</option>
+                </select>
+            </div>
+            
+            <div id="bandList" style="display: none;">
+                <h3>Bånd på denne side</h3>
+                <div id="bands"></div>
+                
+                <button id="addBandButton" class="secondary">Tilføj nyt bånd</button>
+            </div>
+            
+            <div id="newBandForm" style="display: none;">
+                <h3>Tilføj nyt bånd</h3>
                 <div class="form-group">
-                    <label>Vælg side</label>
-                    <select id="bandPageSelect">
-                        <option value="">-- Vælg side --</option>
+                    <label>Bånd type</label>
+                    <select id="newBandType">
+                        <option value="slideshow">Slideshow</option>
+                        <option value="product">Produkt (konfigurerbart)</option>
+                        <option value="product_card" disabled>Produkt kort</option>
+                        <option value="product_full" disabled>Produkt fuld</option>
+                        <option value="html" disabled>HTML</option>
+                        <option value="related_products" disabled>Relaterede produkter</option>
+                        <option value="link" disabled>Link</option>
+                        <option value="cta" disabled>Call to Action</option>
                     </select>
                 </div>
                 
-                <div id="bandList" style="display: none; margin-top: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3>Bånd på denne side</h3>
-                        <button id="addBandButton" class="secondary">Tilføj nyt bånd</button>
-                    </div>
-                    
-                    <div id="bands"></div>
+                <div class="form-group">
+                    <label>Bånd højde</label>
+                    <select id="newBandHeight">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Bånd indhold (JSON)</label>
+                    <textarea id="newBandContent" rows="6" placeholder='{"key": "value"}'></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Rækkefølge</label>
+                    <input type="number" id="newBandOrder" min="1" value="1">
+                </div>
+                
+                <div class="form-row">
+                    <button id="saveBandButton">Gem bånd</button>
+                    <button id="cancelBandButton">Annuller</button>
                 </div>
             </div>
             
-            <!-- Band Editor View -->
-            <div id="band-editor-view" style="display: none;">
-                <div class="header">
-                    <h3 id="band-editor-title">Tilføj nyt bånd</h3>
-                    <div>
-                        <button id="cancelBandButton" class="secondary">Annuller</button>
-                        <button id="saveBandButton" class="primary">Gem bånd</button>
-                    </div>
-                </div>
-                
+            <div id="editBandForm" style="display: none;">
+                <h3>Rediger bånd</h3>
                 <input type="hidden" id="editBandId">
                 
-                <div class="form-section">
-                    <h3>Grundlæggende bånd information</h3>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="band-type">Bånd type</label>
-                            <select id="band-type">
-                                <option value="slideshow">Slideshow</option>
-                                <option value="product">Produkt (konfigurerbart)</option>
-                                <option value="product_card">Produkt kort</option>
-                                <option value="product_full">Produkt fuld</option>
-                                <option value="html">HTML</option>
-                                <option value="related_products">Relaterede produkter</option>
-                                <option value="link">Link</option>
-                                <option value="cta">Call to Action</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="band-height">Bånd højde</label>
-                            <select id="band-height">
-                                <option value="1">1x</option>
-                                <option value="2">2x</option>
-                                <option value="3">3x</option>
-                                <option value="4">4x</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="band-order">Rækkefølge</label>
-                            <input type="number" id="band-order" min="1" value="1">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="band-page">Side</label>
-                        <select id="band-page" disabled>
-                            <option value="">-- Vælg side --</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label>Bånd type</label>
+                    <select id="editBandType">
+                        <option value="slideshow">Slideshow</option>
+                        <option value="product">Produkt (konfigurerbart)</option>
+                        <option value="product_card" disabled>Produkt kort</option>
+                        <option value="product_full" disabled>Produkt fuld</option>
+                        <option value="html" disabled>HTML</option>
+                        <option value="related_products" disabled>Relaterede produkter</option>
+                        <option value="link" disabled>Link</option>
+                        <option value="cta" disabled>Call to Action</option>
+                    </select>
                 </div>
                 
-                <!-- Slideshow Editor -->
-                <div id="slideshow-editor" class="form-section">
-                    <h3>Slideshow indstillinger</h3>
-                    
-                    <button id="add-slide" class="add-slide-btn">Tilføj nyt slide</button>
-                    
-                    <div id="slides-container">
-                        <!-- Slides tilføjes her dynamisk -->
-                    </div>
+                <div class="form-group">
+                    <label>Bånd højde</label>
+                    <select id="editBandHeight">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                    </select>
                 </div>
                 
-                <!-- Configurable Product Editor -->
-                <div id="product-editor" class="form-section hidden-tab">
-                    <h3>Produkt indstillinger</h3>
-                    
-                    <div class="form-group">
-                        <label for="product-title">Titel</label>
-                        <input type="text" id="product-title" placeholder="Indtast produkttitel">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product-subtitle">Undertitel</label>
-                        <input type="text" id="product-subtitle" placeholder="Indtast undertitel">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product-link">Link (valgfrit)</label>
-                        <input type="text" id="product-link" placeholder="f.eks. /produkt/læderprodukt">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product-background">Baggrundsfarve</label>
-                        <div class="form-row">
-                            <input type="color" id="product-background" value="#ffffff">
-                            <input type="text" id="product-background-hex" value="#ffffff">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="product-image">Produkt billede (PNG med gennemsigtig baggrund)</label>
-                        <div id="product-image-preview" class="image-preview" style="display: none;">
-                            <img src="" alt="Produkt forhåndsvisning">
-                        </div>
-                        <input type="file" id="product-image" accept="image/png">
-                    </div>
+                <div class="form-group">
+                    <label>Bånd indhold (JSON)</label>
+                    <textarea id="editBandContent" rows="6" placeholder='{"key": "value"}'></textarea>
                 </div>
                 
-                <!-- HTML Editor -->
-                <div id="html-editor" class="form-section hidden-tab">
-                    <h3>HTML indstillinger</h3>
-                    
-                    <div class="form-group">
-                        <label for="html-content">HTML indhold</label>
-                        <textarea id="html-content" rows="10" placeholder="Indtast HTML-kode her..."></textarea>
-                    </div>
+                <div class="form-group">
+                    <label>Rækkefølge</label>
+                    <input type="number" id="editBandOrder" min="1">
                 </div>
                 
-                <!-- Link Editor -->
-                <div id="link-editor" class="form-section hidden-tab">
-                    <h3>Link indstillinger</h3>
-                    
-                    <div class="form-group">
-                        <label for="link-text">Link tekst</label>
-                        <input type="text" id="link-text" placeholder="Indtast link tekst">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="link-url">URL</label>
-                        <input type="text" id="link-url" placeholder="Indtast URL (f.eks. /kontakt)">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="link-style">Link stil</label>
-                        <select id="link-style">
-                            <option value="button">Knap</option>
-                            <option value="text">Tekst</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- SEO indstillinger -->
-                <div class="form-section">
-                    <h3>SEO indstillinger</h3>
-                    
-                    <div class="form-group">
-                        <label for="seo-title">SEO Titel</label>
-                        <input type="text" id="seo-title" placeholder="Indtast SEO titel">
-                        <p class="help-text">Denne titel vil blive brugt i metadata og hjælper med SEO.</p>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="seo-description">SEO Beskrivelse</label>
-                        <textarea id="seo-description" rows="3" placeholder="Indtast SEO beskrivelse"></textarea>
-                        <p class="help-text">En kort beskrivelse af båndets indhold for søgemaskiner.</p>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="seo-keywords">SEO Nøgleord</label>
-                        <input type="text" id="seo-keywords" placeholder="Indtast nøgleord adskilt af komma">
-                        <p class="help-text">Relevante nøgleord for dette bånd.</p>
-                    </div>
-                </div>
-                
-                <!-- Preview section -->
-                <div class="form-section">
-                    <h3>Forhåndsvisning</h3>
-                    <div id="preview-container" class="preview-container" style="margin-top: 10px; padding: 15px; background-color: #f5f5f5; border-radius: 4px; min-height: 200px;">
-                        <!-- Preview renderes her dynamisk -->
-                    </div>
+                <div class="form-row">
+                    <button id="updateBandButton">Opdater bånd</button>
+                    <button id="deleteBandButton" class="danger">Slet bånd</button>
+                    <button id="cancelEditButton">Annuller</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Slide template (skjult) -->
-    <template id="slide-template">
-        <div class="slide-container" data-slide-index="{index}">
-            <button class="remove-slide" title="Fjern slide">&times;</button>
-            
-            <div class="slide-header">
-                <h3>Slide {index_human}</h3>
-                <div class="slide-controls">
-                    <button class="move-slide-up" title="Flyt op">&#8593;</button>
-                    <button class="move-slide-down" title="Flyt ned">&#8595;</button>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-title-{index}">Titel</label>
-                <input type="text" id="slide-title-{index}" class="slide-title" placeholder="Indtast slide titel">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-subtitle-{index}">Undertitel</label>
-                <input type="text" id="slide-subtitle-{index}" class="slide-subtitle" placeholder="Indtast undertitel">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-link-{index}">Link (valgfrit)</label>
-                <input type="text" id="slide-link-{index}" class="slide-link" placeholder="f.eks. /produkt/læderprodukt">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-image-{index}">Slide billede</label>
-                <div class="image-preview slide-image-preview" style="display: none;">
-                    <img src="" alt="Slide forhåndsvisning">
-                </div>
-                <input type="file" id="slide-image-{index}" class="slide-image" accept="image/jpeg,image/png,image/webp">
-            </div>
-            
-            <div class="form-group">
-                <label for="slide-alt-{index}">Billedtekst (alt-tekst)</label>
-                <input type="text" id="slide-alt-{index}" class="slide-alt" placeholder="Beskrivende tekst til billedet for SEO">
-                <p class="help-text">En beskrivende tekst til billedet, der hjælper med tilgængelighed og SEO.</p>
-            </div>
-        </div>
-    </template>
-    
-    <!-- Band Item Template -->
-    <template id="band-item-template">
-        <div class="band" data-band-id="{id}">
-            <div class="band-header">
-                <h4>{title}</h4>
-                <div class="band-controls">
-                    <button class="edit-band-btn">Rediger</button>
-                    <button class="move-up-btn" title="Flyt op">↑</button>
-                    <button class="move-down-btn" title="Flyt ned">↓</button>
-                    <button class="delete-band-btn danger" title="Slet">×</button>
-                </div>
-            </div>
-            <div class="band-info">
-                <p><strong>Type:</strong> {type}</p>
-                <p><strong>Højde:</strong> {height}x</p>
-                <p><strong>Position:</strong> {order}</p>
-                <p>{content_info}</p>
-            </div>
-        </div>
-    </template>
-    
     <script src="js/admin-common.js"></script>
     <script>
-        // API-adresse
-        const API_URL = '/api';
-        
         // DOM elementer
         const tabButtons = document.querySelectorAll('.nav-tab');
         const tabContents = document.querySelectorAll('.tab-content');
-        const toast = document.getElementById('toast');
-        const loading = document.querySelector('.loading');
+        const saveButton = document.getElementById('saveButton');
+        const errorBanner = document.getElementById('errorBanner');
+        const retryButton = document.getElementById('retryButton');
         
         // Global state
         let currentPageId = null;
@@ -546,9 +647,6 @@ body {
             font_config: {},
             color_palette: {}
         };
-        let slideCount = 0;
-        let slideImageFiles = {};
-        let productImageFile = null;
         
         // Event listeners for tabs
         tabButtons.forEach(button => {
@@ -577,24 +675,21 @@ body {
             
             colorInput.addEventListener('input', () => {
                 hexInput.value = colorInput.value;
-                updateColorPreview();
             });
             
             hexInput.addEventListener('input', () => {
                 if (/^#[0-9A-F]{6}$/i.test(hexInput.value)) {
                     colorInput.value = hexInput.value;
-                    updateColorPreview();
                 }
             });
         });
         
-        // Font selects
-        document.querySelectorAll('#fontConfig select').forEach(select => {
-            select.addEventListener('change', updateFontPreview);
-        });
-        
         // Global styles
-        document.getElementById('saveButton').addEventListener('click', saveGlobalStyles);
+        saveButton.addEventListener('click', saveGlobalStyles);
+        retryButton.addEventListener('click', () => {
+            errorBanner.style.display = 'none';
+            init();
+        });
         
         // Layout pages
         document.getElementById('pageSelect').addEventListener('change', handlePageChange);
@@ -604,67 +699,41 @@ body {
         
         // Band management
         document.getElementById('bandPageSelect').addEventListener('change', loadBands);
-        document.getElementById('addBandButton').addEventListener('click', showBandEditor);
-        document.getElementById('cancelBandButton').addEventListener('click', hideBandEditor);
-        document.getElementById('saveBandButton').addEventListener('click', saveBand);
-        document.getElementById('band-type').addEventListener('change', toggleEditors);
-        document.getElementById('add-slide').addEventListener('click', addSlide);
+        document.getElementById('addBandButton').addEventListener('click', showNewBandForm);
+        document.getElementById('saveBandButton').addEventListener('click', saveNewBand);
+        document.getElementById('cancelBandButton').addEventListener('click', () => {
+            document.getElementById('newBandForm').style.display = 'none';
+            document.getElementById('bandList').style.display = 'block';
+        });
+        document.getElementById('updateBandButton').addEventListener('click', updateBand);
+        document.getElementById('deleteBandButton').addEventListener('click', deleteBand);
+        document.getElementById('cancelEditButton').addEventListener('click', () => {
+            document.getElementById('editBandForm').style.display = 'none';
+            document.getElementById('bandList').style.display = 'block';
+        });
         
         // Initialiser app
         document.addEventListener('DOMContentLoaded', init);
         
+        /**
+         * Initialiser app
+         */
         async function init() {
-            await loadGlobalStyles();
-            await loadLayouts();
-        }
-        
-        // Helper funktion til at vise toast meddelelser
-        function showToast(message, isError = false) {
-            toast.textContent = message;
-            toast.className = isError ? 'toast error show' : 'toast show';
-            
-            setTimeout(() => {
-                toast.className = toast.className.replace('show', '');
-            }, 3000);
-        }
-        
-        // Helper funktion til at håndtere API-kald
-        async function fetchApi(endpoint, method = 'GET', data = null) {
             try {
-                loading.classList.add('show');
-                
-                const options = {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                };
-                
-                if (data && (method === 'POST' || method === 'PUT')) {
-                    options.body = JSON.stringify(data);
-                }
-                
-                const response = await fetch(`${API_URL}/${endpoint}`, options);
-                const result = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(result.message || 'Der skete en fejl');
-                }
-                
-                return result;
+                await loadGlobalStyles();
+                await loadLayouts();
             } catch (error) {
-                console.error('API Error:', error);
-                showToast(error.message || 'Der skete en fejl ved kommunikation med serveren', true);
-                throw error;
-            } finally {
-                loading.classList.remove('show');
+                console.error('Error initializing app:', error);
+                errorBanner.style.display = 'block';
             }
         }
         
-        // Load globale stilarter
+        /**
+         * Load globale stilarter
+         */
         async function loadGlobalStyles() {
             try {
-                const result = await fetchApi('layout/global/styles');
+                const result = await safeFetch(`${API_URL}/layout/global/styles`);
                 
                 if (result.status === 'success' && result.data) {
                     globalStyles = result.data;
@@ -750,17 +819,17 @@ body {
                     if (styles.css) {
                         document.getElementById('globalCss').value = styles.css;
                     }
-                    
-                    // Opdater previews
-                    updateColorPreview();
-                    updateFontPreview();
                 }
             } catch (error) {
                 console.error('Error loading global styles:', error);
+                showToast('Fejl ved indlæsning af globale stilarter', true);
+                throw error;
             }
         }
         
-        // Gem globale stilarter
+        /**
+         * Gem globale stilarter
+         */
         async function saveGlobalStyles() {
             try {
                 const colorPalette = {
@@ -801,88 +870,29 @@ body {
                     color_palette: colorPalette
                 };
                 
-                const result = await fetchApi('layout/global/styles', 'PUT', data);
+                const result = await safeFetch(`${API_URL}/layout/global/styles`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
                 
                 if (result.status === 'success') {
                     showToast('Globale stilarter blev gemt');
                 }
             } catch (error) {
                 console.error('Error saving global styles:', error);
+                showToast('Fejl ved gemning af globale stilarter', true);
             }
         }
         
-        function updateColorPreview() {
-            const container = document.getElementById('color-preview-container');
-            const primaryColor = document.getElementById('primaryColor').value;
-            const secondaryColor = document.getElementById('secondaryColor').value;
-            const accentColor = document.getElementById('accentColor').value;
-            const brightColor = document.getElementById('brightColor').value;
-            const backgroundColor = document.getElementById('backgroundColor').value;
-            const textColor = document.getElementById('textColor').value;
-            
-            container.innerHTML = `
-                <div style="width: 80px; height: 80px; background-color: ${primaryColor}; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Primær</div>
-                <div style="width: 80px; height: 80px; background-color: ${secondaryColor}; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Sekundær</div>
-                <div style="width: 80px; height: 80px; background-color: ${accentColor}; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Accent</div>
-                <div style="width: 80px; height: 80px; background-color: ${brightColor}; display: flex; align-items: center; justify-content: center; color: ${textColor}; border-radius: 4px;">Lys Accent</div>
-                <div style="width: 80px; height: 80px; background-color: ${backgroundColor}; display: flex; align-items: center; justify-content: center; color: ${textColor}; border-radius: 4px;">Baggrund</div>
-            `;
-            
-            // Set CSS variables
-            document.documentElement.style.setProperty('--primary-color', primaryColor);
-            document.documentElement.style.setProperty('--secondary-color', secondaryColor);
-            document.documentElement.style.setProperty('--accent-color', accentColor);
-            document.documentElement.style.setProperty('--bright-color', brightColor);
-            document.documentElement.style.setProperty('--background-color', backgroundColor);
-            document.documentElement.style.setProperty('--text-color', textColor);
-        }
-        
-        function updateFontPreview() {
-            const headingFont = document.getElementById('headingFontFamily').value;
-            const headingWeight = document.getElementById('headingFontWeight').value;
-            const bodyFont = document.getElementById('bodyFontFamily').value;
-            const bodyWeight = document.getElementById('bodyFontWeight').value;
-            const priceFont = document.getElementById('priceFontFamily').value;
-            const priceWeight = document.getElementById('priceFontWeight').value;
-            const buttonFont = document.getElementById('buttonFontFamily').value;
-            const buttonWeight = document.getElementById('buttonFontWeight').value;
-            
-            const previewHeading = document.querySelector('.preview-heading');
-            const previewBody = document.querySelector('.preview-body');
-            const previewPrice = document.querySelector('.preview-price');
-            const previewButton = document.querySelector('.preview-button');
-            
-            if (previewHeading) {
-                previewHeading.style.fontFamily = headingFont;
-                previewHeading.style.fontWeight = headingWeight;
-            }
-            
-            if (previewBody) {
-                previewBody.style.fontFamily = bodyFont;
-                previewBody.style.fontWeight = bodyWeight;
-            }
-            
-            if (previewPrice) {
-                previewPrice.style.fontFamily = priceFont;
-                previewPrice.style.fontWeight = priceWeight;
-            }
-            
-            if (previewButton) {
-                previewButton.style.fontFamily = buttonFont;
-                previewButton.style.fontWeight = buttonWeight;
-            }
-            
-            // Set CSS variables
-            document.documentElement.style.setProperty('--heading-font', headingFont);
-            document.documentElement.style.setProperty('--body-font', bodyFont);
-            document.documentElement.style.setProperty('--price-font', priceFont);
-            document.documentElement.style.setProperty('--button-font', buttonFont);
-        }
-        
-        // Load layouts
+        /**
+         * Load layouts
+         */
         async function loadLayouts() {
             try {
-                const result = await fetchApi('layout');
+                const result = await safeFetch(`${API_URL}/layout`);
                 
                 if (result.status === 'success' && result.data) {
                     layouts = result.data;
@@ -890,12 +900,10 @@ body {
                     // Opdater side dropdown
                     const pageSelect = document.getElementById('pageSelect');
                     const bandPageSelect = document.getElementById('bandPageSelect');
-                    const bandPage = document.getElementById('band-page');
                     
                     // Ryd eksisterende muligheder
                     pageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
                     bandPageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
-                    bandPage.innerHTML = '<option value="">-- Vælg side --</option>';
                     
                     // Tilføj layouts til dropdown
                     layouts.forEach(layout => {
@@ -905,26 +913,28 @@ body {
                             option.textContent = layout.page_id;
                             
                             const bandOption = option.cloneNode(true);
-                            const bandPageOption = option.cloneNode(true);
                             
                             pageSelect.appendChild(option);
                             bandPageSelect.appendChild(bandOption);
-                            bandPage.appendChild(bandPageOption);
                         }
                     });
                 }
             } catch (error) {
                 console.error('Error loading layouts:', error);
+                showToast('Fejl ved indlæsning af layouts', true);
+                throw error;
             }
         }
         
-        // Håndter sideændring
+        /**
+         * Håndter sideændring
+         */
         async function handlePageChange() {
             const selectedPageId = document.getElementById('pageSelect').value;
             
             if (selectedPageId) {
                 try {
-                    const result = await fetchApi(`layout/${selectedPageId}`);
+                    const result = await safeFetch(`${API_URL}/layout/${selectedPageId}`);
                     
                     if (result.status === 'success' && result.data) {
                         const layout = result.data;
@@ -937,13 +947,16 @@ body {
                     }
                 } catch (error) {
                     console.error('Error loading page details:', error);
+                    showToast('Fejl ved indlæsning af sidedetaljer', true);
                 }
             } else {
                 document.getElementById('pageDetails').style.display = 'none';
             }
         }
         
-        // Opret ny side
+        /**
+         * Opret ny side
+         */
         async function createNewPage() {
             const pageId = document.getElementById('newPageId').value.trim();
             
@@ -958,7 +971,13 @@ body {
                     layout_data: {}
                 };
                 
-                const result = await fetchApi('layout', 'POST', data);
+                const result = await safeFetch(`${API_URL}/layout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
                 
                 if (result.status === 'success') {
                     showToast(`Siden "${pageId}" blev oprettet`);
@@ -971,10 +990,13 @@ body {
                 }
             } catch (error) {
                 console.error('Error creating page:', error);
+                showToast('Fejl ved oprettelse af side', true);
             }
         }
         
-        // Opdater side
+        /**
+         * Opdater side
+         */
         async function updatePage() {
             if (!currentPageId) {
                 showToast('Ingen side valgt', true);
@@ -994,17 +1016,26 @@ body {
                     layout_data: layoutData
                 };
                 
-                const result = await fetchApi(`layout/${currentPageId}`, 'PUT', data);
+                const result = await safeFetch(`${API_URL}/layout/${currentPageId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
                 
                 if (result.status === 'success') {
                     showToast(`Siden "${currentPageId}" blev opdateret`);
                 }
             } catch (error) {
                 console.error('Error updating page:', error);
+                showToast('Fejl ved opdatering af side', true);
             }
         }
         
-        // Slet side
+        /**
+         * Slet side
+         */
         async function deletePage() {
             if (!currentPageId) {
                 showToast('Ingen side valgt', true);
@@ -1016,7 +1047,9 @@ body {
             }
             
             try {
-                const result = await fetchApi(`layout/${currentPageId}`, 'DELETE');
+                const result = await safeFetch(`${API_URL}/layout/${currentPageId}`, {
+                    method: 'DELETE'
+                });
                 
                 if (result.status === 'success') {
                     showToast(`Siden "${currentPageId}" blev slettet`);
@@ -1026,79 +1059,93 @@ body {
                 }
             } catch (error) {
                 console.error('Error deleting page:', error);
+                showToast('Fejl ved sletning af side', true);
             }
         }
         
-        // Load bånd for en side
+        /**
+         * Load bånd for en side
+         */
         async function loadBands() {
             const selectedPageId = document.getElementById('bandPageSelect').value;
             
             if (selectedPageId) {
                 try {
-                    const result = await fetchApi(`bands/${selectedPageId}`);
+                    const result = await safeFetch(`${API_URL}/bands/${selectedPageId}`);
                     
                     if (result.status === 'success') {
                         const bands = result.data || [];
-                        currentPageId = selectedPageId;
-                        
-                        const bandsContainer = document.getElementById('bands');
-                        bandsContainer.innerHTML = '';
                         
                         if (bands.length === 0) {
-                            bandsContainer.innerHTML = '<p>Ingen bånd fundet for denne side.</p>';
+                            document.getElementById('bands').innerHTML = `
+                                <p>Ingen bånd fundet for denne side.</p>
+                            `;
                         } else {
                             // Sorter bånd efter rækkefølge
                             bands.sort((a, b) => a.band_order - b.band_order);
                             
-                            const template = document.getElementById('band-item-template').innerHTML;
+                            let bandsHtml = '';
                             
-                            bands.forEach((band, index) => {
-                                let contentInfo = '';
-                                if (band.band_type === 'slideshow' && band.band_content.slides) {
-                                    contentInfo = `<strong>Indhold:</strong> ${band.band_content.slides.length} slide(s)`;
+                            bands.forEach(band => {
+                                let bandTitle = '';
+                                let bandDescription = '';
+                                
+                                if (band.band_type === 'slideshow') {
+                                    const slides = band.band_content?.slides || [];
+                                    bandTitle = slides[0]?.title || 'Unavngivet slideshow';
+                                    bandDescription = `${slides.length} slide${slides.length !== 1 ? 's' : ''}`;
                                 } else if (band.band_type === 'product') {
-                                    contentInfo = `<strong>Indhold:</strong> ${band.band_content.title || 'Uden titel'}`;
+                                    bandTitle = band.band_content?.title || 'Unavngivet produkt';
+                                    bandDescription = band.band_content?.subtitle || '';
                                 } else if (band.band_type === 'html') {
-                                    contentInfo = '<strong>Indhold:</strong> HTML';
+                                    bandTitle = band.band_content?.title || 'HTML-indhold';
+                                    bandDescription = 'HTML-bånd';
                                 } else if (band.band_type === 'link') {
-                                    contentInfo = `<strong>Indhold:</strong> Link - ${band.band_content.text || ''}`;
+                                    bandTitle = band.band_content?.title || 'Link-bånd';
+                                    bandDescription = band.band_content?.description || 'Link';
+                                } else {
+                                    bandTitle = `${band.band_type} bånd`;
+                                    bandDescription = 'Ingen beskrivelse';
                                 }
                                 
-                                let bandHTML = template
-                                    .replace('{id}', band.band_id)
-                                    .replace('{title}', band.band_type.charAt(0).toUpperCase() + band.band_type.slice(1).replace('_', ' ') + ' Bånd')
-                                    .replace('{type}', band.band_type)
-                                    .replace('{height}', band.band_height)
-                                    .replace('{order}', band.band_order)
-                                    .replace('{content_info}', contentInfo);
-                                
-                                const bandElement = document.createElement('div');
-                                bandElement.innerHTML = bandHTML;
-                                bandsContainer.appendChild(bandElement.firstElementChild);
-                                
-                                // Tilføj event listeners
-                                const editBtn = bandsContainer.lastElementChild.querySelector('.edit-band-btn');
-                                const moveUpBtn = bandsContainer.lastElementChild.querySelector('.move-up-btn');
-                                const moveDownBtn = bandsContainer.lastElementChild.querySelector('.move-down-btn');
-                                const deleteBtn = bandsContainer.lastElementChild.querySelector('.delete-band-btn');
-                                
-                                editBtn.addEventListener('click', () => editBand(band.band_id));
-                                moveUpBtn.addEventListener('click', () => moveBand(band.band_id, -1));
-                                moveDownBtn.addEventListener('click', () => moveBand(band.band_id, 1));
-                                deleteBtn.addEventListener('click', () => deleteBand(band.band_id));
-                                
-                                // Deaktiver op/ned knapper for første/sidste bånd
-                                if (index === 0) {
-                                    moveUpBtn.disabled = true;
-                                }
-                                
-                                if (index === bands.length - 1) {
-                                    moveDownBtn.disabled = true;
-                                }
+                                bandsHtml += `
+                                    <div class="band">
+                                        <div class="band-header">
+                                            <h4>${bandTitle}</h4>
+                                            <div class="band-controls">
+                                                <button class="edit-band" data-band-id="${band.band_id || band.id}">Rediger</button>
+                                                <button class="delete-band" data-band-id="${band.band_id || band.id}">Slet</button>
+                                            </div>
+                                        </div>
+                                        <p>${bandDescription}</p>
+                                        <p>Type: ${band.band_type} | Højde: ${band.band_height}x | Position: ${band.band_order}</p>
+                                    </div>
+                                `;
+                            });
+                            
+                            document.getElementById('bands').innerHTML = bandsHtml;
+                            
+                            // Tilføj event listeners til knapper
+                            document.querySelectorAll('.edit-band').forEach(button => {
+                                button.addEventListener('click', () => {
+                                    const bandId = button.dataset.bandId;
+                                    editBand(selectedPageId, bandId);
+                                });
+                            });
+                            
+                            document.querySelectorAll('.delete-band').forEach(button => {
+                                button.addEventListener('click', () => {
+                                    const bandId = button.dataset.bandId;
+                                    if (confirm('Er du sikker på, at du vil slette dette bånd?')) {
+                                        deleteBand(selectedPageId, bandId);
+                                    }
+                                });
                             });
                         }
                         
                         document.getElementById('bandList').style.display = 'block';
+                        document.getElementById('newBandForm').style.display = 'none';
+                        document.getElementById('editBandForm').style.display = 'none';
                     }
                 } catch (error) {
                     console.error('Error loading bands:', error);
@@ -1109,746 +1156,172 @@ body {
             }
         }
         
-        // Vis band editor
-        function showBandEditor() {
-            document.getElementById('band-list-view').style.display = 'none';
-            document.getElementById('band-editor-view').style.display = 'block';
-            document.getElementById('band-editor-title').textContent = 'Tilføj nyt bånd';
-            document.getElementById('editBandId').value = '';
+        /**
+         * Vis formular til at tilføje nyt bånd
+         */
+        function showNewBandForm() {
+            document.getElementById('bandList').style.display = 'none';
+            document.getElementById('newBandForm').style.display = 'block';
+            document.getElementById('editBandForm').style.display = 'none';
             
-            // Reset form
-            document.getElementById('band-type').value = 'slideshow';
-            document.getElementById('band-height').value = '1';
-            document.getElementById('band-order').value = '1';
-            document.getElementById('band-page').value = currentPageId;
-            document.getElementById('slides-container').innerHTML = '';
-            slideCount = 0;
-            slideImageFiles = {};
-            
-            // Vis slideshow editor som standard
-            toggleEditors();
-            
-            // Tilføj første slide
-            addSlide();
+            // Nulstil formularen
+            document.getElementById('newBandType').value = 'slideshow';
+            document.getElementById('newBandHeight').value = '1';
+            document.getElementById('newBandContent').value = '{}';
+            document.getElementById('newBandOrder').value = '1';
         }
         
-        // Skjul band editor
-        function hideBandEditor() {
-            document.getElementById('band-list-view').style.display = 'block';
-            document.getElementById('band-editor-view').style.display = 'none';
-        }
-        
-        // Skift mellem editorer baseret på båndtype
-        function toggleEditors() {
-            const bandType = document.getElementById('band-type').value;
-            
-            // Skjul alle editorer
-            document.getElementById('slideshow-editor').classList.add('hidden-tab');
-            document.getElementById('product-editor').classList.add('hidden-tab');
-            document.getElementById('html-editor').classList.add('hidden-tab');
-            document.getElementById('link-editor').classList.add('hidden-tab');
-            
-            // Vis den passende editor
-            if (bandType === 'slideshow') {
-                document.getElementById('slideshow-editor').classList.remove('hidden-tab');
-            } else if (bandType === 'product' || bandType === 'product_card' || bandType === 'product_full') {
-                document.getElementById('product-editor').classList.remove('hidden-tab');
-            } else if (bandType === 'html') {
-                document.getElementById('html-editor').classList.remove('hidden-tab');
-            } else if (bandType === 'link') {
-                document.getElementById('link-editor').classList.remove('hidden-tab');
-            }
-            
-            updatePreview();
-        }
-        
-        // Tilføj et nyt slide
-        function addSlide() {
-            const slideIndex = slideCount++;
-            const slideHtml = document.getElementById('slide-template').innerHTML
-                .replace(/{index}/g, slideIndex)
-                .replace(/{index_human}/g, slideIndex + 1);
-            
-            const slideContainer = document.createElement('div');
-            slideContainer.innerHTML = slideHtml;
-            document.getElementById('slides-container').appendChild(slideContainer.firstElementChild);
-            
-            // Tilføj event listeners til det nye slide
-            const newSlide = document.getElementById('slides-container').lastElementChild;
-            const removeButton = newSlide.querySelector('.remove-slide');
-            const moveUpButton = newSlide.querySelector('.move-slide-up');
-            const moveDownButton = newSlide.querySelector('.move-slide-down');
-            const slideImage = newSlide.querySelector('.slide-image');
-            
-            removeButton.addEventListener('click', () => removeSlide(newSlide));
-            moveUpButton.addEventListener('click', () => moveSlide(newSlide, -1));
-            moveDownButton.addEventListener('click', () => moveSlide(newSlide, 1));
-            slideImage.addEventListener('change', (e) => handleSlideImageUpload(e, slideIndex));
-            
-            // Tilføj event listeners til alle input felter for at opdatere forhåndsvisningen
-            newSlide.querySelectorAll('input').forEach(input => {
-                input.addEventListener('input', updatePreview);
-            });
-            
-            updateSlideMoveButtons();
-            updatePreview();
-            
-            return newSlide;
-        }
-        
-        // Fjern et slide
-        function removeSlide(slideElement) {
-            if (document.getElementById('slides-container').children.length <= 1) {
-                showToast('Du skal have mindst ét slide', true);
-                return;
-            }
-            
-            document.getElementById('slides-container').removeChild(slideElement);
-            updateSlideMoveButtons();
-            updatePreview();
-        }
-        
-        // Flyt et slide op eller ned
-        function moveSlide(slideElement, direction) {
-            const slidesContainer = document.getElementById('slides-container');
-            const slides = Array.from(slidesContainer.children);
-            const currentIndex = slides.indexOf(slideElement);
-            const newIndex = currentIndex + direction;
-            
-            if (newIndex < 0 || newIndex >= slides.length) {
-                return;
-            }
-            
-            if (direction < 0) {
-                slidesContainer.insertBefore(slideElement, slides[newIndex]);
-            } else {
-                slidesContainer.insertBefore(slideElement, slides[newIndex].nextElementSibling);
-            }
-            
-            updateSlideMoveButtons();
-            updatePreview();
-        }
-        
-        // Opdater op/ned knapper for slides
-        function updateSlideMoveButtons() {
-            const slidesContainer = document.getElementById('slides-container');
-            const slides = Array.from(slidesContainer.children);
-            
-            slides.forEach((slide, index) => {
-                const moveUpButton = slide.querySelector('.move-slide-up');
-                const moveDownButton = slide.querySelector('.move-slide-down');
-                
-                moveUpButton.disabled = index === 0;
-                moveDownButton.disabled = index === slides.length - 1;
-            });
-        }
-        
-        // Håndter upload af slide billede
-        function handleSlideImageUpload(event, slideIndex) {
-            const file = event.target.files[0];
-            
-            if (file) {
-                slideImageFiles[slideIndex] = file;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const slideElement = event.target.closest('.slide-container');
-                    const preview = slideElement.querySelector('.slide-image-preview');
-                    const img = preview.querySelector('img');
-                    img.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-                
-                updatePreview();
-            }
-        }
-        
-        // Håndter upload af produkt billede
-        function handleProductImageUpload(event) {
-            const file = event.target.files[0];
-            
-            if (file) {
-                productImageFile = file;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('product-image-preview');
-                    const img = preview.querySelector('img');
-                    img.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-                
-                updatePreview();
-            }
-        }
-        
-        // Opdater forhåndsvisning
-        function updatePreview() {
-            const previewContainer = document.getElementById('preview-container');
-            const bandType = document.getElementById('band-type').value;
-            
-            if (bandType === 'slideshow') {
-                updateSlideshowPreview(previewContainer);
-            } else if (bandType === 'product' || bandType === 'product_card' || bandType === 'product_full') {
-                updateProductPreview(previewContainer);
-            } else if (bandType === 'html') {
-                updateHtmlPreview(previewContainer);
-            } else if (bandType === 'link') {
-                updateLinkPreview(previewContainer);
-            } else {
-                previewContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Forhåndsvisning ikke tilgængelig for denne båndtype</div>';
-            }
-        }
-        
-        // Opdater slideshow forhåndsvisning
-        function updateSlideshowPreview(container) {
-            const slidesContainer = document.getElementById('slides-container');
-            const slides = Array.from(slidesContainer.children);
-            
-            if (slides.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 20px;">Ingen slides at vise</div>';
-                return;
-            }
-            
-            let html = '<div style="position: relative; width: 100%; height: 200px; background: #f0f0f0; overflow: hidden;">';
-            
-            // Vis første slide
-            const firstSlide = slides[0];
-            const title = firstSlide.querySelector('.slide-title').value || 'Slide titel';
-            const subtitle = firstSlide.querySelector('.slide-subtitle').value || 'Slide undertitel';
-            const imagePreview = firstSlide.querySelector('.slide-image-preview');
-            
-            if (imagePreview && imagePreview.style.display !== 'none') {
-                const img = imagePreview.querySelector('img');
-                html += `<img src="${img.src}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover;">`;
-            } else {
-                html += '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #ddd;">Intet billede valgt</div>';
-            }
-            
-            html += `
-                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: rgba(0,0,0,0.6); color: white;">
-                    <h3 style="margin: 0 0 5px 0;">${title}</h3>
-                    <p style="margin: 0;">${subtitle}</p>
-                </div>
-            `;
-            
-            // Tilføj indikatorer
-            if (slides.length > 1) {
-                html += '<div style="position: absolute; bottom: 5px; right: 10px;">';
-                for (let i = 0; i < slides.length; i++) {
-                    const color = i === 0 ? '#fff' : 'rgba(255,255,255,0.5)';
-                    html += `<span style="display: inline-block; width: 10px; height: 10px; margin: 0 2px; border-radius: 50%; background: ${color};"></span>`;
-                }
-                html += '</div>';
-            }
-            
-            html += '</div>';
-            
-            container.innerHTML = html;
-        }
-        
-        // Opdater produkt forhåndsvisning
-        function updateProductPreview(container) {
-            const title = document.getElementById('product-title').value || 'Produkttitel';
-            const subtitle = document.getElementById('product-subtitle').value || 'Produktbeskrivelse';
-            const backgroundColor = document.getElementById('product-background').value || '#ffffff';
-            const imagePreview = document.getElementById('product-image-preview');
-            
-            let html = `<div style="display: flex; background-color: ${backgroundColor}; padding: 15px; height: 200px;">`;
-            
-            // Billede
-            html += '<div style="flex: 1; display: flex; align-items: center; justify-content: center;">';
-            if (imagePreview && imagePreview.style.display !== 'none') {
-                const img = imagePreview.querySelector('img');
-                html += `<img src="${img.src}" alt="${title}" style="max-width: 100%; max-height: 170px;">`;
-            } else {
-                html += '<div style="width: 100%; height: 170px; display: flex; align-items: center; justify-content: center; background: #ddd;">Intet billede valgt</div>';
-            }
-            html += '</div>';
-            
-            // Tekst
-            html += `
-                <div style="flex: 1; padding: 15px;">
-                    <h3 style="margin: 0 0 10px 0;">${title}</h3>
-                    <p style="margin: 0 0 20px 0;">${subtitle}</p>
-                    <button style="padding: 8px 16px; background: #042940; color: white; border: none; border-radius: 4px;">Læs mere</button>
-                </div>
-            `;
-            
-            html += '</div>';
-            
-            container.innerHTML = html;
-        }
-        
-        // Opdater HTML forhåndsvisning
-        function updateHtmlPreview(container) {
-            const htmlContent = document.getElementById('html-content').value;
-            
-            if (htmlContent.trim()) {
-                container.innerHTML = `
-                    <div style="padding: 15px; border: 1px dashed #ccc; background: #f9f9f9;">
-                        <div style="font-style: italic; margin-bottom: 10px; color: #666;">HTML Forhåndsvisning:</div>
-                        <div>${htmlContent.length > 150 ? htmlContent.substring(0, 150) + '...' : htmlContent}</div>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = '<div style="text-align: center; padding: 20px;">Indtast HTML for at se forhåndsvisning</div>';
-            }
-        }
-        
-        // Opdater link forhåndsvisning
-        function updateLinkPreview(container) {
-            const linkText = document.getElementById('link-text').value || 'Link tekst';
-            const linkUrl = document.getElementById('link-url').value || '#';
-            const linkStyle = document.getElementById('link-style').value;
-            
-            if (linkStyle === 'button') {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <a href="${linkUrl}" style="display: inline-block; padding: 10px 20px; background: #042940; color: white; text-decoration: none; border-radius: 4px;">${linkText}</a>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <a href="${linkUrl}" style="color: #042940; text-decoration: underline;">${linkText}</a>
-                    </div>
-                `;
-            }
-        }
-        
-        // Rediger et bånd
-        async function editBand(bandId) {
+        /**
+         * Vis formular til at redigere et bånd
+         */
+        async function editBand(pageId, bandId) {
             try {
-                const result = await fetchApi(`bands/${currentPageId}/${bandId}`);
+                const result = await safeFetch(`${API_URL}/bands/${pageId}/${bandId}`);
                 
                 if (result.status === 'success' && result.data) {
                     const band = result.data;
                     
-                    // Vis editor
-                    document.getElementById('band-list-view').style.display = 'none';
-                    document.getElementById('band-editor-view').style.display = 'block';
-                    document.getElementById('band-editor-title').textContent = 'Rediger bånd';
-                    document.getElementById('editBandId').value = bandId;
+                    // Udfyld formularen med båndets data
+                    document.getElementById('editBandId').value = band.band_id || band.id;
+                    document.getElementById('editBandType').value = band.band_type;
+                    document.getElementById('editBandHeight').value = band.band_height;
+                    document.getElementById('editBandOrder').value = band.band_order;
+                    document.getElementById('editBandContent').value = JSON.stringify(band.band_content || {}, null, 2);
                     
-                    // Udfyld form med data
-                    document.getElementById('band-type').value = band.band_type;
-                    document.getElementById('band-height').value = band.band_height;
-                    document.getElementById('band-order').value = band.band_order;
-                    document.getElementById('band-page').value = currentPageId;
-                    
-                    // Vis korrekt editor
-                    toggleEditors();
-                    
-                    // Udfyld SEO data
-                    if (band.band_content && band.band_content.seo) {
-                        document.getElementById('seo-title').value = band.band_content.seo.title || '';
-                        document.getElementById('seo-description').value = band.band_content.seo.description || '';
-                        document.getElementById('seo-keywords').value = band.band_content.seo.keywords || '';
-                    } else {
-                        document.getElementById('seo-title').value = '';
-                        document.getElementById('seo-description').value = '';
-                        document.getElementById('seo-keywords').value = '';
-                    }
-                    
-                    // Udfyld type-specifik data
-                    if (band.band_type === 'slideshow') {
-                        loadSlideshowData(band);
-                    } else if (band.band_type === 'product' || band.band_type === 'product_card' || band.band_type === 'product_full') {
-                        loadProductData(band);
-                    } else if (band.band_type === 'html') {
-                        loadHtmlData(band);
-                    } else if (band.band_type === 'link') {
-                        loadLinkData(band);
-                    }
-                    
-                    // Opdater preview
-                    updatePreview();
+                    // Vis redigerings-formularen
+                    document.getElementById('bandList').style.display = 'none';
+                    document.getElementById('newBandForm').style.display = 'none';
+                    document.getElementById('editBandForm').style.display = 'block';
                 }
             } catch (error) {
-                console.error('Error editing band:', error);
+                console.error('Error loading band for edit:', error);
                 showToast('Fejl ved indlæsning af bånd', true);
             }
         }
         
-        // Load slideshow data
-        function loadSlideshowData(band) {
-            const slides = band.band_content.slides || [];
+        /**
+         * Gem nyt bånd
+         */
+        async function saveNewBand() {
+            const pageId = document.getElementById('bandPageSelect').value;
             
-            // Ryd eksisterende slides
-            document.getElementById('slides-container').innerHTML = '';
-            slideCount = 0;
-            slideImageFiles = {};
-            
-            // Tilføj slides fra båndet
-            if (slides.length > 0) {
-                slides.forEach(slideData => {
-                    const slideElement = addSlide();
-                    
-                    const titleInput = slideElement.querySelector('.slide-title');
-                    const subtitleInput = slideElement.querySelector('.slide-subtitle');
-                    const linkInput = slideElement.querySelector('.slide-link');
-                    const altInput = slideElement.querySelector('.slide-alt');
-                    const imagePreview = slideElement.querySelector('.slide-image-preview');
-                    
-                    if (slideData.title) {
-                        titleInput.value = slideData.title;
-                    }
-                    
-                    if (slideData.subtitle) {
-                        subtitleInput.value = slideData.subtitle;
-                    }
-                    
-                    if (slideData.link) {
-                        linkInput.value = slideData.link;
-                    }
-                    
-                    if (slideData.alt) {
-                        altInput.value = slideData.alt;
-                    }
-                    
-                    if (slideData.image) {
-                        const img = imagePreview.querySelector('img');
-                        img.src = slideData.image;
-                        imagePreview.style.display = 'block';
-                    }
-                });
-            } else {
-                // Tilføj et tomt slide
-                addSlide();
-            }
-        }
-        
-        // Load produkt data
-        function loadProductData(band) {
-            const content = band.band_content;
-            
-            if (content.title) {
-                document.getElementById('product-title').value = content.title;
-            } else {
-                document.getElementById('product-title').value = '';
-            }
-            
-            if (content.subtitle) {
-                document.getElementById('product-subtitle').value = content.subtitle;
-            } else {
-                document.getElementById('product-subtitle').value = '';
-            }
-            
-            if (content.link) {
-                document.getElementById('product-link').value = content.link;
-            } else {
-                document.getElementById('product-link').value = '';
-            }
-            
-            if (content.background_color) {
-                document.getElementById('product-background').value = content.background_color;
-                document.getElementById('product-background-hex').value = content.background_color;
-            } else {
-                document.getElementById('product-background').value = '#ffffff';
-                document.getElementById('product-background-hex').value = '#ffffff';
-            }
-            
-            const preview = document.getElementById('product-image-preview');
-            if (content.image) {
-                const img = preview.querySelector('img');
-                img.src = content.image;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-            
-            productImageFile = null;
-        }
-        
-        // Load HTML data
-        function loadHtmlData(band) {
-            const content = band.band_content;
-            
-            if (content.html) {
-                document.getElementById('html-content').value = content.html;
-            } else {
-                document.getElementById('html-content').value = '';
-            }
-        }
-        
-        // Load link data
-        function loadLinkData(band) {
-            const content = band.band_content;
-            
-            if (content.text) {
-                document.getElementById('link-text').value = content.text;
-            } else {
-                document.getElementById('link-text').value = '';
-            }
-            
-            if (content.url) {
-                document.getElementById('link-url').value = content.url;
-            } else {
-                document.getElementById('link-url').value = '';
-            }
-            
-            if (content.style) {
-                document.getElementById('link-style').value = content.style;
-            } else {
-                document.getElementById('link-style').value = 'button';
-            }
-        }
-        
-        // Gem bånd
-        async function saveBand() {
-            try {
-                // Valider input
-                const selectedPageId = currentPageId;
-                if (!selectedPageId) {
-                    showToast('Vælg venligst en side først', true);
-                    return;
-                }
-                
-                // Opret FormData til filer
-                const formData = new FormData();
-                
-                // Indsaml bånd data
-                const bandType = document.getElementById('band-type').value;
-                const bandHeight = document.getElementById('band-height').value;
-                const bandOrder = document.getElementById('band-order').value;
-                const bandId = document.getElementById('editBandId').value;
-                
-                const bandData = {
-                    band_type: bandType,
-                    band_height: bandHeight,
-                    band_order: bandOrder,
-                    band_content: {}
-                };
-                
-                // Tilføj SEO data
-                const seoTitle = document.getElementById('seo-title').value;
-                const seoDescription = document.getElementById('seo-description').value;
-                const seoKeywords = document.getElementById('seo-keywords').value;
-                
-                if (seoTitle || seoDescription || seoKeywords) {
-                    bandData.band_content.seo = {
-                        title: seoTitle,
-                        description: seoDescription,
-                        keywords: seoKeywords
-                    };
-                }
-                
-                // Indsaml type-specifik data
-                if (bandType === 'slideshow') {
-                    bandData.band_content.slides = collectSlideshowData(formData);
-                } else if (bandType === 'product' || bandType === 'product_card' || bandType === 'product_full') {
-                    collectProductData(bandData.band_content, formData);
-                } else if (bandType === 'html') {
-                    bandData.band_content.html = document.getElementById('html-content').value;
-                } else if (bandType === 'link') {
-                    bandData.band_content.text = document.getElementById('link-text').value;
-                    bandData.band_content.url = document.getElementById('link-url').value;
-                    bandData.band_content.style = document.getElementById('link-style').value;
-                }
-                
-                // Tilføj bandData som JSON til FormData
-                formData.append('band_data', JSON.stringify(bandData));
-                
-                // Bestem URL og metode baseret på om vi opretter eller opdaterer
-                let url, method;
-                if (bandId) {
-                    url = `${API_URL}/bands/${selectedPageId}/${bandId}`;
-                    method = 'PUT';
-                } else {
-                    url = `${API_URL}/bands/${selectedPageId}`;
-                    method = 'POST';
-                }
-                
-                loading.classList.add('show');
-                
-                const response = await fetch(url, {
-                    method: method,
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                loading.classList.remove('show');
-                
-                if (result.status === 'success') {
-                    showToast('Båndet blev gemt');
-                    
-                    // Gå tilbage til båndlisten
-                    hideBandEditor();
-                    
-                    // Genindlæs bånd
-                    await loadBands();
-                } else {
-                    showToast(result.message || 'Fejl ved gemning af bånd', true);
-                }
-            } catch (error) {
-                console.error('Error saving band:', error);
-                showToast('Fejl ved gemning af bånd', true);
-                loading.classList.remove('show');
-            }
-        }
-        
-        // Indsaml slideshow data
-        function collectSlideshowData(formData) {
-            const slidesContainer = document.getElementById('slides-container');
-            const slides = Array.from(slidesContainer.children);
-            const slidesData = [];
-            
-            slides.forEach((slideElement, index) => {
-                const titleInput = slideElement.querySelector('.slide-title');
-                const subtitleInput = slideElement.querySelector('.slide-subtitle');
-                const linkInput = slideElement.querySelector('.slide-link');
-                const altInput = slideElement.querySelector('.slide-alt');
-                const imagePreview = slideElement.querySelector('.slide-image-preview');
-                
-                const slideData = {
-                    position: index,
-                    title: titleInput.value,
-                    subtitle: subtitleInput.value,
-                    link: linkInput.value,
-                    alt: altInput.value
-                };
-                
-                // Tilføj eksisterende billede hvis det findes
-                if (imagePreview && imagePreview.style.display !== 'none') {
-                    const img = imagePreview.querySelector('img');
-                    const imageUrl = img.src;
-                    
-                    // Kun tilføj billede hvis det ikke er en data URL (nyt upload)
-                    if (!imageUrl.startsWith('data:')) {
-                        slideData.image = imageUrl;
-                    }
-                }
-                
-                slidesData.push(slideData);
-                
-                // Tilføj slide billede til FormData hvis det findes
-                const slideIndexStr = slideElement.dataset.slideIndex;
-                if (slideImageFiles[slideIndexStr]) {
-                    formData.append(`slide_images[${index}]`, slideImageFiles[slideIndexStr]);
-                }
-            });
-            
-            return slidesData;
-        }
-        
-        // Indsaml produkt data
-        function collectProductData(contentObject, formData) {
-            contentObject.title = document.getElementById('product-title').value;
-            contentObject.subtitle = document.getElementById('product-subtitle').value;
-            contentObject.link = document.getElementById('product-link').value;
-            contentObject.background_color = document.getElementById('product-background').value;
-            
-            // Tilføj eksisterende billede hvis det findes
-            const imagePreview = document.getElementById('product-image-preview');
-            if (imagePreview && imagePreview.style.display !== 'none') {
-                const img = imagePreview.querySelector('img');
-                const imageUrl = img.src;
-                
-                // Kun tilføj billede hvis det ikke er en data URL (nyt upload)
-                if (!imageUrl.startsWith('data:')) {
-                    contentObject.image = imageUrl;
-                }
-            }
-            
-            // Tilføj produkt billede til FormData hvis det findes
-            if (productImageFile) {
-                formData.append('product_image', productImageFile);
-            }
-        }
-        
-        // Flyt et bånd op eller ned
-        async function moveBand(bandId, direction) {
-            try {
-                loading.classList.add('show');
-                
-                // Hent alle bånd
-                const result = await fetchApi(`bands/${currentPageId}`);
-                
-                if (result.status !== 'success') {
-                    showToast(result.message || 'Fejl ved flytning af bånd', true);
-                    loading.classList.remove('show');
-                    return;
-                }
-                
-                const bands = result.data || [];
-                
-                // Find båndet og dets nabo
-                let bandIndex = -1;
-                let band = null;
-                
-                for (let i = 0; i < bands.length; i++) {
-                    if (bands[i].band_id === bandId) {
-                        bandIndex = i;
-                        band = bands[i];
-                        break;
-                    }
-                }
-                
-                if (bandIndex === -1 || !band) {
-                    showToast('Bånd ikke fundet', true);
-                    loading.classList.remove('show');
-                    return;
-                }
-                
-                const newIndex = bandIndex + direction;
-                
-                // Kontroller at det nye index er gyldigt
-                if (newIndex < 0 || newIndex >= bands.length) {
-                    loading.classList.remove('show');
-                    return;
-                }
-                
-                const neighborBand = bands[newIndex];
-                
-                // Byt om på rækkefølgen
-                const tempOrder = band.band_order;
-                band.band_order = neighborBand.band_order;
-                neighborBand.band_order = tempOrder;
-                
-                // Opdater begge bånd
-                await fetchApi(`bands/${currentPageId}/${band.band_id}`, 'PUT', { band_order: band.band_order });
-                await fetchApi(`bands/${currentPageId}/${neighborBand.band_id}`, 'PUT', { band_order: neighborBand.band_order });
-                
-                // Genindlæs bånd
-                await loadBands();
-                
-                loading.classList.remove('show');
-                
-                showToast('Båndets position blev ændret');
-            } catch (error) {
-                console.error('Error moving band:', error);
-                showToast('Fejl ved flytning af bånd', true);
-                loading.classList.remove('show');
-            }
-        }
-        
-        // Slet et bånd
-        async function deleteBand(bandId) {
-            if (!confirm('Er du sikker på, at du vil slette dette bånd?')) {
+            if (!pageId) {
+                showToast('Vælg venligst en side', true);
                 return;
             }
             
             try {
-                loading.classList.add('show');
+                let bandContent;
+                try {
+                    bandContent = JSON.parse(document.getElementById('newBandContent').value);
+                } catch (e) {
+                    showToast('Ugyldig JSON i bånd indhold', true);
+                    return;
+                }
                 
-                const result = await fetchApi(`bands/${currentPageId}/${bandId}`, 'DELETE');
+                const data = {
+                    band_type: document.getElementById('newBandType').value,
+                    band_height: document.getElementById('newBandHeight').value,
+                    band_order: document.getElementById('newBandOrder').value,
+                    band_content: bandContent
+                };
+                
+                const result = await safeFetch(`${API_URL}/bands/${pageId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (result.status === 'success') {
+                    showToast('Båndet blev oprettet');
+                    document.getElementById('newBandForm').style.display = 'none';
+                    await loadBands();
+                }
+            } catch (error) {
+                console.error('Error creating band:', error);
+                showToast('Fejl ved oprettelse af bånd', true);
+            }
+        }
+        
+        /**
+         * Opdater bånd
+         */
+        async function updateBand() {
+            const pageId = document.getElementById('bandPageSelect').value;
+            const bandId = document.getElementById('editBandId').value;
+            
+            if (!pageId || !bandId) {
+                showToast('Manglende side eller bånd-id', true);
+                return;
+            }
+            
+            try {
+                let bandContent;
+                try {
+                    bandContent = JSON.parse(document.getElementById('editBandContent').value);
+                } catch (e) {
+                    showToast('Ugyldig JSON i bånd indhold', true);
+                    return;
+                }
+                
+                const data = {
+                    band_type: document.getElementById('editBandType').value,
+                    band_height: document.getElementById('editBandHeight').value,
+                    band_order: document.getElementById('editBandOrder').value,
+                    band_content: bandContent
+                };
+                
+                const result = await safeFetch(`${API_URL}/bands/${pageId}/${bandId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (result.status === 'success') {
+                    showToast('Båndet blev opdateret');
+                    document.getElementById('editBandForm').style.display = 'none';
+                    await loadBands();
+                }
+            } catch (error) {
+                console.error('Error updating band:', error);
+                showToast('Fejl ved opdatering af bånd', true);
+            }
+        }
+        
+        /**
+         * Slet bånd
+         */
+        async function deleteBand(pageId, bandId) {
+            if (!pageId || !bandId) {
+                const currentPageId = document.getElementById('bandPageSelect').value;
+                const currentBandId = document.getElementById('editBandId').value;
+                
+                if (!currentPageId || !currentBandId) {
+                    showToast('Manglende side eller bånd-id', true);
+                    return;
+                }
+                
+                pageId = currentPageId;
+                bandId = currentBandId;
+            }
+            
+            try {
+                const result = await safeFetch(`${API_URL}/bands/${pageId}/${bandId}`, {
+                    method: 'DELETE'
+                });
                 
                 if (result.status === 'success') {
                     showToast('Båndet blev slettet');
+                    document.getElementById('editBandForm').style.display = 'none';
                     await loadBands();
-                } else {
-                    showToast(result.message || 'Fejl ved sletning af bånd', true);
                 }
-                
-                loading.classList.remove('show');
             } catch (error) {
                 console.error('Error deleting band:', error);
                 showToast('Fejl ved sletning af bånd', true);
-                loading.classList.remove('show');
             }
         }
     </script>
