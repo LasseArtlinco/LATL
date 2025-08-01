@@ -76,13 +76,13 @@
     margin: 0;
     margin-bottom: 10px;
     font-size: 2rem;
-    font-weight: 700;
+    /* Arver font-family fra h2 styling */
 }
 
 .slide-subtitle {
     margin: 0;
     font-size: 1.2rem;
-    font-weight: 400;
+    /* Arver font-family fra p styling */
 }
 
 .slide-link {
@@ -103,7 +103,7 @@
 
 .prev-slide,
 .next-slide {
-    background: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.6);
     color: white;
     border: none;
     width: 40px;
@@ -115,12 +115,12 @@
     justify-content: center;
     cursor: pointer;
     margin: 0 5px;
-    transition: background 0.3s;
+    transition: background-color 0.3s;
 }
 
 .prev-slide:hover,
 .next-slide:hover {
-    background: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .slideshow-dots {
@@ -132,16 +132,16 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.5);
     margin: 0 5px;
     padding: 0;
     border: none;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.3s;
 }
 
 .slideshow-dot.active {
-    background: white;
+    background-color: white;
 }
 
 /* Produkt bånd styling */
@@ -181,13 +181,16 @@
     margin: 0;
     margin-bottom: 15px;
     font-size: 2.5rem;
-    font-weight: 700;
+    color: var(--text-color, #333);
+    /* Arver font-family fra h2 styling */
 }
 
 .product-subtitle {
     margin: 0;
     font-size: 1.5rem;
+    color: var(--text-color, #333);
     opacity: 0.8;
+    /* Arver font-family fra p styling */
 }
 
 .product-link {
