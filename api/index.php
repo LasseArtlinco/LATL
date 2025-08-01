@@ -1,285 +1,117 @@
 <?php
-// api/index.php - Centralized API Router
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-ini_set('error_log', dirname(__DIR__) . '/api_errors.log');
+// api/index.php
+header('Content-Type: application/json');
 
+// Include required files
 require_once '../config.php';
 require_once '../db.php';
 
-// Set CORS headers
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+// Enable CORS for development
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle OPTIONS preflight requests
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
-    exit();
+    exit;
 }
 
-// Parse URL to find endpoint
+// Parse request path
 $requestUri = $_SERVER['REQUEST_URI'];
-$basePath = '/api/'; // Adjust based on your server setup
-$endpoint = str_replace($basePath, '', parse_url($requestUri, PHP_URL_PATH));
+$basePath = '/api/';
+$path = substr($requestUri, strpos($requestUri, $basePath) + strlen($basePath));
+$pathParts = explode('/', $path);
 
-// Log access for debugging
-error_log("API request: " . $_SERVER['REQUEST_METHOD'] . " " . $endpoint);
+// Initialize database
+$db = Database::getInstance();
 
-// Get HTTP method
-$method = $_SERVER['REQUEST_METHOD'];
-
-// Get request body for POST, PUT requests
-$data = null;
-if ($method == 'POST' || $method == 'PUT') {
-    $data = json_decode(file_get_contents('php://input'), true);
+// Debug logging
+if (defined('DEBUG') && DEBUG) {
+    error_log("API Request: " . $path);
+    error_log("Method: " . $_SERVER['REQUEST_METHOD']);
 }
 
-// Upload handling for multipart/form-data
-$isMultipartFormData = isset($_SERVER['CONTENT_TYPE']) && 
-                        strpos($_SERVER['CONTENT_TYPE'], 'multipart/form-data') !== false;
-
-// Routing logic
-try {
-    // Database connection
-    $db = Database::getInstance();
-    
-    // Global endpoint routing
-    if (strpos($endpoint, 'global_styles') === 0) {
-        // Handle global styles API
-        require_once 'global_styles.php';
-        $controller = new GlobalStylesController($db);
-        
-        if ($method === 'GET') {
-            $result = $controller->getStyles();
-            echo json_encode($result);
-        } 
-        else if ($method === 'PUT' || $method === 'POST') {
-            $result = $controller->updateStyles($data);
-            echo json_encode($result);
-        }
-        else {
-            http_response_code(405);
-            echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-        }
-    }
-    else if (strpos($endpoint, 'products') === 0) {
-        // Products API
-        require_once 'products.php';
-        $controller = new ProductsController($db);
-        
-        if (preg_match('/^products\/(\d+)/', $endpoint, $matches)) {
-            $id = $matches[1];
-            handleRequestWithId($controller, $method, $id, $data);
-        } else {
-            handleRequest($controller, $method, $data);
-        }
-    }
-    else if (strpos($endpoint, 'orders') === 0) {
-        // Orders API
-        require_once 'orders.php';
-        $controller = new OrdersController($db);
-        
-        if (preg_match('/^orders\/(\d+)/', $endpoint, $matches)) {
-            $id = $matches[1];
-            handleRequestWithId($controller, $method, $id, $data);
-        } else {
-            handleRequest($controller, $method, $data);
-        }
-    }
-    else if (strpos($endpoint, 'layout') === 0) {
-        // Layout API
+// Handle different endpoints
+switch ($pathParts[0]) {
+    case 'layout':
         require_once 'layout.php';
         $controller = new LayoutController($db);
         
-        if (preg_match('/^layout\/([a-zA-Z0-9_-]+)/', $endpoint, $matches)) {
-            $pageId = $matches[1];
-            handleRequestWithId($controller, $method, $pageId, $data);
-        } else {
-            handleRequest($controller, $method, $data);
-        }
-    }
-    else if (strpos($endpoint, 'bands') === 0) {
-        // Bands API
-        require_once 'bands.php';
-        
-        // Extract page_id and band_id from URL
-        if (preg_match('/^bands\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)/', $endpoint, $matches)) {
-            // Endpoint format: bands/{page_id}/{band_id}
-            $pageId = $matches[1];
-            $bandId = $matches[2];
+        if (isset($pathParts[1])) {
+            $pageId = $pathParts[1];
             
-            $controller = new BandsController($db);
-            
-            switch ($method) {
-                case 'GET':
-                    $result = $controller->getBand($pageId, $bandId);
-                    echo json_encode($result);
-                    break;
-                case 'PUT':
-                    $result = $controller->updateBand($pageId, $bandId, $data);
-                    echo json_encode($result);
-                    break;
-                case 'DELETE':
-                    $result = $controller->deleteBand($pageId, $bandId);
-                    echo json_encode($result);
-                    break;
-                default:
-                    http_response_code(405);
-                    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-                    break;
-            }
-        } 
-        else if (preg_match('/^bands\/([a-zA-Z0-9_-]+)/', $endpoint, $matches)) {
-            // Endpoint format: bands/{page_id}
-            $pageId = $matches[1];
-            
-            $controller = new BandsController($db);
-            
-            switch ($method) {
-                case 'GET':
-                    $result = $controller->getBands($pageId);
-                    echo json_encode($result);
-                    break;
-                case 'POST':
-                    // Handle file uploads if present
-                    if ($isMultipartFormData) {
-                        $bandData = isset($_POST['band_data']) ? json_decode($_POST['band_data'], true) : [];
-                        $result = $controller->createBand($pageId, $bandData);
-                        
-                        // Handle image uploads
-                        if (isset($_FILES['product_image']) || isset($_FILES['slide_images'])) {
-                            // Process product image
-                            if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
-                                $controller->handleProductImageUpload($_FILES['product_image'], $pageId, $result['data']['band_id']);
-                            }
-                            
-                            // Process slide images
-                            if (isset($_FILES['slide_images'])) {
-                                foreach ($_FILES['slide_images']['name'] as $index => $name) {
-                                    if ($_FILES['slide_images']['error'][$index] === UPLOAD_ERR_OK) {
-                                        $slideImage = [
-                                            'name' => $_FILES['slide_images']['name'][$index],
-                                            'type' => $_FILES['slide_images']['type'][$index],
-                                            'tmp_name' => $_FILES['slide_images']['tmp_name'][$index],
-                                            'error' => $_FILES['slide_images']['error'][$index],
-                                            'size' => $_FILES['slide_images']['size'][$index]
-                                        ];
-                                        $controller->handleSlideImageUpload($slideImage, $pageId, $result['data']['band_id'], $index);
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        $result = $controller->createBand($pageId, $data);
+            if ($pageId === 'global' && isset($pathParts[2]) && $pathParts[2] === 'styles') {
+                // Return global styles
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => getGlobalStyles()
+                ]);
+            } else {
+                // Return specific page layout
+                $result = $controller->getById($pageId);
+                
+                // VIGTIG ÆNDRING: Hvis layout findes, udpak bands fra layout_data
+                if ($result['status'] === 'success' && isset($result['data']['layout_data'])) {
+                    $layoutData = $result['data']['layout_data'];
+                    
+                    // Hvis layoutData er en JSON-streng, afkod den
+                    if (is_string($layoutData)) {
+                        $layoutData = json_decode($layoutData, true);
                     }
                     
-                    echo json_encode($result);
-                    break;
-                default:
-                    http_response_code(405);
-                    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-                    break;
+                    // Udpak bands og tilføj dem til response
+                    $result['data']['bands'] = isset($layoutData['bands']) ? $layoutData['bands'] : [];
+                }
+                
+                echo json_encode($result);
             }
-        }
-        else {
-            http_response_code(404);
-            echo json_encode(['status' => 'error', 'message' => 'Invalid bands endpoint']);
-        }
-    }
-    else if (strpos($endpoint, 'upload') === 0) {
-        // Handle file uploads
-        require_once 'upload.php';
-        $uploadController = new UploadController($db);
-        
-        if ($method !== 'POST' || !$isMultipartFormData) {
-            http_response_code(405);
-            echo json_encode(['status' => 'error', 'message' => 'Only POST with multipart/form-data is allowed for uploads']);
-            exit;
-        }
-        
-        $result = $uploadController->handleUpload($_FILES);
-        echo json_encode($result);
-    }
-    else if ($endpoint === '' || $endpoint === '/') {
-        // API root - return available endpoints
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'LATL API v1.0',
-            'endpoints' => [
-                'global_styles' => 'GET, PUT',
-                'layout' => 'GET, POST',
-                'layout/{page_id}' => 'GET, PUT, DELETE',
-                'bands/{page_id}' => 'GET, POST',
-                'bands/{page_id}/{band_id}' => 'GET, PUT, DELETE',
-                'products' => 'GET, POST',
-                'products/{id}' => 'GET, PUT, DELETE',
-                'orders' => 'GET, POST',
-                'orders/{id}' => 'GET, PUT, DELETE',
-                'upload' => 'POST (multipart/form-data)'
-            ]
-        ]);
-    }
-    else {
-        // Unknown endpoint
-        http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Endpoint not found: ' . $endpoint]);
-    }
-} catch (Exception $e) {
-    error_log('API error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
-    
-    if (DEBUG_MODE) {
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ]);
-    } else {
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'An internal server error occurred']);
-    }
-}
-
-// Helper functions for handling requests
-function handleRequest($controller, $method, $data) {
-    switch ($method) {
-        case 'GET':
+        } else {
+            // Return all layouts
             $result = $controller->getAll();
             echo json_encode($result);
-            break;
-        case 'POST':
-            $result = $controller->create($data);
-            echo json_encode($result);
-            break;
-        default:
-            http_response_code(405);
-            echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-            break;
-    }
+        }
+        break;
+        
+    // Resten af din switch case for andre endpoints...
 }
 
-function handleRequestWithId($controller, $method, $id, $data) {
-    switch ($method) {
-        case 'GET':
-            $result = $controller->getById($id);
-            echo json_encode($result);
-            break;
-        case 'PUT':
-            $result = $controller->update($id, $data);
-            echo json_encode($result);
-            break;
-        case 'DELETE':
-            $result = $controller->delete($id);
-            echo json_encode($result);
-            break;
-        default:
-            http_response_code(405);
-            echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-            break;
+// Helper function til at få globale styles
+function getGlobalStyles() {
+    global $db;
+    
+    $globalLayout = $db->selectOne("SELECT layout_data FROM layout_config WHERE page_id = ?", ['global']);
+    
+    if ($globalLayout && isset($globalLayout['layout_data'])) {
+        $layoutData = $globalLayout['layout_data'];
+        
+        // Hvis layoutData er en JSON-streng, afkod den
+        if (is_string($layoutData)) {
+            $layoutData = json_decode($layoutData, true);
+        }
+        
+        return $layoutData;
     }
+    
+    // Default styles hvis ingen findes
+    return [
+        'color_palette' => [
+            'primary' => '#042940',
+            'secondary' => '#005C53',
+            'accent' => '#9FC131',
+            'bright' => '#DBF227',
+            'background' => '#D6D58E',
+            'text' => '#042940'
+        ],
+        'font_config' => [
+            'heading' => [
+                'font-family' => "'Allerta Stencil', sans-serif",
+                'font-weight' => '400'
+            ],
+            'body' => [
+                'font-family' => "'Open Sans', sans-serif",
+                'font-weight' => '400'
+            ]
+        ]
+    ];
 }
