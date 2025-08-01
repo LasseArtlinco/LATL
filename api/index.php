@@ -1,5 +1,14 @@
 <?php
 // api/index.php - Hovedindgang til API'et
+// Enable detailed error reporting
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Log errors to a file we can access
+ini_set('error_log', dirname(__DIR__) . '/api_errors.log');
+error_log('API index accessed: ' . date('Y-m-d H:i:s') . ' - ' . $_SERVER['REQUEST_URI']);
+
 require_once '../config.php';
 require_once '../db.php';
 
@@ -21,6 +30,9 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $basePath = '/api/'; // Juster dette baseret på din serveropsætning
 $endpoint = str_replace($basePath, '', parse_url($requestUri, PHP_URL_PATH));
 
+// Log the endpoint for debugging
+error_log("Parsed endpoint: " . $endpoint);
+
 // Få HTTP metode
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -35,125 +47,103 @@ try {
     // Database-forbindelse
     $db = Database::getInstance();
     
-    // Bands endpoint patterns
-    $bandsPattern = '/^bands\/([a-zA-Z0-9_-]+)$/'; // bands/{page_id}
-    $bandPattern = '/^bands\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)$/'; // bands/{page_id}/{band_id}
+    // Log debug info
+    error_log("Endpoint routing: " . $endpoint);
     
-    switch (true) {
+    // Switch based on endpoint prefix
+    if (strpos($endpoint, 'products') === 0) {
         // Products API
-        case $endpoint === 'products' || $endpoint === 'products/':
-            require_once 'products.php';
-            $controller = new ProductsController($db);
-            handleRequest($controller, $method, $data);
-            break;
-            
-        case (preg_match('/^products\/(\d+)/', $endpoint, $matches) ? true : false):
-            require_once 'products.php';
-            $controller = new ProductsController($db);
+        require_once 'products.php';
+        $controller = new ProductsController($db);
+        
+        if (preg_match('/^products\/(\d+)/', $endpoint, $matches)) {
             $id = $matches[1];
             handleRequestWithId($controller, $method, $id, $data);
-            break;
-        
+        } else {
+            handleRequest($controller, $method, $data);
+        }
+    }
+    else if (strpos($endpoint, 'orders') === 0) {
         // Orders API
-        case $endpoint === 'orders' || $endpoint === 'orders/':
-            require_once 'orders.php';
-            $controller = new OrdersController($db);
-            handleRequest($controller, $method, $data);
-            break;
-            
-        case (preg_match('/^orders\/(\d+)/', $endpoint, $matches) ? true : false):
-            require_once 'orders.php';
-            $controller = new OrdersController($db);
+        require_once 'orders.php';
+        $controller = new OrdersController($db);
+        
+        if (preg_match('/^orders\/(\d+)/', $endpoint, $matches)) {
             $id = $matches[1];
             handleRequestWithId($controller, $method, $id, $data);
-            break;
-        
-        // Layout API
-        case $endpoint === 'layout' || $endpoint === 'layout/':
-            require_once 'layout.php';
-            $controller = new LayoutController($db);
+        } else {
             handleRequest($controller, $method, $data);
-            break;
-            
-        case (preg_match('/^layout\/([a-zA-Z0-9_-]+)/', $endpoint, $matches) ? true : false):
-            require_once 'layout.php';
-            $controller = new LayoutController($db);
+        }
+    }
+    else if (strpos($endpoint, 'layout') === 0) {
+        // Layout API
+        require_once 'layout.php';
+        $controller = new LayoutController($db);
+        
+        if (preg_match('/^layout\/([a-zA-Z0-9_-]+)/', $endpoint, $matches)) {
             $pageId = $matches[1];
             handleRequestWithId($controller, $method, $pageId, $data);
-            break;
-            
-        // Global Styles API
-        case $endpoint === 'layout/global/styles':
-            require_once 'global_styles.php';
-            $controller = new GlobalStylesController($db);
-            
-            if ($method === 'GET') {
-                $result = $controller->getStyles();
-                echo json_encode($result);
-            } else if ($method === 'PUT') {
-                $result = $controller->updateStyles($data);
-                echo json_encode($result);
-            } else {
-                http_response_code(405);
-                echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-            break;
+        } else {
+            handleRequest($controller, $method, $data);
+        }
     }
-}d not allowed']);
-            }
-            break;
-        
+    else if (strpos($endpoint, 'bands') === 0) {
         // Bands API
-        case (preg_match($bandsPattern, $endpoint, $matches) ? true : false):
-            require_once 'bands.php';
-            $controller = new BandsController($db);
-            $pageId = $matches[1];
-            
-            if ($method === 'GET') {
-                $result = $controller->getBands($pageId);
-                echo json_encode($result);
-            } else if ($method === 'POST') {
-                $result = $controller->createBand($pageId, $data);
-                echo json_encode($result);
-            } else {
-                http_response_code(405);
-                echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-            }
-            break;
-            
-        case (preg_match($bandPattern, $endpoint, $matches) ? true : false):
-            require_once 'bands.php';
-            $controller = new BandsController($db);
+        require_once 'bands.php';
+        require_once 'bands_endpoint.php';
+        
+        if (preg_match('/^bands\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)/', $endpoint, $matches)) {
             $pageId = $matches[1];
             $bandId = $matches[2];
-            
-            if ($method === 'GET') {
-                $result = $controller->getBand($pageId, $bandId);
-                echo json_encode($result);
-            } else if ($method === 'PUT') {
-                $result = $controller->updateBand($pageId, $bandId, $data);
-                echo json_encode($result);
-            } else if ($method === 'DELETE') {
-                $result = $controller->deleteBand($pageId, $bandId);
-                echo json_encode($result);
-            } else {
-                http_response_code(405);
-                echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-            }
-            break;
-            
-        default:
-            // Ukendt endpoint
+            $result = handleBandsRequest($db, $method, $pageId, $bandId, $data);
+            echo json_encode($result);
+        } 
+        else if (preg_match('/^bands\/([a-zA-Z0-9_-]+)/', $endpoint, $matches)) {
+            $pageId = $matches[1];
+            $result = handleBandsRequest($db, $method, $pageId, null, $data);
+            echo json_encode($result);
+        }
+        else {
             http_response_code(404);
-            echo json_encode(['status' => 'error', 'message' => 'Endpoint not found']);
-            break;
+            echo json_encode(['error' => 'Invalid bands endpoint']);
+        }
+    }
+    else if ($endpoint === 'global_styles' || $endpoint === 'global_styles/') {
+        // Global Styles API - redirect to dedicated endpoint
+        require_once 'global_styles.php';
+        $controller = new GlobalStylesController($db);
+        
+        if ($method === 'GET') {
+            $result = $controller->getStyles();
+            echo json_encode($result);
+        } 
+        else if ($method === 'PUT' || $method === 'POST') {
+            $result = $controller->updateStyles($data);
+            echo json_encode($result);
+        }
+        else {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method not allowed for global_styles']);
+        }
+    }
+    else {
+        // Ukendt endpoint
+        http_response_code(404);
+        echo json_encode(['error' => 'Endpoint not found: ' . $endpoint]);
     }
 } catch (Exception $e) {
+    error_log('API error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+    
     if (DEBUG_MODE) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        echo json_encode([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
     } else {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'An internal server error occurred']);
+        echo json_encode(['error' => 'An internal server error occurred']);
     }
 }
 
@@ -170,7 +160,7 @@ function handleRequest($controller, $method, $data) {
             break;
         default:
             http_response_code(405);
-            echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
+            echo json_encode(['error' => 'Method not allowed']);
             break;
     }
 }
@@ -191,4 +181,7 @@ function handleRequestWithId($controller, $method, $id, $data) {
             break;
         default:
             http_response_code(405);
-            echo json_encode(['status' => 'error', 'message' => 'Metho
+            echo json_encode(['error' => 'Method not allowed']);
+            break;
+    }
+}
