@@ -10,6 +10,9 @@ class GlobalStylesController {
     
     public function getStyles() {
         try {
+            // Log access for debugging
+            error_log('GlobalStylesController: getStyles called');
+            
             // Forsøg at hente global styles fra layout_config tabellen
             $layout = $this->db->selectOne("SELECT * FROM layout_config WHERE page_id = ?", ['global']);
             
@@ -65,6 +68,7 @@ class GlobalStylesController {
             
             return ['status' => 'success', 'data' => $layout['layout_data']];
         } catch (Exception $e) {
+            error_log('GlobalStylesController getStyles error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
@@ -72,6 +76,9 @@ class GlobalStylesController {
     
     public function updateStyles($data) {
         try {
+            // Log the update operation
+            error_log('GlobalStylesController: updateStyles called with data: ' . json_encode($data));
+            
             if (!$data) {
                 http_response_code(400);
                 return ['status' => 'error', 'message' => 'No data provided'];
@@ -95,6 +102,7 @@ class GlobalStylesController {
             
             return ['status' => 'success', 'data' => $data];
         } catch (Exception $e) {
+            error_log('GlobalStylesController updateStyles error: ' . $e->getMessage());
             http_response_code(500);
             return ['status' => 'error', 'message' => $e->getMessage()];
         }
