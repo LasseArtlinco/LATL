@@ -7,6 +7,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Log errors to a file we can access
+ini_set('error_log', dirname(__DIR__) . '/api_errors.log');
+error_log('Global styles endpoint accessed: ' . date('Y-m-d H:i:s'));
+
 // Inkluder nødvendige filer
 require_once '../config.php';
 require_once '../db.php';
