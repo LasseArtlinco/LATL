@@ -40,20 +40,66 @@ function showToast(message, isError = false) {
 }
 
 /**
+ * Sikker fetch funktion med fejlhåndtering
+ * @param {string} url - URL at fetche
+ * @param {Object} options - Fetch options
+ * @returns {Promise<Object>} - API svar
+ */
+async function safeFetch(url, options = {}) {
+    try {
+        showLoading();
+        
+        const response = await fetch(url, options);
+        
+        // Håndter HTTP fejl
+        if (!response.ok) {
+            let errorMsg = `HTTP error ${response.status}`;
+            try {
+                // Forsøg at parse fejlbesked
+                const errorData = await response.json();
+                if (errorData && errorData.message) {
+                    errorMsg = errorData.message;
+                }
+            } catch (e) {
+                // Hvis responsen ikke er JSON, brug tekst
+                try {
+                    errorMsg = await response.text();
+                } catch (e2) {
+                    // Hvis alt fejler, brug standard fejlbesked
+                }
+            }
+            throw new Error(errorMsg);
+        }
+        
+        // Håndter tomme svar
+        const text = await response.text();
+        if (!text) {
+            return { status: 'success', data: null };
+        }
+        
+        // Parse JSON svar
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('JSON parse error:', e, 'Response text:', text);
+            throw new Error(`Invalid JSON response: ${e.message}`);
+        }
+    } catch (error) {
+        console.error('API Error:', error);
+        showToast('Fejl ved kommunikation med serveren: ' + error.message, true);
+        throw error;
+    } finally {
+        hideLoading();
+    }
+}
+
+/**
  * Hent sider fra API
  * @returns {Promise<Array>} Array af sider
  */
 async function fetchPages() {
     try {
-        showLoading();
-        
-        const response = await fetch(`${API_URL}/layout`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const result = await response.json();
+        const result = await safeFetch(`${API_URL}/layout`);
         
         if (result.status === 'success') {
             return result.data || [];
@@ -62,10 +108,8 @@ async function fetchPages() {
         }
     } catch (error) {
         console.error('Fejl ved hentning af sider:', error);
-        showToast('Fejl ved hentning af sider', true);
+        showToast('Fejl ved hentning af sider: ' + error.message, true);
         return [];
-    } finally {
-        hideLoading();
     }
 }
 
@@ -77,15 +121,7 @@ async function fetchPages() {
  */
 async function fetchBand(pageId, bandId) {
     try {
-        showLoading();
-        
-        const response = await fetch(`${API_URL}/bands/${pageId}/${bandId}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const result = await response.json();
+        const result = await safeFetch(`${API_URL}/bands/${pageId}/${bandId}`);
         
         if (result.status === 'success') {
             return result.data || null;
@@ -94,10 +130,8 @@ async function fetchBand(pageId, bandId) {
         }
     } catch (error) {
         console.error('Fejl ved hentning af bånd:', error);
-        showToast('Fejl ved hentning af bånd', true);
+        showToast('Fejl ved hentning af bånd: ' + error.message, true);
         return null;
-    } finally {
-        hideLoading();
     }
 }
 
@@ -185,3 +219,36 @@ function formatPrice(price) {
         currency: 'DKK'
     }).format(price);
 }
+
+/**
+ * Fetch og opdater global styles
+ */
+async function fetchAndUpdateGlobalStyles() {
+    try {
+        const result = await safeFetch(`${API_URL}/layout/global/styles`);
+        
+        if (result.status === 'success' && result.data) {
+            // Opdater CSS variabler på :root element
+            const root = document.documentElement;
+            const colorPalette = result.data.color_palette || {};
+            
+            if (colorPalette.primary) root.style.setProperty('--primary-color', colorPalette.primary);
+            if (colorPalette.secondary) root.style.setProperty('--secondary-color', colorPalette.secondary);
+            if (colorPalette.accent) root.style.setProperty('--accent-color', colorPalette.accent);
+            if (colorPalette.bright) root.style.setProperty('--bright-color', colorPalette.bright);
+            if (colorPalette.background) root.style.setProperty('--background-color', colorPalette.background);
+            if (colorPalette.text) root.style.setProperty('--text-color', colorPalette.text);
+            
+            return result.data;
+        }
+        return null;
+    } catch (error) {
+        console.error('Fejl ved hentning af globale styles:', error);
+        return null;
+    }
+}
+
+// Initialiser globale styles når siden indlæses
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndUpdateGlobalStyles().catch(console.error);
+});
