@@ -59,39 +59,46 @@ document.addEventListener('DOMContentLoaded', init);
  * Initialiser editoren
  */
 async function init() {
-    // Indlæs sider fra API
-    const pages = await fetchPages();
-    
-    // Opdater side-dropdown
-    bandPageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
-    pages.forEach(page => {
-        const option = document.createElement('option');
-        option.value = page.page_id;
-        option.textContent = page.page_id;
-        bandPageSelect.appendChild(option);
-    });
-    
-    // Indstil standard editor baseret på valgt båndtype
-    toggleEditors();
-    
-    // Tilføj første slide som standard for slideshow
-    if (slideCount === 0) {
-        addSlide();
-    }
-    
-    // Opdater forhåndsvisning
-    updatePreview();
-    
-    // Tjek om vi redigerer et eksisterende bånd
-    const bandId = getUrlParam('id');
-    const pageId = getUrlParam('page');
-    
-    if (bandId && pageId) {
-        currentBandId = bandId;
-        bandPageSelect.value = pageId;
-        bandPageSelect.disabled = true; // Lås side når vi redigerer
+    try {
+        // Indlæs sider fra API
+        const pages = await fetchPages();
         
-        await loadBand(pageId, bandId);
+        // Opdater side-dropdown
+        bandPageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
+        pages.forEach(page => {
+            if (page.page_id !== 'global') {
+                const option = document.createElement('option');
+                option.value = page.page_id;
+                option.textContent = page.page_id;
+                bandPageSelect.appendChild(option);
+            }
+        });
+        
+        // Indstil standard editor baseret på valgt båndtype
+        toggleEditors();
+        
+        // Tilføj første slide som standard for slideshow
+        if (slideCount === 0) {
+            addSlide();
+        }
+        
+        // Opdater forhåndsvisning
+        updatePreview();
+        
+        // Tjek om vi redigerer et eksisterende bånd
+        const bandId = getUrlParam('id');
+        const pageId = getUrlParam('page');
+        
+        if (bandId && pageId) {
+            currentBandId = bandId;
+            bandPageSelect.value = pageId;
+            bandPageSelect.disabled = true; // Lås side når vi redigerer
+            
+            await loadBand(pageId, bandId);
+        }
+    } catch (error) {
+        console.error('Fejl ved initialisering:', error);
+        showToast('Der opstod en fejl ved indlæsning af editoren', true);
     }
 }
 
@@ -240,6 +247,7 @@ async function handleSlideImageUpload(event, slideIndex) {
             updatePreview();
         } catch (error) {
             console.error('Fejl ved læsning af billede:', error);
+            showToast('Fejl ved læsning af billede', true);
         }
     }
 }
@@ -422,37 +430,50 @@ function updateProductPreview() {
  * Indlæs et specifikt bånd
  */
 async function loadBand(pageId, bandId) {
-    const band = await fetchBand(pageId, bandId);
-    
-    if (!band) {
-        showToast('Båndet blev ikke fundet', true);
-        return;
+    try {
+        const response = await fetch(`${API_URL}/bands/${pageId}/${bandId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.status !== 'success' || !result.data) {
+            showToast('Båndet blev ikke fundet', true);
+            return;
+        }
+        
+        const band = result.data;
+        
+        // Opdater formular med båndets data
+        bandTypeSelect.value = band.band_type;
+        bandHeightSelect.value = band.band_height;
+        bandOrderInput.value = band.band_order;
+        
+        // Skift mellem editorer
+        toggleEditors();
+        
+        // Indlæs SEO data
+        if (band.band_content && band.band_content.seo) {
+            seoTitleInput.value = band.band_content.seo.title || '';
+            seoDescriptionInput.value = band.band_content.seo.description || '';
+            seoKeywordsInput.value = band.band_content.seo.keywords || '';
+        }
+        
+        // Indlæs specifikke data baseret på båndtype
+        if (band.band_type === 'slideshow') {
+            loadSlideshowData(band);
+        } else if (band.band_type === 'product') {
+            loadProductData(band);
+        }
+        
+        // Opdater forhåndsvisning
+        updatePreview();
+    } catch (error) {
+        console.error('Fejl ved indlæsning af bånd:', error);
+        showToast('Fejl ved indlæsning af bånd', true);
     }
-    
-    // Opdater formular med båndets data
-    bandTypeSelect.value = band.band_type;
-    bandHeightSelect.value = band.band_height;
-    bandOrderInput.value = band.band_order;
-    
-    // Skift mellem editorer
-    toggleEditors();
-    
-    // Indlæs SEO data
-    if (band.band_content && band.band_content.seo) {
-        seoTitleInput.value = band.band_content.seo.title || '';
-        seoDescriptionInput.value = band.band_content.seo.description || '';
-        seoKeywordsInput.value = band.band_content.seo.keywords || '';
-    }
-    
-    // Indlæs specifikke data baseret på båndtype
-    if (band.band_type === 'slideshow') {
-        loadSlideshowData(band);
-    } else if (band.band_type === 'product') {
-        loadProductData(band);
-    }
-    
-    // Opdater forhåndsvisning
-    updatePreview();
 }
 
 /**
@@ -475,6 +496,14 @@ function loadSlideshowData(band) {
         const altInput = slideElement.querySelector('.slide-alt');
         const imagePreview = slideElement.querySelector('.slide-image-preview');
         const img = imagePreview.querySelector('img');
+        
+        if (slideData.title) {
+            titleInput.value = slideData.title;
+        }
+        
+        if (slideData.subtitle) {
+            subtitleInput.value = slideData.subtitle;
+        }
         
         if (slideData.link) {
             linkInput.value = slideData.link;
@@ -536,6 +565,9 @@ async function saveBand() {
             showToast('Vælg venligst en side', true);
             return;
         }
+        
+        // Vis loading
+        showLoading();
         
         // Opret FormData objekt til filer
         const formData = new FormData();
@@ -606,15 +638,6 @@ async function saveBand() {
                 background_color: productBackgroundInput.value
             };
             
-            // Tilføj SEO data
-            if (seoTitleInput.value || seoDescriptionInput.value || seoKeywordsInput.value) {
-                bandData.band_content.seo = {
-                    title: seoTitleInput.value,
-                    description: seoDescriptionInput.value,
-                    keywords: seoKeywordsInput.value
-                };
-            }
-            
             // Tilføj eksisterende billede hvis det findes
             if (productImagePreview.style.display !== 'none') {
                 const img = productImagePreview.querySelector('img');
@@ -634,8 +657,6 @@ async function saveBand() {
         
         // Tilføj bandData som JSON til FormData
         formData.append('band_data', JSON.stringify(bandData));
-        
-        showLoading();
         
         let url, method;
         
@@ -672,12 +693,4 @@ async function saveBand() {
     } finally {
         hideLoading();
     }
-}title) {
-            titleInput.value = slideData.title;
-        }
-        
-        if (slideData.subtitle) {
-            subtitleInput.value = slideData.subtitle;
-        }
-        
-        if (slideData.
+}
