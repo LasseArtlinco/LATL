@@ -3,451 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LATL Admin Dashboard</title>
+    <title>LATL Layout Admin</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/admin-style.css">
-    <style>
-        /* Additional styles for integrated layout */
-        .main-content {
-            padding: 20px;
-        }
-        
-        .sidebar {
-            width: 250px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            background-color: var(--primary-color);
-            color: white;
-            overflow-y: auto;
-            z-index: 100;
-            transition: transform 0.3s ease;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .sidebar-header h2 {
-            color: white;
-            margin: 0;
-        }
-        
-        .sidebar-close {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .sidebar-menu-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            border-left: 4px solid transparent;
-            transition: background-color 0.2s;
-        }
-        
-        .sidebar-menu-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .sidebar-menu-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-left-color: var(--accent-color);
-        }
-        
-        .content-wrapper {
-            margin-left: 250px;
-            min-height: 100vh;
-            background-color: #f8f9fa;
-            transition: margin-left 0.3s ease;
-        }
-        
-        .mobile-header {
-            display: none;
-            padding: 15px;
-            background-color: var(--primary-color);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 99;
-        }
-        
-        .mobile-menu-toggle {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .color-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .color-box {
-            height: 80px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .font-preview {
-            padding: 15px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 4px;
-            margin-top: 15px;
-            background-color: white;
-        }
-        
-        .slide-container {
-            position: relative;
-            background-color: var(--light-gray);
-            padding: 20px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .remove-slide {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--error-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .preview-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            min-height: 200px;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .sidebar-close {
-                display: block;
-            }
-            
-            .content-wrapper {
-                margin-left: 0;
-            }
-            
-            .mobile-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-    </style>
 </head>
 <body>
-    <div class="loading" id="loading">
+    <div class="loading">
         <div class="spinner"></div>
     </div>
     
     <div class="toast" id="toast"></div>
     
-    <!-- Mobile Header -->
-    <div class="mobile-header">
-        <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        <h2>LATL Admin</h2>
-    </div>
-    
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>LATL Admin</h2>
-            <button class="sidebar-close" id="sidebar-close">×</button>
+    <div class="container">
+        <div class="header">
+            <h1>LATL Admin Dashboard</h1>
+            <button id="saveButton" class="primary">Gem ændringer</button>
         </div>
-        <ul class="sidebar-menu">
-            <li class="sidebar-menu-item active" data-section="global-styles">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-                </svg>
-                Globale Stilarter
-            </li>
-            <li class="sidebar-menu-item" data-section="layout-pages">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                Layout Sider
-            </li>
-            <li class="sidebar-menu-item" data-section="band-management">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                    <line x1="3" y1="15" x2="21" y2="15"></line>
-                </svg>
-                Bånd Styring
-            </li>
-            <li class="sidebar-menu-item" data-section="products">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-                Produkter
-            </li>
-            <li class="sidebar-menu-item" data-section="orders">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 17H5a2 2 0 0 0-2 2 2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm12-2h-4a2 2 0 0 0-2 2 2 2 0 0 0 2 2h2a2 2 0 0 0 2-2z"></path>
-                    <path d="M9 17h6"></path>
-                    <line x1="12" y1="15" x2="12" y2="7"></line>
-                    <path d="M5 7h14"></path>
-                </svg>
-                Ordrer
-            </li>
-            <li class="sidebar-menu-item" data-section="analytics">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 20V10"></path>
-                    <path d="M12 20V4"></path>
-                    <path d="M6 20v-6"></path>
-                </svg>
-                Analyse
-            </li>
-            <li class="sidebar-menu-item" data-section="settings">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-                Indstillinger
-            </li>
-        </ul>
-    </div>
-    
-    <!-- Main Content -->
-    <div class="content-wrapper">
-        <div class="main-content">
-            <!-- Global Styles Section -->
-            <section class="content-section active" id="global-styles-section">
-                <div class="header">
-                    <h1>LATL Globale Stilarter</h1>
-                    <button id="saveButton" class="primary">Gem ændringer</button>
-                </div>
-                
-                <p>Her kan du konfigurere globale stilarter, der anvendes på hele webstedet.</p>
-                
-                <div class="form-row">
-                    <div>
-                        <h3>Farvepalette</h3>
-                        <div id="colorPalette">
-                            <div class="form-group">
-                                <label>Primær farve</label>
-                                <div class="form-row">
-                                    <input type="color" id="primaryColor" value="#042940">
-                                    <input type="text" id="primaryColorHex" value="#042940">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Sekundær farve</label>
-                                <div class="form-row">
-                                    <input type="color" id="secondaryColor" value="#005C53">
-                                    <input type="text" id="secondaryColorHex" value="#005C53">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Accent farve</label>
-                                <div class="form-row">
-                                    <input type="color" id="accentColor" value="#9FC131">
-                                    <input type="text" id="accentColorHex" value="#9FC131">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Lys accent farve</label>
-                                <div class="form-row">
-                                    <input type="color" id="brightColor" value="#DBF227">
-                                    <input type="text" id="brightColorHex" value="#DBF227">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Baggrund</label>
-                                <div class="form-row">
-                                    <input type="color" id="backgroundColor" value="#D6D58E">
-                                    <input type="text" id="backgroundColorHex" value="#D6D58E">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Tekstfarve</label>
-                                <div class="form-row">
-                                    <input type="color" id="textColor" value="#042940">
-                                    <input type="text" id="textColorHex" value="#042940">
-                                </div>
-                            </div>
-                            
-                            <div class="color-preview-grid" id="color-preview-container">
-                                <div class="color-box" style="background-color: #042940;">Primær</div>
-                                <div class="color-box" style="background-color: #005C53;">Sekundær</div>
-                                <div class="color-box" style="background-color: #9FC131;">Accent</div>
-                                <div class="color-box" style="background-color: #DBF227; color: #042940;">Lys Accent</div>
-                                <div class="color-box" style="background-color: #D6D58E; color: #042940;">Baggrund</div>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="globalStyles">Globale stilarter</div>
+            <div class="nav-tab" data-tab="layoutPages">Layout sider</div>
+            <div class="nav-tab" data-tab="bandManagement">Bånd-styring</div>
+        </div>
+        
+        <!-- Global Styles Tab -->
+        <div class="tab-content active" id="globalStyles">
+            <h2>Globale stilarter</h2>
+            <p>Her kan du konfigurere globale stilarter, der anvendes på hele webstedet.</p>
+            
+            <div class="form-row">
+                <div>
+                    <h3>Farvepalette</h3>
+                    <div id="colorPalette">
+                        <div class="form-group">
+                            <label>Primær farve (#042940)</label>
+                            <div class="form-row">
+                                <input type="color" id="primaryColor" value="#042940">
+                                <input type="text" id="primaryColorHex" value="#042940">
                             </div>
                         </div>
-                    </div>
-                    
-                    <div>
-                        <h3>Skrifttyper</h3>
-                        <div id="fontConfig">
-                            <div class="form-group">
-                                <label>Overskrift skrifttype</label>
-                                <select id="headingFontFamily">
-                                    <option value="'Allerta Stencil', sans-serif" selected>Allerta Stencil</option>
-                                    <option value="'Open Sans', sans-serif">Open Sans</option>
-                                    <option value="Arial, sans-serif">Arial</option>
-                                    <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
-                                    <option value="'Roboto', sans-serif">Roboto</option>
-                                    <option value="'Montserrat', sans-serif">Montserrat</option>
-                                    <option value="'Raleway', sans-serif">Raleway</option>
-                                    <option value="'Playfair Display', serif">Playfair Display</option>
-                                </select>
+                        
+                        <div class="form-group">
+                            <label>Sekundær farve (#005C53)</label>
+                            <div class="form-row">
+                                <input type="color" id="secondaryColor" value="#005C53">
+                                <input type="text" id="secondaryColorHex" value="#005C53">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Overskrift tykkelse</label>
-                                <select id="headingFontWeight">
-                                    <option value="400" selected>Normal (400)</option>
-                                    <option value="500">Medium (500)</option>
-                                    <option value="600">Semi-bold (600)</option>
-                                    <option value="700">Bold (700)</option>
-                                    <option value="800">Extra-bold (800)</option>
-                                </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Accent farve (#9FC131)</label>
+                            <div class="form-row">
+                                <input type="color" id="accentColor" value="#9FC131">
+                                <input type="text" id="accentColorHex" value="#9FC131">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Brødtekst skrifttype</label>
-                                <select id="bodyFontFamily">
-                                    <option value="'Open Sans', sans-serif" selected>Open Sans</option>
-                                    <option value="'Allerta Stencil', sans-serif">Allerta Stencil</option>
-                                    <option value="Arial, sans-serif">Arial</option>
-                                    <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
-                                    <option value="'Roboto', sans-serif">Roboto</option>
-                                    <option value="'Lato', sans-serif">Lato</option>
-                                    <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
-                                    <option value="'PT Sans', sans-serif">PT Sans</option>
-                                </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Lys accent farve (#DBF227)</label>
+                            <div class="form-row">
+                                <input type="color" id="brightColor" value="#DBF227">
+                                <input type="text" id="brightColorHex" value="#DBF227">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Brødtekst tykkelse</label>
-                                <select id="bodyFontWeight">
-                                    <option value="300">Light (300)</option>
-                                    <option value="400" selected>Normal (400)</option>
-                                    <option value="500">Medium (500)</option>
-                                    <option value="600">Semi-bold (600)</option>
-                                </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Baggrund (#D6D58E)</label>
+                            <div class="form-row">
+                                <input type="color" id="backgroundColor" value="#D6D58E">
+                                <input type="text" id="backgroundColorHex" value="#D6D58E">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Pris skrifttype</label>
-                                <select id="priceFontFamily">
-                                    <option value="'Allerta Stencil', sans-serif" selected>Allerta Stencil</option>
-                                    <option value="'Open Sans', sans-serif">Open Sans</option>
-                                    <option value="Arial, sans-serif">Arial</option>
-                                    <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
-                                    <option value="'Roboto', sans-serif">Roboto</option>
-                                    <option value="'Montserrat', sans-serif">Montserrat</option>
-                                </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tekstfarve (#042940)</label>
+                            <div class="form-row">
+                                <input type="color" id="textColor" value="#042940">
+                                <input type="text" id="textColorHex" value="#042940">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Pris tykkelse</label>
-                                <select id="priceFontWeight">
-                                    <option value="400" selected>Normal (400)</option>
-                                    <option value="500">Medium (500)</option>
-                                    <option value="600">Semi-bold (600)</option>
-                                    <option value="700">Bold (700)</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Knap skrifttype</label>
-                                <select id="buttonFontFamily">
-                                    <option value="'Open Sans', sans-serif" selected>Open Sans</option>
-                                    <option value="'Allerta Stencil', sans-serif">Allerta Stencil</option>
-                                    <option value="Arial, sans-serif">Arial</option>
-                                    <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
-                                    <option value="'Roboto', sans-serif">Roboto</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Knap tykkelse</label>
-                                <select id="buttonFontWeight">
-                                    <option value="400">Normal (400)</option>
-                                    <option value="500">Medium (500)</option>
-                                    <option value="600" selected>Semi-bold (600)</option>
-                                    <option value="700">Bold (700)</option>
-                                </select>
-                            </div>
-                            
-                            <div class="font-preview">
-                                <h4 class="preview-heading">Skrifttype Forhåndsvisning</h4>
-                                <p class="preview-body">Dette er et eksempel på brødtekst, der viser hvordan den valgte skrifttype ser ud i praksis.</p>
-                                <div class="preview-price">299,00 kr.</div>
-                                <button class="preview-button">Køb nu</button>
+                        </div>
+                        
+                        <div class="form-section" style="margin-top: 20px;">
+                            <h4>Farvepalette forhåndsvisning</h4>
+                            <div id="color-preview-container" style="display: flex; gap: 10px; margin-top: 10px;">
+                                <div style="width: 80px; height: 80px; background-color: #042940; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Primær</div>
+                                <div style="width: 80px; height: 80px; background-color: #005C53; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Sekundær</div>
+                                <div style="width: 80px; height: 80px; background-color: #9FC131; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Accent</div>
+                                <div style="width: 80px; height: 80px; background-color: #DBF227; display: flex; align-items: center; justify-content: center; color: #042940; border-radius: 4px;">Lys Accent</div>
+                                <div style="width: 80px; height: 80px; background-color: #D6D58E; display: flex; align-items: center; justify-content: center; color: #042940; border-radius: 4px;">Baggrund</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <h3>Global CSS</h3>
-                <div class="form-group">
-                    <label for="globalCss">CSS kode (avanceret)</label>
-                    <textarea id="globalCss" rows="10" placeholder="Indtast din CSS-kode her...">/* Eksempel på global styling */
+                <div>
+                    <h3>Skrifttyper</h3>
+                    <div id="fontConfig">
+                        <div class="form-group">
+                            <label>Overskrift skrifttype</label>
+                            <select id="headingFontFamily">
+                                <option value="'Allerta Stencil', sans-serif" selected>Allerta Stencil</option>
+                                <option value="'Open Sans', sans-serif">Open Sans</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                                <option value="'Montserrat', sans-serif">Montserrat</option>
+                                <option value="'Raleway', sans-serif">Raleway</option>
+                                <option value="'Playfair Display', serif">Playfair Display</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Overskrift tykkelse</label>
+                            <select id="headingFontWeight">
+                                <option value="400" selected>Normal (400)</option>
+                                <option value="500">Medium (500)</option>
+                                <option value="600">Semi-bold (600)</option>
+                                <option value="700">Bold (700)</option>
+                                <option value="800">Extra-bold (800)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Brødtekst skrifttype</label>
+                            <select id="bodyFontFamily">
+                                <option value="'Open Sans', sans-serif" selected>Open Sans</option>
+                                <option value="'Allerta Stencil', sans-serif">Allerta Stencil</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                                <option value="'Lato', sans-serif">Lato</option>
+                                <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
+                                <option value="'PT Sans', sans-serif">PT Sans</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Brødtekst tykkelse</label>
+                            <select id="bodyFontWeight">
+                                <option value="300">Light (300)</option>
+                                <option value="400" selected>Normal (400)</option>
+                                <option value="500">Medium (500)</option>
+                                <option value="600">Semi-bold (600)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pris skrifttype</label>
+                            <select id="priceFontFamily">
+                                <option value="'Allerta Stencil', sans-serif" selected>Allerta Stencil</option>
+                                <option value="'Open Sans', sans-serif">Open Sans</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                                <option value="'Montserrat', sans-serif">Montserrat</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pris tykkelse</label>
+                            <select id="priceFontWeight">
+                                <option value="400" selected>Normal (400)</option>
+                                <option value="500">Medium (500)</option>
+                                <option value="600">Semi-bold (600)</option>
+                                <option value="700">Bold (700)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Knap skrifttype</label>
+                            <select id="buttonFontFamily">
+                                <option value="'Open Sans', sans-serif" selected>Open Sans</option>
+                                <option value="'Allerta Stencil', sans-serif">Allerta Stencil</option>
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Knap tykkelse</label>
+                            <select id="buttonFontWeight">
+                                <option value="400">Normal (400)</option>
+                                <option value="500">Medium (500)</option>
+                                <option value="600" selected>Semi-bold (600)</option>
+                                <option value="700">Bold (700)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-section" style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 4px;">
+                            <h4 style="font-family: var(--heading-font); margin-bottom: 10px;" class="preview-heading">Skrifttype Forhåndsvisning</h4>
+                            <p style="font-family: var(--body-font); margin-bottom: 10px;" class="preview-body">Dette er et eksempel på brødtekst, der viser hvordan den valgte skrifttype ser ud i praksis.</p>
+                            <div style="font-family: var(--price-font); font-size: 1.2rem; margin-bottom: 10px;" class="preview-price">299,00 kr.</div>
+                            <button style="font-family: var(--button-font); padding: 8px 16px; background-color: var(--primary-color); color: white; border: none; border-radius: 4px;" class="preview-button">Køb nu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Global styling</h3>
+            <div class="form-group">
+                <label>CSS kode (avanceret)</label>
+                <textarea id="globalCss" rows="10" placeholder="Indtast din CSS-kode her...">/* Eksempel på global styling */
 body {
   line-height: 1.6;
 }
@@ -466,338 +226,239 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }</textarea>
-                </div>
-            </section>
+            </div>
+        </div>
+        
+        <!-- Layout Pages Tab -->
+        <div class="tab-content" id="layoutPages">
+            <h2>Layout sider</h2>
+            <p>Her kan du se og redigere layouts for forskellige sider.</p>
             
-            <!-- Products Section (Placeholder) -->
-            <section class="content-section" id="products-section">
-                <div class="header">
-                    <h1>LATL Produkter</h1>
+            <div class="form-row">
+                <div>
+                    <label>Vælg side</label>
+                    <select id="pageSelect">
+                        <option value="">-- Vælg side --</option>
+                    </select>
                 </div>
-                
-                <div class="form-section">
-                    <h2>Produktstyring</h2>
-                    <p>Dette område er under udvikling. Her vil du kunne administrere produkter i webshop.</p>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 4px;">
-                        <h3>Kommende funktioner:</h3>
-                        <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li>Oprettelse og redigering af produkter</li>
-                            <li>Kategoristyring</li>
-                            <li>Produktvarianter</li>
-                            <li>Lager- og prisstyring</li>
-                            <li>Billedhåndtering</li>
-                        </ul>
+                <div>
+                    <label>Eller opret ny side</label>
+                    <div class="form-row">
+                        <input type="text" id="newPageId" placeholder="Indtast side-id (f.eks. 'forside')">
+                        <button id="createPageButton">Opret</button>
                     </div>
                 </div>
-            </section>
+            </div>
             
-            <!-- Orders Section (Placeholder) -->
-            <section class="content-section" id="orders-section">
-                <div class="header">
-                    <h1>LATL Ordrer</h1>
+            <div id="pageDetails" style="display: none;">
+                <h3>Side detaljer</h3>
+                <div class="form-group">
+                    <label>Side ID</label>
+                    <input type="text" id="currentPageId" disabled>
                 </div>
                 
-                <div class="form-section">
-                    <h2>Ordrestyring</h2>
-                    <p>Dette område er under udvikling. Her vil du kunne administrere ordrer fra webshop.</p>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 4px;">
-                        <h3>Kommende funktioner:</h3>
-                        <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li>Ordreliste og detaljevisning</li>
-                            <li>Ordrestatus-opdatering</li>
-                            <li>Fakturering</li>
-                            <li>Integration med Shipmondo</li>
-                            <li>Returnering og refundering</li>
-                        </ul>
-                    </div>
+                <h3>Layout data</h3>
+                <div class="form-group">
+                    <label>Layout data (JSON)</label>
+                    <textarea id="layoutData" rows="10" placeholder="Layout data i JSON format..."></textarea>
                 </div>
-            </section>
-            
-            <!-- Analytics Section (Placeholder) -->
-            <section class="content-section" id="analytics-section">
-                <div class="header">
-                    <h1>LATL Analyse</h1>
-                </div>
-                
-                <div class="form-section">
-                    <h2>Analyseværktøjer</h2>
-                    <p>Dette område er under udvikling. Her vil du kunne se analyser og statistikker.</p>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 4px;">
-                        <h3>Kommende funktioner:</h3>
-                        <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li>Webshop analytics</li>
-                            <li>Salgsrapporter</li>
-                            <li>Kundeadfærdsanalyse</li>
-                            <li>LIDAR-baseret butiksanalyse</li>
-                            <li>AI-genererede forbedringsforslag</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Settings Section (Placeholder) -->
-            <section class="content-section" id="settings-section">
-                <div class="header">
-                    <h1>LATL Indstillinger</h1>
-                </div>
-                
-                <div class="form-section">
-                    <h2>Systemindstillinger</h2>
-                    <p>Dette område er under udvikling. Her vil du kunne konfigurere systemindstillinger.</p>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 4px;">
-                        <h3>Kommende funktioner:</h3>
-                        <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li>Brugerstyring</li>
-                            <li>API-integration</li>
-                            <li>Betalingsindstillinger</li>
-                            <li>E-mail-skabeloner</li>
-                            <li>Sikkerhedsindstillinger</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Layout Pages Section -->
-            <section class="content-section" id="layout-pages-section">
-                <div class="header">
-                    <h1>LATL Layout Sider</h1>
-                </div>
-                
-                <p>Her kan du se og redigere layouts for forskellige sider.</p>
                 
                 <div class="form-row">
-                    <div>
-                        <label>Vælg side</label>
-                        <select id="pageSelect">
-                            <option value="">-- Vælg side --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Eller opret ny side</label>
-                        <div class="form-row">
-                            <input type="text" id="newPageId" placeholder="Indtast side-id (f.eks. 'forside')">
-                            <button id="createPageButton" class="primary">Opret</button>
-                        </div>
-                    </div>
+                    <button id="updatePageButton">Opdater side</button>
+                    <button id="deletePageButton" class="danger">Slet side</button>
                 </div>
-                
-                <div id="pageDetails" style="display: none; margin-top: 20px;">
-                    <h3>Side detaljer</h3>
-                    <div class="form-group">
-                        <label>Side ID</label>
-                        <input type="text" id="currentPageId" disabled>
-                    </div>
-                    
-                    <h3>Layout data</h3>
-                    <div class="form-group">
-                        <label>Layout data (JSON)</label>
-                        <textarea id="layoutData" rows="15" placeholder="Layout data i JSON format..."></textarea>
-                    </div>
-                    
-                    <div class="form-row" style="justify-content: flex-end;">
-                        <button id="deletePageButton" class="danger">Slet side</button>
-                        <button id="updatePageButton" class="primary">Opdater side</button>
-                    </div>
-                </div>
-            </section>
+            </div>
+        </div>
+        
+        <!-- Band Management Tab -->
+        <div class="tab-content" id="bandManagement">
+            <h2>Bånd-styring</h2>
+            <p>Her kan du styre bånd for den valgte side.</p>
             
-            <!-- Band Management Section -->
-            <section class="content-section" id="band-management-section">
-                <div class="header">
-                    <h1>LATL Bånd Styring</h1>
+            <!-- Band List View -->
+            <div id="band-list-view">
+                <div class="form-group">
+                    <label>Vælg side</label>
+                    <select id="bandPageSelect">
+                        <option value="">-- Vælg side --</option>
+                    </select>
                 </div>
                 
-                <p>Her kan du styre bånd for den valgte side.</p>
+                <div id="bandList" style="display: none; margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>Bånd på denne side</h3>
+                        <button id="addBandButton" class="secondary">Tilføj nyt bånd</button>
+                    </div>
+                    
+                    <div id="bands"></div>
+                </div>
+            </div>
+            
+            <!-- Band Editor View -->
+            <div id="band-editor-view" style="display: none;">
+                <div class="header">
+                    <h3 id="band-editor-title">Tilføj nyt bånd</h3>
+                    <div>
+                        <button id="cancelBandButton" class="secondary">Annuller</button>
+                        <button id="saveBandButton" class="primary">Gem bånd</button>
+                    </div>
+                </div>
                 
-                <!-- Band List View -->
-                <div id="band-list-view">
+                <input type="hidden" id="editBandId">
+                
+                <div class="form-section">
+                    <h3>Grundlæggende bånd information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="band-type">Bånd type</label>
+                            <select id="band-type">
+                                <option value="slideshow">Slideshow</option>
+                                <option value="product">Produkt (konfigurerbart)</option>
+                                <option value="product_card">Produkt kort</option>
+                                <option value="product_full">Produkt fuld</option>
+                                <option value="html">HTML</option>
+                                <option value="related_products">Relaterede produkter</option>
+                                <option value="link">Link</option>
+                                <option value="cta">Call to Action</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="band-height">Bånd højde</label>
+                            <select id="band-height">
+                                <option value="1">1x</option>
+                                <option value="2">2x</option>
+                                <option value="3">3x</option>
+                                <option value="4">4x</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="band-order">Rækkefølge</label>
+                            <input type="number" id="band-order" min="1" value="1">
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
-                        <label>Vælg side</label>
-                        <select id="bandPageSelect">
+                        <label for="band-page">Side</label>
+                        <select id="band-page" disabled>
                             <option value="">-- Vælg side --</option>
                         </select>
                     </div>
+                </div>
+                
+                <!-- Slideshow Editor -->
+                <div id="slideshow-editor" class="form-section">
+                    <h3>Slideshow indstillinger</h3>
                     
-                    <div id="bandList" style="display: none; margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3>Bånd på denne side</h3>
-                            <button id="addBandButton" class="secondary">Tilføj nyt bånd</button>
-                        </div>
-                        
-                        <div id="bands"></div>
+                    <button id="add-slide" class="add-slide-btn">Tilføj nyt slide</button>
+                    
+                    <div id="slides-container">
+                        <!-- Slides tilføjes her dynamisk -->
                     </div>
                 </div>
                 
-                <!-- Band Editor View -->
-                <div id="band-editor-view" style="display: none;">
-                    <div class="header">
-                        <h2 id="band-editor-title">Tilføj nyt bånd</h2>
-                        <div>
-                            <button id="cancelBandButton" class="secondary">Annuller</button>
-                            <button id="saveBandButton" class="primary">Gem bånd</button>
-                        </div>
+                <!-- Configurable Product Editor -->
+                <div id="product-editor" class="form-section hidden-tab">
+                    <h3>Produkt indstillinger</h3>
+                    
+                    <div class="form-group">
+                        <label for="product-title">Titel</label>
+                        <input type="text" id="product-title" placeholder="Indtast produkttitel">
                     </div>
                     
-                    <input type="hidden" id="editBandId">
+                    <div class="form-group">
+                        <label for="product-subtitle">Undertitel</label>
+                        <input type="text" id="product-subtitle" placeholder="Indtast undertitel">
+                    </div>
                     
-                    <div class="form-section">
-                        <h3>Grundlæggende bånd information</h3>
-                        
+                    <div class="form-group">
+                        <label for="product-link">Link (valgfrit)</label>
+                        <input type="text" id="product-link" placeholder="f.eks. /produkt/læderprodukt">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-background">Baggrundsfarve</label>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="band-type">Bånd type</label>
-                                <select id="band-type">
-                                    <option value="slideshow">Slideshow</option>
-                                    <option value="product">Produkt (konfigurerbart)</option>
-                                    <option value="product_card">Produkt kort</option>
-                                    <option value="product_full">Produkt fuld</option>
-                                    <option value="html">HTML</option>
-                                    <option value="related_products">Relaterede produkter</option>
-                                    <option value="link">Link</option>
-                                    <option value="cta">Call to Action</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="band-height">Bånd højde</label>
-                                <select id="band-height">
-                                    <option value="1">1x</option>
-                                    <option value="2">2x</option>
-                                    <option value="3">3x</option>
-                                    <option value="4">4x</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="band-order">Rækkefølge</label>
-                                <input type="number" id="band-order" min="1" value="1">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="band-page">Side</label>
-                            <select id="band-page" disabled>
-                                <option value="">-- Vælg side --</option>
-                            </select>
+                            <input type="color" id="product-background" value="#ffffff">
+                            <input type="text" id="product-background-hex" value="#ffffff">
                         </div>
                     </div>
                     
-                    <!-- Slideshow Editor -->
-                    <div id="slideshow-editor" class="form-section">
-                        <h3>Slideshow indstillinger</h3>
-                        
-                        <button id="add-slide" class="add-slide-btn">Tilføj nyt slide</button>
-                        
-                        <div id="slides-container">
-                            <!-- Slides tilføjes her dynamisk -->
+                    <div class="form-group">
+                        <label for="product-image">Produkt billede (PNG med gennemsigtig baggrund)</label>
+                        <div id="product-image-preview" class="image-preview" style="display: none;">
+                            <img src="" alt="Produkt forhåndsvisning">
                         </div>
-                    </div>
-                    
-                    <!-- Configurable Product Editor -->
-                    <div id="product-editor" class="form-section hidden-tab">
-                        <h3>Produkt indstillinger</h3>
-                        
-                        <div class="form-group">
-                            <label for="product-title">Titel</label>
-                            <input type="text" id="product-title" placeholder="Indtast produkttitel">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="product-subtitle">Undertitel</label>
-                            <input type="text" id="product-subtitle" placeholder="Indtast undertitel">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="product-link">Link (valgfrit)</label>
-                            <input type="text" id="product-link" placeholder="f.eks. /produkt/læderprodukt">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="product-background">Baggrundsfarve</label>
-                            <div class="form-row">
-                                <input type="color" id="product-background" value="#ffffff">
-                                <input type="text" id="product-background-hex" value="#ffffff">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="product-image">Produkt billede (PNG med gennemsigtig baggrund)</label>
-                            <div id="product-image-preview" class="image-preview" style="display: none;">
-                                <img src="" alt="Produkt forhåndsvisning">
-                            </div>
-                            <input type="file" id="product-image" accept="image/png">
-                        </div>
-                    </div>
-                    
-                    <!-- HTML Editor -->
-                    <div id="html-editor" class="form-section hidden-tab">
-                        <h3>HTML indstillinger</h3>
-                        
-                        <div class="form-group">
-                            <label for="html-content">HTML indhold</label>
-                            <textarea id="html-content" rows="10" placeholder="Indtast HTML-kode her..."></textarea>
-                        </div>
-                    </div>
-                    
-                    <!-- Link Editor -->
-                    <div id="link-editor" class="form-section hidden-tab">
-                        <h3>Link indstillinger</h3>
-                        
-                        <div class="form-group">
-                            <label for="link-text">Link tekst</label>
-                            <input type="text" id="link-text" placeholder="Indtast link tekst">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="link-url">URL</label>
-                            <input type="text" id="link-url" placeholder="Indtast URL (f.eks. /kontakt)">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="link-style">Link stil</label>
-                            <select id="link-style">
-                                <option value="button">Knap</option>
-                                <option value="text">Tekst</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- SEO indstillinger -->
-                    <div class="form-section">
-                        <h3>SEO indstillinger</h3>
-                        
-                        <div class="form-group">
-                            <label for="seo-title">SEO Titel</label>
-                            <input type="text" id="seo-title" placeholder="Indtast SEO titel">
-                            <p class="help-text">Denne titel vil blive brugt i metadata og hjælper med SEO.</p>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="seo-description">SEO Beskrivelse</label>
-                            <textarea id="seo-description" rows="3" placeholder="Indtast SEO beskrivelse"></textarea>
-                            <p class="help-text">En kort beskrivelse af båndets indhold for søgemaskiner.</p>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="seo-keywords">SEO Nøgleord</label>
-                            <input type="text" id="seo-keywords" placeholder="Indtast nøgleord adskilt af komma">
-                            <p class="help-text">Relevante nøgleord for dette bånd.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Preview section -->
-                    <div class="form-section">
-                        <h3>Forhåndsvisning</h3>
-                        <div id="preview-container" class="preview-container">
-                            <!-- Preview renderes her dynamisk -->
-                        </div>
+                        <input type="file" id="product-image" accept="image/png">
                     </div>
                 </div>
-            </section>
+                
+                <!-- HTML Editor -->
+                <div id="html-editor" class="form-section hidden-tab">
+                    <h3>HTML indstillinger</h3>
+                    
+                    <div class="form-group">
+                        <label for="html-content">HTML indhold</label>
+                        <textarea id="html-content" rows="10" placeholder="Indtast HTML-kode her..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Link Editor -->
+                <div id="link-editor" class="form-section hidden-tab">
+                    <h3>Link indstillinger</h3>
+                    
+                    <div class="form-group">
+                        <label for="link-text">Link tekst</label>
+                        <input type="text" id="link-text" placeholder="Indtast link tekst">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="link-url">URL</label>
+                        <input type="text" id="link-url" placeholder="Indtast URL (f.eks. /kontakt)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="link-style">Link stil</label>
+                        <select id="link-style">
+                            <option value="button">Knap</option>
+                            <option value="text">Tekst</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- SEO indstillinger -->
+                <div class="form-section">
+                    <h3>SEO indstillinger</h3>
+                    
+                    <div class="form-group">
+                        <label for="seo-title">SEO Titel</label>
+                        <input type="text" id="seo-title" placeholder="Indtast SEO titel">
+                        <p class="help-text">Denne titel vil blive brugt i metadata og hjælper med SEO.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="seo-description">SEO Beskrivelse</label>
+                        <textarea id="seo-description" rows="3" placeholder="Indtast SEO beskrivelse"></textarea>
+                        <p class="help-text">En kort beskrivelse af båndets indhold for søgemaskiner.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="seo-keywords">SEO Nøgleord</label>
+                        <input type="text" id="seo-keywords" placeholder="Indtast nøgleord adskilt af komma">
+                        <p class="help-text">Relevante nøgleord for dette bånd.</p>
+                    </div>
+                </div>
+                
+                <!-- Preview section -->
+                <div class="form-section">
+                    <h3>Forhåndsvisning</h3>
+                    <div id="preview-container" class="preview-container" style="margin-top: 10px; padding: 15px; background-color: #f5f5f5; border-radius: 4px; min-height: 200px;">
+                        <!-- Preview renderes her dynamisk -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -872,13 +533,10 @@ body {
         const API_URL = '/api';
         
         // DOM elementer
-        const sidebar = document.getElementById('sidebar');
-        const sidebarItems = document.querySelectorAll('.sidebar-menu-item');
-        const contentSections = document.querySelectorAll('.content-section');
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        const sidebarClose = document.getElementById('sidebar-close');
-        const loading = document.getElementById('loading');
+        const tabButtons = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
         const toast = document.getElementById('toast');
+        const loading = document.querySelector('.loading');
         
         // Global state
         let currentPageId = null;
@@ -888,50 +546,30 @@ body {
             font_config: {},
             color_palette: {}
         };
+        let slideCount = 0;
+        let slideImageFiles = {};
+        let productImageFile = null;
         
-        // Navigation
-        sidebarItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const sectionId = item.dataset.section;
+        // Event listeners for tabs
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
                 
-                // Aktivér menupunkt
-                sidebarItems.forEach(menuItem => menuItem.classList.remove('active'));
-                item.classList.add('active');
+                // Skift aktiv fane
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
                 
-                // Vis tilsvarende sektion
-                contentSections.forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === `${sectionId}-section`) {
-                        section.classList.add('active');
-                    }
-                });
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
                 
-                // Hvis det er en "under udvikling" sektion, vis besked
-                if (['products', 'orders', 'analytics', 'settings'].includes(sectionId)) {
-                    showToast('Dette område er under udvikling');
-                }
-                
-                // Luk sidebar på mobil
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('open');
+                // Opdater indhold baseret på valgt fane
+                if (tabId === 'layoutPages' || tabId === 'bandManagement') {
+                    loadLayouts();
+                } else if (tabId === 'globalStyles') {
+                    loadGlobalStyles();
                 }
             });
         });
-        
-        if (mobileMenuToggle) {
-            mobileMenuToggle.addEventListener('click', () => {
-                sidebar.classList.add('open');
-            });
-        }
-        
-        if (sidebarClose) {
-            sidebarClose.addEventListener('click', () => {
-                sidebar.classList.remove('open');
-            });
-        }
-        
-        // Global Styles
-        document.getElementById('saveButton').addEventListener('click', saveGlobalStyles);
         
         // Farvepalette event listeners
         document.querySelectorAll('input[type="color"]').forEach(colorInput => {
@@ -955,13 +593,16 @@ body {
             select.addEventListener('change', updateFontPreview);
         });
         
-        // Layout Pages
+        // Global styles
+        document.getElementById('saveButton').addEventListener('click', saveGlobalStyles);
+        
+        // Layout pages
         document.getElementById('pageSelect').addEventListener('change', handlePageChange);
         document.getElementById('createPageButton').addEventListener('click', createNewPage);
         document.getElementById('updatePageButton').addEventListener('click', updatePage);
         document.getElementById('deletePageButton').addEventListener('click', deletePage);
         
-        // Band Management
+        // Band management
         document.getElementById('bandPageSelect').addEventListener('change', loadBands);
         document.getElementById('addBandButton').addEventListener('click', showBandEditor);
         document.getElementById('cancelBandButton').addEventListener('click', hideBandEditor);
@@ -970,18 +611,15 @@ body {
         document.getElementById('add-slide').addEventListener('click', addSlide);
         
         // Initialiser app
+        document.addEventListener('DOMContentLoaded', init);
+        
         async function init() {
             await loadGlobalStyles();
             await loadLayouts();
         }
         
-        // Start app når DOM er klar
-        document.addEventListener('DOMContentLoaded', init);
-        
         // Helper funktion til at vise toast meddelelser
         function showToast(message, isError = false) {
-            if (!toast) return;
-            
             toast.textContent = message;
             toast.className = isError ? 'toast error show' : 'toast show';
             
@@ -990,19 +628,10 @@ body {
             }, 3000);
         }
         
-        // Helper funktion til at vise/skjule loading indikator
-        function showLoading() {
-            if (loading) loading.classList.add('show');
-        }
-        
-        function hideLoading() {
-            if (loading) loading.classList.remove('show');
-        }
-        
-        // Helper funktion til API-kald
+        // Helper funktion til at håndtere API-kald
         async function fetchApi(endpoint, method = 'GET', data = null) {
             try {
-                showLoading();
+                loading.classList.add('show');
                 
                 const options = {
                     method,
@@ -1028,11 +657,11 @@ body {
                 showToast(error.message || 'Der skete en fejl ved kommunikation med serveren', true);
                 throw error;
             } finally {
-                hideLoading();
+                loading.classList.remove('show');
             }
         }
         
-        // Global Styles funktioner
+        // Load globale stilarter
         async function loadGlobalStyles() {
             try {
                 const result = await fetchApi('layout/global/styles');
@@ -1131,53 +760,7 @@ body {
             }
         }
         
-        function updateColorPreview() {
-            const colorContainer = document.getElementById('color-preview-container');
-            const primaryColor = document.getElementById('primaryColor').value;
-            const secondaryColor = document.getElementById('secondaryColor').value;
-            const accentColor = document.getElementById('accentColor').value;
-            const brightColor = document.getElementById('brightColor').value;
-            const backgroundColor = document.getElementById('backgroundColor').value;
-            const textColor = document.getElementById('textColor').value;
-            
-            colorContainer.innerHTML = `
-                <div class="color-box" style="background-color: ${primaryColor}; color: white;">Primær</div>
-                <div class="color-box" style="background-color: ${secondaryColor}; color: white;">Sekundær</div>
-                <div class="color-box" style="background-color: ${accentColor}; color: white;">Accent</div>
-                <div class="color-box" style="background-color: ${brightColor}; color: ${textColor};">Lys Accent</div>
-                <div class="color-box" style="background-color: ${backgroundColor}; color: ${textColor};">Baggrund</div>
-            `;
-        }
-        
-        function updateFontPreview() {
-            const headingFontFamily = document.getElementById('headingFontFamily').value;
-            const headingFontWeight = document.getElementById('headingFontWeight').value;
-            const bodyFontFamily = document.getElementById('bodyFontFamily').value;
-            const bodyFontWeight = document.getElementById('bodyFontWeight').value;
-            const priceFontFamily = document.getElementById('priceFontFamily').value;
-            const priceFontWeight = document.getElementById('priceFontWeight').value;
-            const buttonFontFamily = document.getElementById('buttonFontFamily').value;
-            const buttonFontWeight = document.getElementById('buttonFontWeight').value;
-            
-            // Opdater previews
-            const previewHeading = document.querySelector('.preview-heading');
-            const previewBody = document.querySelector('.preview-body');
-            const previewPrice = document.querySelector('.preview-price');
-            const previewButton = document.querySelector('.preview-button');
-            
-            previewHeading.style.fontFamily = headingFontFamily;
-            previewHeading.style.fontWeight = headingFontWeight;
-            
-            previewBody.style.fontFamily = bodyFontFamily;
-            previewBody.style.fontWeight = bodyFontWeight;
-            
-            previewPrice.style.fontFamily = priceFontFamily;
-            previewPrice.style.fontWeight = priceFontWeight;
-            
-            previewButton.style.fontFamily = buttonFontFamily;
-            previewButton.style.fontWeight = buttonFontWeight;
-        }
-        
+        // Gem globale stilarter
         async function saveGlobalStyles() {
             try {
                 const colorPalette = {
@@ -1228,7 +811,75 @@ body {
             }
         }
         
-        // Layout Pages funktioner
+        function updateColorPreview() {
+            const container = document.getElementById('color-preview-container');
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            const accentColor = document.getElementById('accentColor').value;
+            const brightColor = document.getElementById('brightColor').value;
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const textColor = document.getElementById('textColor').value;
+            
+            container.innerHTML = `
+                <div style="width: 80px; height: 80px; background-color: ${primaryColor}; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Primær</div>
+                <div style="width: 80px; height: 80px; background-color: ${secondaryColor}; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Sekundær</div>
+                <div style="width: 80px; height: 80px; background-color: ${accentColor}; display: flex; align-items: center; justify-content: center; color: white; border-radius: 4px;">Accent</div>
+                <div style="width: 80px; height: 80px; background-color: ${brightColor}; display: flex; align-items: center; justify-content: center; color: ${textColor}; border-radius: 4px;">Lys Accent</div>
+                <div style="width: 80px; height: 80px; background-color: ${backgroundColor}; display: flex; align-items: center; justify-content: center; color: ${textColor}; border-radius: 4px;">Baggrund</div>
+            `;
+            
+            // Set CSS variables
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+            document.documentElement.style.setProperty('--accent-color', accentColor);
+            document.documentElement.style.setProperty('--bright-color', brightColor);
+            document.documentElement.style.setProperty('--background-color', backgroundColor);
+            document.documentElement.style.setProperty('--text-color', textColor);
+        }
+        
+        function updateFontPreview() {
+            const headingFont = document.getElementById('headingFontFamily').value;
+            const headingWeight = document.getElementById('headingFontWeight').value;
+            const bodyFont = document.getElementById('bodyFontFamily').value;
+            const bodyWeight = document.getElementById('bodyFontWeight').value;
+            const priceFont = document.getElementById('priceFontFamily').value;
+            const priceWeight = document.getElementById('priceFontWeight').value;
+            const buttonFont = document.getElementById('buttonFontFamily').value;
+            const buttonWeight = document.getElementById('buttonFontWeight').value;
+            
+            const previewHeading = document.querySelector('.preview-heading');
+            const previewBody = document.querySelector('.preview-body');
+            const previewPrice = document.querySelector('.preview-price');
+            const previewButton = document.querySelector('.preview-button');
+            
+            if (previewHeading) {
+                previewHeading.style.fontFamily = headingFont;
+                previewHeading.style.fontWeight = headingWeight;
+            }
+            
+            if (previewBody) {
+                previewBody.style.fontFamily = bodyFont;
+                previewBody.style.fontWeight = bodyWeight;
+            }
+            
+            if (previewPrice) {
+                previewPrice.style.fontFamily = priceFont;
+                previewPrice.style.fontWeight = priceWeight;
+            }
+            
+            if (previewButton) {
+                previewButton.style.fontFamily = buttonFont;
+                previewButton.style.fontWeight = buttonWeight;
+            }
+            
+            // Set CSS variables
+            document.documentElement.style.setProperty('--heading-font', headingFont);
+            document.documentElement.style.setProperty('--body-font', bodyFont);
+            document.documentElement.style.setProperty('--price-font', priceFont);
+            document.documentElement.style.setProperty('--button-font', buttonFont);
+        }
+        
+        // Load layouts
         async function loadLayouts() {
             try {
                 const result = await fetchApi('layout');
@@ -1239,12 +890,12 @@ body {
                     // Opdater side dropdown
                     const pageSelect = document.getElementById('pageSelect');
                     const bandPageSelect = document.getElementById('bandPageSelect');
-                    const bandPageInput = document.getElementById('band-page');
+                    const bandPage = document.getElementById('band-page');
                     
                     // Ryd eksisterende muligheder
                     pageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
                     bandPageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
-                    bandPageInput.innerHTML = '<option value="">-- Vælg side --</option>';
+                    bandPage.innerHTML = '<option value="">-- Vælg side --</option>';
                     
                     // Tilføj layouts til dropdown
                     layouts.forEach(layout => {
@@ -1258,7 +909,7 @@ body {
                             
                             pageSelect.appendChild(option);
                             bandPageSelect.appendChild(bandOption);
-                            bandPageInput.appendChild(bandPageOption);
+                            bandPage.appendChild(bandPageOption);
                         }
                     });
                 }
@@ -1267,6 +918,7 @@ body {
             }
         }
         
+        // Håndter sideændring
         async function handlePageChange() {
             const selectedPageId = document.getElementById('pageSelect').value;
             
@@ -1291,6 +943,7 @@ body {
             }
         }
         
+        // Opret ny side
         async function createNewPage() {
             const pageId = document.getElementById('newPageId').value.trim();
             
@@ -1321,6 +974,7 @@ body {
             }
         }
         
+        // Opdater side
         async function updatePage() {
             if (!currentPageId) {
                 showToast('Ingen side valgt', true);
@@ -1350,6 +1004,7 @@ body {
             }
         }
         
+        // Slet side
         async function deletePage() {
             if (!currentPageId) {
                 showToast('Ingen side valgt', true);
@@ -1374,7 +1029,7 @@ body {
             }
         }
         
-        // Band Management funktioner
+        // Load bånd for en side
         async function loadBands() {
             const selectedPageId = document.getElementById('bandPageSelect').value;
             
@@ -1398,9 +1053,6 @@ body {
                             const template = document.getElementById('band-item-template').innerHTML;
                             
                             bands.forEach((band, index) => {
-                                const bandElement = document.createElement('div');
-                                
-                                // Find content info baseret på type
                                 let contentInfo = '';
                                 if (band.band_type === 'slideshow' && band.band_content.slides) {
                                     contentInfo = `<strong>Indhold:</strong> ${band.band_content.slides.length} slide(s)`;
@@ -1420,6 +1072,7 @@ body {
                                     .replace('{order}', band.band_order)
                                     .replace('{content_info}', contentInfo);
                                 
+                                const bandElement = document.createElement('div');
                                 bandElement.innerHTML = bandHTML;
                                 bandsContainer.appendChild(bandElement.firstElementChild);
                                 
@@ -1446,8 +1099,6 @@ body {
                         }
                         
                         document.getElementById('bandList').style.display = 'block';
-                    } else {
-                        showToast(result.message || 'Fejl ved indlæsning af bånd', true);
                     }
                 } catch (error) {
                     console.error('Error loading bands:', error);
@@ -1458,47 +1109,46 @@ body {
             }
         }
         
+        // Vis band editor
         function showBandEditor() {
             document.getElementById('band-list-view').style.display = 'none';
             document.getElementById('band-editor-view').style.display = 'block';
             document.getElementById('band-editor-title').textContent = 'Tilføj nyt bånd';
             document.getElementById('editBandId').value = '';
             
-            // Reset band editor form
+            // Reset form
             document.getElementById('band-type').value = 'slideshow';
             document.getElementById('band-height').value = '1';
-            
-            // Opdater order til næste ledige
-            const bands = document.querySelectorAll('#bands .band');
-            document.getElementById('band-order').value = bands.length + 1;
-            
-            // Sæt side
+            document.getElementById('band-order').value = '1';
             document.getElementById('band-page').value = currentPageId;
+            document.getElementById('slides-container').innerHTML = '';
+            slideCount = 0;
+            slideImageFiles = {};
             
             // Vis slideshow editor som standard
             toggleEditors();
             
             // Tilføj første slide
-            const slidesContainer = document.getElementById('slides-container');
-            slidesContainer.innerHTML = '';
             addSlide();
         }
         
+        // Skjul band editor
         function hideBandEditor() {
             document.getElementById('band-list-view').style.display = 'block';
             document.getElementById('band-editor-view').style.display = 'none';
         }
         
+        // Skift mellem editorer baseret på båndtype
         function toggleEditors() {
             const bandType = document.getElementById('band-type').value;
             
-            // Skjul alle editors
+            // Skjul alle editorer
             document.getElementById('slideshow-editor').classList.add('hidden-tab');
             document.getElementById('product-editor').classList.add('hidden-tab');
             document.getElementById('html-editor').classList.add('hidden-tab');
             document.getElementById('link-editor').classList.add('hidden-tab');
             
-            // Vis den relevante editor
+            // Vis den passende editor
             if (bandType === 'slideshow') {
                 document.getElementById('slideshow-editor').classList.remove('hidden-tab');
             } else if (bandType === 'product' || bandType === 'product_card' || bandType === 'product_full') {
@@ -1512,15 +1162,10 @@ body {
             updatePreview();
         }
         
-        // Slideshow funktioner
-        let slideCount = 0;
-        let slideImageFiles = {};
-        
+        // Tilføj et nyt slide
         function addSlide() {
             const slideIndex = slideCount++;
-            const slideTemplate = document.getElementById('slide-template').innerHTML;
-            
-            const slideHtml = slideTemplate
+            const slideHtml = document.getElementById('slide-template').innerHTML
                 .replace(/{index}/g, slideIndex)
                 .replace(/{index_human}/g, slideIndex + 1);
             
@@ -1528,38 +1173,42 @@ body {
             slideContainer.innerHTML = slideHtml;
             document.getElementById('slides-container').appendChild(slideContainer.firstElementChild);
             
-            // Tilføj event listeners
+            // Tilføj event listeners til det nye slide
             const newSlide = document.getElementById('slides-container').lastElementChild;
-            
             const removeButton = newSlide.querySelector('.remove-slide');
-            removeButton.addEventListener('click', () => removeSlide(newSlide));
-            
             const moveUpButton = newSlide.querySelector('.move-slide-up');
-            moveUpButton.addEventListener('click', () => moveSlide(newSlide, -1));
-            
             const moveDownButton = newSlide.querySelector('.move-slide-down');
-            moveDownButton.addEventListener('click', () => moveSlide(newSlide, 1));
-            
             const slideImage = newSlide.querySelector('.slide-image');
+            
+            removeButton.addEventListener('click', () => removeSlide(newSlide));
+            moveUpButton.addEventListener('click', () => moveSlide(newSlide, -1));
+            moveDownButton.addEventListener('click', () => moveSlide(newSlide, 1));
             slideImage.addEventListener('change', (e) => handleSlideImageUpload(e, slideIndex));
+            
+            // Tilføj event listeners til alle input felter for at opdatere forhåndsvisningen
+            newSlide.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
             
             updateSlideMoveButtons();
             updatePreview();
+            
+            return newSlide;
         }
         
+        // Fjern et slide
         function removeSlide(slideElement) {
-            const slidesContainer = document.getElementById('slides-container');
-            
-            if (slidesContainer.children.length <= 1) {
+            if (document.getElementById('slides-container').children.length <= 1) {
                 showToast('Du skal have mindst ét slide', true);
                 return;
             }
             
-            slidesContainer.removeChild(slideElement);
+            document.getElementById('slides-container').removeChild(slideElement);
             updateSlideMoveButtons();
             updatePreview();
         }
         
+        // Flyt et slide op eller ned
         function moveSlide(slideElement, direction) {
             const slidesContainer = document.getElementById('slides-container');
             const slides = Array.from(slidesContainer.children);
@@ -1580,6 +1229,7 @@ body {
             updatePreview();
         }
         
+        // Opdater op/ned knapper for slides
         function updateSlideMoveButtons() {
             const slidesContainer = document.getElementById('slides-container');
             const slides = Array.from(slidesContainer.children);
@@ -1593,6 +1243,7 @@ body {
             });
         }
         
+        // Håndter upload af slide billede
         function handleSlideImageUpload(event, slideIndex) {
             const file = event.target.files[0];
             
@@ -1613,8 +1264,7 @@ body {
             }
         }
         
-        let productImageFile = null;
-        
+        // Håndter upload af produkt billede
         function handleProductImageUpload(event) {
             const file = event.target.files[0];
             
@@ -1634,6 +1284,7 @@ body {
             }
         }
         
+        // Opdater forhåndsvisning
         function updatePreview() {
             const previewContainer = document.getElementById('preview-container');
             const bandType = document.getElementById('band-type').value;
@@ -1651,6 +1302,7 @@ body {
             }
         }
         
+        // Opdater slideshow forhåndsvisning
         function updateSlideshowPreview(container) {
             const slidesContainer = document.getElementById('slides-container');
             const slides = Array.from(slidesContainer.children);
@@ -1697,6 +1349,7 @@ body {
             container.innerHTML = html;
         }
         
+        // Opdater produkt forhåndsvisning
         function updateProductPreview(container) {
             const title = document.getElementById('product-title').value || 'Produkttitel';
             const subtitle = document.getElementById('product-subtitle').value || 'Produktbeskrivelse';
@@ -1729,6 +1382,7 @@ body {
             container.innerHTML = html;
         }
         
+        // Opdater HTML forhåndsvisning
         function updateHtmlPreview(container) {
             const htmlContent = document.getElementById('html-content').value;
             
@@ -1744,6 +1398,7 @@ body {
             }
         }
         
+        // Opdater link forhåndsvisning
         function updateLinkPreview(container) {
             const linkText = document.getElementById('link-text').value || 'Link tekst';
             const linkUrl = document.getElementById('link-url').value || '#';
@@ -1764,6 +1419,7 @@ body {
             }
         }
         
+        // Rediger et bånd
         async function editBand(bandId) {
             try {
                 const result = await fetchApi(`bands/${currentPageId}/${bandId}`);
@@ -1791,6 +1447,10 @@ body {
                         document.getElementById('seo-title').value = band.band_content.seo.title || '';
                         document.getElementById('seo-description').value = band.band_content.seo.description || '';
                         document.getElementById('seo-keywords').value = band.band_content.seo.keywords || '';
+                    } else {
+                        document.getElementById('seo-title').value = '';
+                        document.getElementById('seo-description').value = '';
+                        document.getElementById('seo-keywords').value = '';
                     }
                     
                     // Udfyld type-specifik data
@@ -1813,20 +1473,20 @@ body {
             }
         }
         
+        // Load slideshow data
         function loadSlideshowData(band) {
             const slides = band.band_content.slides || [];
             
             // Ryd eksisterende slides
-            const slidesContainer = document.getElementById('slides-container');
-            slidesContainer.innerHTML = '';
+            document.getElementById('slides-container').innerHTML = '';
             slideCount = 0;
+            slideImageFiles = {};
             
             // Tilføj slides fra båndet
             if (slides.length > 0) {
                 slides.forEach(slideData => {
-                    addSlide();
+                    const slideElement = addSlide();
                     
-                    const slideElement = slidesContainer.lastElementChild;
                     const titleInput = slideElement.querySelector('.slide-title');
                     const subtitleInput = slideElement.querySelector('.slide-subtitle');
                     const linkInput = slideElement.querySelector('.slide-link');
@@ -1861,58 +1521,83 @@ body {
             }
         }
         
+        // Load produkt data
         function loadProductData(band) {
             const content = band.band_content;
             
             if (content.title) {
                 document.getElementById('product-title').value = content.title;
+            } else {
+                document.getElementById('product-title').value = '';
             }
             
             if (content.subtitle) {
                 document.getElementById('product-subtitle').value = content.subtitle;
+            } else {
+                document.getElementById('product-subtitle').value = '';
             }
             
             if (content.link) {
                 document.getElementById('product-link').value = content.link;
+            } else {
+                document.getElementById('product-link').value = '';
             }
             
             if (content.background_color) {
                 document.getElementById('product-background').value = content.background_color;
                 document.getElementById('product-background-hex').value = content.background_color;
+            } else {
+                document.getElementById('product-background').value = '#ffffff';
+                document.getElementById('product-background-hex').value = '#ffffff';
             }
             
+            const preview = document.getElementById('product-image-preview');
             if (content.image) {
-                const preview = document.getElementById('product-image-preview');
                 const img = preview.querySelector('img');
                 img.src = content.image;
                 preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
             }
+            
+            productImageFile = null;
         }
         
+        // Load HTML data
         function loadHtmlData(band) {
             const content = band.band_content;
             
             if (content.html) {
                 document.getElementById('html-content').value = content.html;
+            } else {
+                document.getElementById('html-content').value = '';
             }
         }
         
+        // Load link data
         function loadLinkData(band) {
             const content = band.band_content;
             
             if (content.text) {
                 document.getElementById('link-text').value = content.text;
+            } else {
+                document.getElementById('link-text').value = '';
             }
             
             if (content.url) {
                 document.getElementById('link-url').value = content.url;
+            } else {
+                document.getElementById('link-url').value = '';
             }
             
             if (content.style) {
                 document.getElementById('link-style').value = content.style;
+            } else {
+                document.getElementById('link-style').value = 'button';
             }
         }
         
+        // Gem bånd
         async function saveBand() {
             try {
                 // Valider input
@@ -1977,7 +1662,7 @@ body {
                     method = 'POST';
                 }
                 
-                showLoading();
+                loading.classList.add('show');
                 
                 const response = await fetch(url, {
                     method: method,
@@ -1985,6 +1670,8 @@ body {
                 });
                 
                 const result = await response.json();
+                
+                loading.classList.remove('show');
                 
                 if (result.status === 'success') {
                     showToast('Båndet blev gemt');
@@ -2000,11 +1687,11 @@ body {
             } catch (error) {
                 console.error('Error saving band:', error);
                 showToast('Fejl ved gemning af bånd', true);
-            } finally {
-                hideLoading();
+                loading.classList.remove('show');
             }
         }
         
+        // Indsaml slideshow data
         function collectSlideshowData(formData) {
             const slidesContainer = document.getElementById('slides-container');
             const slides = Array.from(slidesContainer.children);
@@ -2048,6 +1735,7 @@ body {
             return slidesData;
         }
         
+        // Indsaml produkt data
         function collectProductData(contentObject, formData) {
             contentObject.title = document.getElementById('product-title').value;
             contentObject.subtitle = document.getElementById('product-subtitle').value;
@@ -2072,15 +1760,17 @@ body {
             }
         }
         
+        // Flyt et bånd op eller ned
         async function moveBand(bandId, direction) {
             try {
-                showLoading();
+                loading.classList.add('show');
                 
                 // Hent alle bånd
                 const result = await fetchApi(`bands/${currentPageId}`);
                 
                 if (result.status !== 'success') {
                     showToast(result.message || 'Fejl ved flytning af bånd', true);
+                    loading.classList.remove('show');
                     return;
                 }
                 
@@ -2100,6 +1790,7 @@ body {
                 
                 if (bandIndex === -1 || !band) {
                     showToast('Bånd ikke fundet', true);
+                    loading.classList.remove('show');
                     return;
                 }
                 
@@ -2107,6 +1798,7 @@ body {
                 
                 // Kontroller at det nye index er gyldigt
                 if (newIndex < 0 || newIndex >= bands.length) {
+                    loading.classList.remove('show');
                     return;
                 }
                 
@@ -2124,22 +1816,24 @@ body {
                 // Genindlæs bånd
                 await loadBands();
                 
+                loading.classList.remove('show');
+                
                 showToast('Båndets position blev ændret');
             } catch (error) {
                 console.error('Error moving band:', error);
                 showToast('Fejl ved flytning af bånd', true);
-            } finally {
-                hideLoading();
+                loading.classList.remove('show');
             }
         }
         
+        // Slet et bånd
         async function deleteBand(bandId) {
             if (!confirm('Er du sikker på, at du vil slette dette bånd?')) {
                 return;
             }
             
             try {
-                showLoading();
+                loading.classList.add('show');
                 
                 const result = await fetchApi(`bands/${currentPageId}/${bandId}`, 'DELETE');
                 
@@ -2149,11 +1843,12 @@ body {
                 } else {
                     showToast(result.message || 'Fejl ved sletning af bånd', true);
                 }
+                
+                loading.classList.remove('show');
             } catch (error) {
                 console.error('Error deleting band:', error);
                 showToast('Fejl ved sletning af bånd', true);
-            } finally {
-                hideLoading();
+                loading.classList.remove('show');
             }
         }
     </script>
