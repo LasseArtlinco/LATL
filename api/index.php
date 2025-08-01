@@ -71,26 +71,64 @@ try {
             handleRequest($controller, $method, $data);
             break;
             
-        case 'layout/global/styles':
-            require_once 'global_styles.php';
-            $controller = new GlobalStylesController($db);
-            if ($method === 'GET') {
-                $result = $controller->getStyles();
-                echo json_encode($result);
-            } elseif ($method === 'PUT') {
-                $result = $controller->updateStyles($data);
-                echo json_encode($result);
-            } else {
-                http_response_code(405);
-                echo json_encode(['error' => 'Method not allowed']);
-            }
-            break;
-            
         case (preg_match('/^layout\/([a-zA-Z0-9_-]+)/', $endpoint, $matches) ? true : false):
             require_once 'layout.php';
             $controller = new LayoutController($db);
             $pageId = $matches[1];
             handleRequestWithId($controller, $method, $pageId, $data);
+            break;
+            
+        case 'bands':
+        case 'bands/':
+            require_once 'bands.php';
+            $controller = new BandsController($db);
+            $pageId = isset($_GET['page_id']) ? $_GET['page_id'] : null;
+            
+            if ($pageId) {
+                $result = $controller->getBands($pageId);
+                echo json_encode($result);
+            } else {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Page ID is required']);
+            }
+            break;
+            
+        case (preg_match('/^bands\/([a-zA-Z0-9_-]+)$/', $endpoint, $matches) ? true : false):
+            require_once 'bands.php';
+            $controller = new BandsController($db);
+            $pageId = $matches[1];
+            
+            if ($method === 'GET') {
+                $result = $controller->getBands($pageId);
+                echo json_encode($result);
+            } else if ($method === 'POST') {
+                $result = $controller->createBand($pageId, $data);
+                echo json_encode($result);
+            } else {
+                http_response_code(405);
+                echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
+            }
+            break;
+            
+        case (preg_match('/^bands\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)$/', $endpoint, $matches) ? true : false):
+            require_once 'bands.php';
+            $controller = new BandsController($db);
+            $pageId = $matches[1];
+            $bandId = $matches[2];
+            
+            if ($method === 'GET') {
+                $result = $controller->getBand($pageId, $bandId);
+                echo json_encode($result);
+            } else if ($method === 'PUT') {
+                $result = $controller->updateBand($pageId, $bandId, $data);
+                echo json_encode($result);
+            } else if ($method === 'DELETE') {
+                $result = $controller->deleteBand($pageId, $bandId);
+                echo json_encode($result);
+            } else {
+                http_response_code(405);
+                echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
+            }
             break;
             
         default:
