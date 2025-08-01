@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LATL Admin - Layout</title>
+    <title>LATL Layout Admin</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;700&family=Source+Sans+Pro:wght@300;400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/admin-style.css">
-    <style id="previewStyles">
-        /* Dynamisk genererede styles til forhåndsvisning */
+    <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
         :root {
             --primary-color: #042940;
             --secondary-color: #005C53;
@@ -18,136 +16,245 @@
             --bright-color: #DBF227;
             --background-color: #D6D58E;
             --text-color: #042940;
+            --light-gray: #f1f3f4;
+            --medium-gray: #dadce0;
+            --dark-gray: #5f6368;
         }
         
-        .color-sample {
-            width: 100%;
-            height: 50px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: relative;
-            transition: all 0.3s ease;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         
-        .color-sample:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        .color-name {
-            position: absolute;
-            bottom: 5px;
-            left: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-        
-        .color-hex {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-        
-        .font-sample {
-            margin-bottom: 15px;
-            padding: 15px;
-            background-color: #fff;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .font-sample:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        .font-title {
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: var(--dark-gray);
-        }
-        
-        .font-name {
-            font-size: 12px;
-            color: var(--dark-gray);
-            margin-top: 5px;
-        }
-        
-        .font-weight {
-            font-size: 12px;
-            color: var(--dark-gray);
-        }
-        
-        .preview-header {
-            padding: 15px;
-            background-color: var(--primary-color);
-            margin-bottom: 15px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .preview-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #fff;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .preview-title {
-            color: white;
-            margin-bottom: 5px;
-        }
-        
-        .preview-text {
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
             color: var(--text-color);
-            margin-bottom: 10px;
+            background-color: var(--background-color);
+            padding: 20px;
         }
         
-        .preview-price {
-            font-weight: bold;
-            color: var(--accent-color);
-            margin-bottom: 10px;
-        }
-        
-        .preview-button {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: var(--accent-color);
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            margin-bottom: 10px;
-        }
-        
-        .admin-breadcrumb {
-            display: flex;
-            align-items: center;
+        h1, h2, h3 {
+            font-family: 'Allerta Stencil', sans-serif;
             margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .nav-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            background-color: var(--light-gray);
+        }
+        
+        .nav-tab.active {
+            background-color: white;
+            border-color: var(--medium-gray);
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid var(--medium-gray);
+            border-top: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 14px;
         }
         
-        .admin-breadcrumb a {
-            color: var(--secondary-color);
-            text-decoration: none;
+        button:hover {
+            background-color: #0d62d1;
         }
         
-        .admin-breadcrumb .separator {
-            margin: 0 10px;
-            color: var(--dark-gray);
+        button.secondary {
+            background-color: var(--secondary-color);
         }
         
-        .admin-breadcrumb .current {
+        button.secondary:hover {
+            background-color: #2d9249;
+        }
+        
+        button.danger {
+            background-color: #ea4335;
+        }
+        
+        button.danger:hover {
+            background-color: #d33426;
+        }
+        
+        input, select, textarea {
+            padding: 8px 12px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
             font-weight: bold;
-            color: var(--text-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .form-row > div {
+            flex: 1;
+        }
+        
+        .band {
+            background-color: var(--light-gray);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .band-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .band-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .color-preview {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--medium-gray);
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table, th, td {
+            border: 1px solid var(--medium-gray);
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--light-gray);
+        }
+        
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+        
+        .spinner {
+            border: 4px solid var(--light-gray);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1001;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .toast.error {
+            background-color: #ea4335;
+        }
+        
+        #colorPalette, #fontConfig {
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -159,17 +266,9 @@
     <div class="toast" id="toast"></div>
     
     <div class="container">
-        <div class="admin-breadcrumb">
-            <a href="index.html">Dashboard</a>
-            <span class="separator">/</span>
-            <span class="current">Layout</span>
-        </div>
-        
         <div class="header">
             <h1>LATL Layout Admin</h1>
-            <div>
-                <button id="saveButton" class="primary">Gem ændringer</button>
-            </div>
+            <button id="saveButton">Gem ændringer</button>
         </div>
         
         <div class="nav-tabs">
@@ -187,74 +286,50 @@
                     <h3>Farvepalette</h3>
                     <div id="colorPalette">
                         <div class="form-group">
-                            <label>Primær farve</label>
+                            <label>Primær farve (#042940)</label>
                             <div class="form-row">
                                 <input type="color" id="primaryColor" value="#042940">
                                 <input type="text" id="primaryColorHex" value="#042940">
                             </div>
-                            <div class="color-sample" id="primaryColorSample" style="background-color: #042940">
-                                <span class="color-name">Primær</span>
-                                <span class="color-hex">#042940</span>
-                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Sekundær farve</label>
+                            <label>Sekundær farve (#005C53)</label>
                             <div class="form-row">
                                 <input type="color" id="secondaryColor" value="#005C53">
                                 <input type="text" id="secondaryColorHex" value="#005C53">
                             </div>
-                            <div class="color-sample" id="secondaryColorSample" style="background-color: #005C53">
-                                <span class="color-name">Sekundær</span>
-                                <span class="color-hex">#005C53</span>
-                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Accent farve</label>
+                            <label>Accent farve (#9FC131)</label>
                             <div class="form-row">
                                 <input type="color" id="accentColor" value="#9FC131">
                                 <input type="text" id="accentColorHex" value="#9FC131">
                             </div>
-                            <div class="color-sample" id="accentColorSample" style="background-color: #9FC131">
-                                <span class="color-name">Accent</span>
-                                <span class="color-hex">#9FC131</span>
-                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Lys accent farve</label>
+                            <label>Lys accent farve (#DBF227)</label>
                             <div class="form-row">
                                 <input type="color" id="brightColor" value="#DBF227">
                                 <input type="text" id="brightColorHex" value="#DBF227">
                             </div>
-                            <div class="color-sample" id="brightColorSample" style="background-color: #DBF227">
-                                <span class="color-name">Lys accent</span>
-                                <span class="color-hex">#DBF227</span>
-                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Baggrund</label>
+                            <label>Baggrund (#D6D58E)</label>
                             <div class="form-row">
                                 <input type="color" id="backgroundColor" value="#D6D58E">
                                 <input type="text" id="backgroundColorHex" value="#D6D58E">
                             </div>
-                            <div class="color-sample" id="backgroundColorSample" style="background-color: #D6D58E">
-                                <span class="color-name">Baggrund</span>
-                                <span class="color-hex">#D6D58E</span>
-                            </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Tekstfarve</label>
+                            <label>Tekstfarve (#042940)</label>
                             <div class="form-row">
                                 <input type="color" id="textColor" value="#042940">
                                 <input type="text" id="textColorHex" value="#042940">
-                            </div>
-                            <div class="color-sample" id="textColorSample" style="background-color: #042940">
-                                <span class="color-name">Tekst</span>
-                                <span class="color-hex">#042940</span>
                             </div>
                         </div>
                     </div>
@@ -275,12 +350,6 @@
                                 <option value="'Raleway', sans-serif">Raleway</option>
                                 <option value="'Playfair Display', serif">Playfair Display</option>
                             </select>
-                            <div class="font-sample" id="headingFontSample">
-                                <div class="font-title">Overskrift skrifttype</div>
-                                <h2 style="font-family: 'Allerta Stencil', sans-serif; font-weight: 400;">Dette er en eksempel overskrift</h2>
-                                <div class="font-name">Font: Allerta Stencil</div>
-                                <div class="font-weight">Vægt: Normal (400)</div>
-                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -306,12 +375,6 @@
                                 <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
                                 <option value="'PT Sans', sans-serif">PT Sans</option>
                             </select>
-                            <div class="font-sample" id="bodyFontSample">
-                                <div class="font-title">Brødtekst skrifttype</div>
-                                <p style="font-family: 'Open Sans', sans-serif; font-weight: 400;">Dette er et eksempel på brødtekst, der viser hvordan teksten vil se ud på websitet. Den valgte skrifttype og vægt påvirker læsbarheden.</p>
-                                <div class="font-name">Font: Open Sans</div>
-                                <div class="font-weight">Vægt: Normal (400)</div>
-                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -334,12 +397,6 @@
                                 <option value="'Roboto', sans-serif">Roboto</option>
                                 <option value="'Montserrat', sans-serif">Montserrat</option>
                             </select>
-                            <div class="font-sample" id="priceFontSample">
-                                <div class="font-title">Pris skrifttype</div>
-                                <div style="font-family: 'Allerta Stencil', sans-serif; font-weight: 400; font-size: 24px;">499,00 kr.</div>
-                                <div class="font-name">Font: Allerta Stencil</div>
-                                <div class="font-weight">Vægt: Normal (400)</div>
-                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -361,12 +418,6 @@
                                 <option value="'Helvetica Neue', sans-serif">Helvetica Neue</option>
                                 <option value="'Roboto', sans-serif">Roboto</option>
                             </select>
-                            <div class="font-sample" id="buttonFontSample">
-                                <div class="font-title">Knap skrifttype</div>
-                                <button style="font-family: 'Open Sans', sans-serif; font-weight: 600;">Køb nu</button>
-                                <div class="font-name">Font: Open Sans</div>
-                                <div class="font-weight">Vægt: Semi-bold (600)</div>
-                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -380,16 +431,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <h3>Forhåndsvisning</h3>
-            <div class="preview-container">
-                <div class="preview-header">
-                    <h2 class="preview-title" id="previewHeading">Overskrift eksempel</h2>
-                </div>
-                <p class="preview-text" id="previewBody">Dette er et eksempel på brødtekst, der viser hvordan teksten vil se ud på websitet med de valgte farver og skrifttyper.</p>
-                <div class="preview-price" id="previewPrice">499,00 kr.</div>
-                <a href="#" class="preview-button" id="previewButton">Køb nu</a>
             </div>
             
             <h3>Global styling</h3>
@@ -432,7 +473,7 @@ body {
                     <label>Eller opret ny side</label>
                     <div class="form-row">
                         <input type="text" id="newPageId" placeholder="Indtast side-id (f.eks. 'forside')">
-                        <button id="createPageButton" class="primary">Opret</button>
+                        <button id="createPageButton">Opret</button>
                     </div>
                 </div>
             </div>
@@ -451,8 +492,7 @@ body {
                 </div>
                 
                 <div class="form-row">
-                    <button id="updatePageButton" class="primary">Opdater side</button>
-                    <button id="managePageBandsButton" class="secondary">Administrer bånd</button>
+                    <button id="updatePageButton">Opdater side</button>
                     <button id="deletePageButton" class="danger">Slet side</button>
                 </div>
             </div>
@@ -476,18 +516,97 @@ body {
                 <button id="addBandButton" class="secondary">Tilføj nyt bånd</button>
             </div>
             
-            <div id="noBands" class="info-message" style="display: none;">
-                <p>Ingen bånd fundet på denne side. Klik på "Tilføj nyt bånd" for at oprette et.</p>
-                <button id="addNewBandButton" class="primary">Tilføj nyt bånd</button>
+            <div id="newBandForm" style="display: none;">
+                <h3>Tilføj nyt bånd</h3>
+                <div class="form-group">
+                    <label>Bånd type</label>
+                    <select id="newBandType">
+                        <option value="slideshow">Slideshow</option>
+                        <option value="product">Produkt (konfigurerbart)</option>
+                        <option value="product_card">Produkt kort</option>
+                        <option value="product_full">Produkt fuld</option>
+                        <option value="html">HTML</option>
+                        <option value="related_products">Relaterede produkter</option>
+                        <option value="link">Link</option>
+                        <option value="cta">Call to Action</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Bånd højde</label>
+                    <select id="newBandHeight">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Bånd indhold (JSON)</label>
+                    <textarea id="newBandContent" rows="6" placeholder='{"key": "value"}'></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Rækkefølge</label>
+                    <input type="number" id="newBandOrder" min="1" value="1">
+                </div>
+                
+                <div class="form-row">
+                    <button id="saveBandButton">Gem bånd</button>
+                    <button id="cancelBandButton">Annuller</button>
+                </div>
+            </div>
+            
+            <div id="editBandForm" style="display: none;">
+                <h3>Rediger bånd</h3>
+                <input type="hidden" id="editBandId">
+                
+                <div class="form-group">
+                    <label>Bånd type</label>
+                    <select id="editBandType">
+                        <option value="slideshow">Slideshow</option>
+                        <option value="product">Produkt (konfigurerbart)</option>
+                        <option value="product_card">Produkt kort</option>
+                        <option value="product_full">Produkt fuld</option>
+                        <option value="html">HTML</option>
+                        <option value="related_products">Relaterede produkter</option>
+                        <option value="link">Link</option>
+                        <option value="cta">Call to Action</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Bånd højde</label>
+                    <select id="editBandHeight">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Bånd indhold (JSON)</label>
+                    <textarea id="editBandContent" rows="6" placeholder='{"key": "value"}'></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Rækkefølge</label>
+                    <input type="number" id="editBandOrder" min="1">
+                </div>
+                
+                <div class="form-row">
+                    <button id="updateBandButton">Opdater bånd</button>
+                    <button id="deleteBandButton" class="danger">Slet bånd</button>
+                    <button id="cancelEditButton">Annuller</button>
+                </div>
             </div>
         </div>
     </div>
     
     <script src="js/admin-common.js"></script>
     <script>
-        // API_URL er allerede defineret i admin-common.js
-        // Brug kun de variable og funktioner, der er specifikke for denne side
-        
         // DOM elementer
         const tabButtons = document.querySelectorAll('.nav-tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -527,34 +646,17 @@ body {
         // Farvepalette event listeners
         document.querySelectorAll('input[type="color"]').forEach(colorInput => {
             const hexInput = document.getElementById(colorInput.id + 'Hex');
-            const colorSample = document.getElementById(colorInput.id + 'Sample');
             
             colorInput.addEventListener('input', () => {
                 hexInput.value = colorInput.value;
-                colorSample.style.backgroundColor = colorInput.value;
-                colorSample.querySelector('.color-hex').textContent = colorInput.value;
-                updatePreview();
             });
             
             hexInput.addEventListener('input', () => {
                 if (/^#[0-9A-F]{6}$/i.test(hexInput.value)) {
                     colorInput.value = hexInput.value;
-                    colorSample.style.backgroundColor = hexInput.value;
-                    colorSample.querySelector('.color-hex').textContent = hexInput.value;
-                    updatePreview();
                 }
             });
         });
-        
-        // Skrifttype event listeners
-        document.getElementById('headingFontFamily').addEventListener('change', updateFontSamples);
-        document.getElementById('headingFontWeight').addEventListener('change', updateFontSamples);
-        document.getElementById('bodyFontFamily').addEventListener('change', updateFontSamples);
-        document.getElementById('bodyFontWeight').addEventListener('change', updateFontSamples);
-        document.getElementById('priceFontFamily').addEventListener('change', updateFontSamples);
-        document.getElementById('priceFontWeight').addEventListener('change', updateFontSamples);
-        document.getElementById('buttonFontFamily').addEventListener('change', updateFontSamples);
-        document.getElementById('buttonFontWeight').addEventListener('change', updateFontSamples);
         
         // Global styles
         document.getElementById('saveButton').addEventListener('click', saveGlobalStyles);
@@ -564,197 +666,26 @@ body {
         document.getElementById('createPageButton').addEventListener('click', createNewPage);
         document.getElementById('updatePageButton').addEventListener('click', updatePage);
         document.getElementById('deletePageButton').addEventListener('click', deletePage);
-        document.getElementById('managePageBandsButton').addEventListener('click', goToBandManagement);
         
         // Band management
         document.getElementById('bandPageSelect').addEventListener('change', loadBands);
-        document.getElementById('addBandButton').addEventListener('click', addNewBand);
-        document.getElementById('addNewBandButton').addEventListener('click', addNewBand);
+        document.getElementById('addBandButton').addEventListener('click', showNewBandForm);
+        document.getElementById('saveBandButton').addEventListener('click', saveNewBand);
+        document.getElementById('cancelBandButton').addEventListener('click', () => {
+            document.getElementById('newBandForm').style.display = 'none';
+            document.getElementById('bandList').style.display = 'block';
+        });
+        document.getElementById('updateBandButton').addEventListener('click', updateBand);
+        document.getElementById('deleteBandButton').addEventListener('click', deleteBand);
+        document.getElementById('cancelEditButton').addEventListener('click', () => {
+            document.getElementById('editBandForm').style.display = 'none';
+            document.getElementById('bandList').style.display = 'block';
+        });
         
         // Initialiser app
-        document.addEventListener('DOMContentLoaded', init);
-        
         async function init() {
             await loadGlobalStyles();
-            await loadLayouts(); // Dette vil nu også tjekke for eksisterende sider
-            
-            // Tjek URL parametre for at se om vi skal aktivere en bestemt fane
-            const urlParams = new URLSearchParams(window.location.search);
-            const tab = urlParams.get('tab');
-            const pageId = urlParams.get('page');
-            
-            if (tab) {
-                // Aktiver den angivne fane
-                const tabButton = document.querySelector(`.nav-tab[data-tab="${tab}"]`);
-                if (tabButton) {
-                    tabButton.click();
-                    
-                    // Hvis vi har et side ID, så indlæs den pågældende side
-                    if (pageId && tab === 'bandManagement') {
-                        document.getElementById('bandPageSelect').value = pageId;
-                        loadBands();
-                    }
-                }
-            }
-        }
-        
-        // Opdater font forhåndsvisninger
-        function updateFontSamples() {
-            // Overskrift font
-            const headingFont = document.getElementById('headingFontFamily').value;
-            const headingWeight = document.getElementById('headingFontWeight').value;
-            const headingSample = document.getElementById('headingFontSample');
-            
-            headingSample.querySelector('h2').style.fontFamily = headingFont;
-            headingSample.querySelector('h2').style.fontWeight = headingWeight;
-            headingSample.querySelector('.font-name').textContent = `Font: ${getFontName(headingFont)}`;
-            headingSample.querySelector('.font-weight').textContent = `Vægt: ${getFontWeightName(headingWeight)}`;
-            
-            // Brødtekst font
-            const bodyFont = document.getElementById('bodyFontFamily').value;
-            const bodyWeight = document.getElementById('bodyFontWeight').value;
-            const bodySample = document.getElementById('bodyFontSample');
-            
-            bodySample.querySelector('p').style.fontFamily = bodyFont;
-            bodySample.querySelector('p').style.fontWeight = bodyWeight;
-            bodySample.querySelector('.font-name').textContent = `Font: ${getFontName(bodyFont)}`;
-            bodySample.querySelector('.font-weight').textContent = `Vægt: ${getFontWeightName(bodyWeight)}`;
-            
-            // Pris font
-            const priceFont = document.getElementById('priceFontFamily').value;
-            const priceWeight = document.getElementById('priceFontWeight').value;
-            const priceSample = document.getElementById('priceFontSample');
-            
-            priceSample.querySelector('div').style.fontFamily = priceFont;
-            priceSample.querySelector('div').style.fontWeight = priceWeight;
-            priceSample.querySelector('.font-name').textContent = `Font: ${getFontName(priceFont)}`;
-            priceSample.querySelector('.font-weight').textContent = `Vægt: ${getFontWeightName(priceWeight)}`;
-            
-            // Knap font
-            const buttonFont = document.getElementById('buttonFontFamily').value;
-            const buttonWeight = document.getElementById('buttonFontWeight').value;
-            const buttonSample = document.getElementById('buttonFontSample');
-            
-            buttonSample.querySelector('button').style.fontFamily = buttonFont;
-            buttonSample.querySelector('button').style.fontWeight = buttonWeight;
-            buttonSample.querySelector('.font-name').textContent = `Font: ${getFontName(buttonFont)}`;
-            buttonSample.querySelector('.font-weight').textContent = `Vægt: ${getFontWeightName(buttonWeight)}`;
-            
-            // Opdater den samlede forhåndsvisning
-            updatePreview();
-        }
-        
-        // Få font navn fra font-family værdi
-        function getFontName(fontFamily) {
-            const match = fontFamily.match(/'([^']+)'/);
-            return match ? match[1] : fontFamily.split(',')[0].trim();
-        }
-        
-        // Få font weight navn fra font-weight værdi
-        function getFontWeightName(weight) {
-            const weights = {
-                '300': 'Light (300)',
-                '400': 'Normal (400)',
-                '500': 'Medium (500)',
-                '600': 'Semi-bold (600)',
-                '700': 'Bold (700)',
-                '800': 'Extra-bold (800)'
-            };
-            
-            return weights[weight] || weight;
-        }
-        
-        // Opdater forhåndsvisning
-        function updatePreview() {
-            // Farver
-            document.documentElement.style.setProperty('--primary-color', document.getElementById('primaryColor').value);
-            document.documentElement.style.setProperty('--secondary-color', document.getElementById('secondaryColor').value);
-            document.documentElement.style.setProperty('--accent-color', document.getElementById('accentColor').value);
-            document.documentElement.style.setProperty('--bright-color', document.getElementById('brightColor').value);
-            document.documentElement.style.setProperty('--background-color', document.getElementById('backgroundColor').value);
-            document.documentElement.style.setProperty('--text-color', document.getElementById('textColor').value);
-            
-            // Skrifttyper
-            const previewHeading = document.getElementById('previewHeading');
-            const previewBody = document.getElementById('previewBody');
-            const previewPrice = document.getElementById('previewPrice');
-            const previewButton = document.getElementById('previewButton');
-            
-            previewHeading.style.fontFamily = document.getElementById('headingFontFamily').value;
-            previewHeading.style.fontWeight = document.getElementById('headingFontWeight').value;
-            
-            previewBody.style.fontFamily = document.getElementById('bodyFontFamily').value;
-            previewBody.style.fontWeight = document.getElementById('bodyFontWeight').value;
-            
-            previewPrice.style.fontFamily = document.getElementById('priceFontFamily').value;
-            previewPrice.style.fontWeight = document.getElementById('priceFontWeight').value;
-            
-            previewButton.style.fontFamily = document.getElementById('buttonFontFamily').value;
-            previewButton.style.fontWeight = document.getElementById('buttonFontWeight').value;
-        }
-        
-        // Helper funktion til at vise toast meddelelser
-        function showToast(message, isError = false) {
-            toast.textContent = message;
-            toast.className = isError ? 'toast error show' : 'toast show';
-            
-            setTimeout(() => {
-                toast.className = toast.className.replace('show', '');
-            }, 3000);
-        }
-        
-        // Helper funktion til at håndtere API-kald
-        async function fetchApi(endpoint, method = 'GET', data = null) {
-            try {
-                loading.classList.add('show');
-                
-                const options = {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                };
-                
-                if (data && (method === 'POST' || method === 'PUT')) {
-                    options.body = JSON.stringify(data);
-                }
-                
-                // Tilføj timeout til fetch for at undgå at hænge uendeligt
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sekunder timeout
-                options.signal = controller.signal;
-                
-                try {
-                    const response = await fetch(`${API_URL}/${endpoint}`, options);
-                    clearTimeout(timeoutId);
-                    
-                    // Håndter HTTP fejl
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`HTTP Error: ${response.status} - ${errorText}`);
-                        throw new Error(`API Error: ${response.status} - ${response.statusText}`);
-                    }
-                    
-                    try {
-                        const result = await response.json();
-                        return result;
-                    } catch (jsonError) {
-                        console.error('JSON Parsing Error:', jsonError);
-                        throw new Error('Kunne ikke læse svar fra serveren (JSON fejl)');
-                    }
-                } catch (fetchError) {
-                    if (fetchError.name === 'AbortError') {
-                        throw new Error('Forbindelsen til serveren tidsudløb');
-                    }
-                    throw fetchError;
-                }
-            } catch (error) {
-                console.error('API Error:', error);
-                showToast(error.message || 'Der skete en fejl ved kommunikation med serveren', true);
-                throw error;
-            } finally {
-                loading.classList.remove('show');
-            }
+            await loadLayouts();
         }
         
         // Load globale stilarter
@@ -774,43 +705,31 @@ body {
                     if (colorPalette.primary) {
                         document.getElementById('primaryColor').value = colorPalette.primary;
                         document.getElementById('primaryColorHex').value = colorPalette.primary;
-                        document.getElementById('primaryColorSample').style.backgroundColor = colorPalette.primary;
-                        document.getElementById('primaryColorSample').querySelector('.color-hex').textContent = colorPalette.primary;
                     }
                     
                     if (colorPalette.secondary) {
                         document.getElementById('secondaryColor').value = colorPalette.secondary;
                         document.getElementById('secondaryColorHex').value = colorPalette.secondary;
-                        document.getElementById('secondaryColorSample').style.backgroundColor = colorPalette.secondary;
-                        document.getElementById('secondaryColorSample').querySelector('.color-hex').textContent = colorPalette.secondary;
                     }
                     
                     if (colorPalette.accent) {
                         document.getElementById('accentColor').value = colorPalette.accent;
                         document.getElementById('accentColorHex').value = colorPalette.accent;
-                        document.getElementById('accentColorSample').style.backgroundColor = colorPalette.accent;
-                        document.getElementById('accentColorSample').querySelector('.color-hex').textContent = colorPalette.accent;
                     }
                     
                     if (colorPalette.bright) {
                         document.getElementById('brightColor').value = colorPalette.bright;
                         document.getElementById('brightColorHex').value = colorPalette.bright;
-                        document.getElementById('brightColorSample').style.backgroundColor = colorPalette.bright;
-                        document.getElementById('brightColorSample').querySelector('.color-hex').textContent = colorPalette.bright;
                     }
                     
                     if (colorPalette.background) {
                         document.getElementById('backgroundColor').value = colorPalette.background;
                         document.getElementById('backgroundColorHex').value = colorPalette.background;
-                        document.getElementById('backgroundColorSample').style.backgroundColor = colorPalette.background;
-                        document.getElementById('backgroundColorSample').querySelector('.color-hex').textContent = colorPalette.background;
                     }
                     
                     if (colorPalette.text) {
                         document.getElementById('textColor').value = colorPalette.text;
                         document.getElementById('textColorHex').value = colorPalette.text;
-                        document.getElementById('textColorSample').style.backgroundColor = colorPalette.text;
-                        document.getElementById('textColorSample').querySelector('.color-hex').textContent = colorPalette.text;
                     }
                     
                     // Opdater skrifttyper
@@ -858,12 +777,6 @@ body {
                     if (styles.css) {
                         document.getElementById('globalCss').value = styles.css;
                     }
-                    
-                    // Opdater font samples
-                    updateFontSamples();
-                    
-                    // Opdater forhåndsvisning
-                    updatePreview();
                 }
             } catch (error) {
                 console.error('Error loading global styles:', error);
@@ -921,42 +834,7 @@ body {
             }
         }
         
-        // Tjek om der findes sider i dropdown
-        function checkForExistingPages() {
-            const pageSelect = document.getElementById('pageSelect');
-            const bandPageSelect = document.getElementById('bandPageSelect');
-            
-            // Hvis der ikke er nogen sider ud over default "--Vælg side--" option
-            if (pageSelect.options.length <= 1) {
-                // Fjern eventuelle tidligere beskeder
-                const existingMsg = document.querySelector('.no-pages-message');
-                if (existingMsg) existingMsg.remove();
-                
-                // Opret besked om manglende sider
-                const message = document.createElement('div');
-                message.className = 'info-message no-pages-message';
-                message.style.marginTop = '20px';
-                message.style.marginBottom = '20px';
-                message.innerHTML = `
-                    <p>Der er ikke fundet nogen sider. Du kan oprette en ny side ovenfor, eller oprette en forside direkte.</p>
-                    <button id="createForsideButton" class="primary">Opret forside</button>
-                `;
-                
-                // Indsæt beskeden efter form-row i layoutPages
-                const formRow = document.querySelector('#layoutPages .form-row');
-                if (formRow) {
-                    formRow.after(message);
-                    
-                    // Tilføj event listener til opret forside knap
-                    document.getElementById('createForsideButton').addEventListener('click', () => {
-                        document.getElementById('newPageId').value = 'forside';
-                        createNewPage();
-                    });
-                }
-            }
-        }
-        
-        // Forbedret loadLayouts funktion
+        // Load layouts
         async function loadLayouts() {
             try {
                 const result = await fetchApi('layout');
@@ -985,33 +863,9 @@ body {
                             bandPageSelect.appendChild(bandOption);
                         }
                     });
-                    
-                    // Tjek om der findes sider, ellers vis besked
-                    checkForExistingPages();
-                    
-                    // Tjek URL parametre
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const pageId = urlParams.get('page');
-                    
-                    if (pageId) {
-                        // Indstil valgt side baseret på URL
-                        if (document.querySelector('.nav-tab[data-tab="layoutPages"]').classList.contains('active')) {
-                            pageSelect.value = pageId;
-                            handlePageChange();
-                        } else if (document.querySelector('.nav-tab[data-tab="bandManagement"]').classList.contains('active')) {
-                            bandPageSelect.value = pageId;
-                            loadBands();
-                        }
-                    }
-                } else {
-                    // Hvis API svarer, men der ikke er data, vis en besked
-                    showToast('Ingen layouts fundet. Du kan oprette nye sider.', true);
-                    checkForExistingPages();
                 }
             } catch (error) {
                 console.error('Error loading layouts:', error);
-                showToast('Fejl ved indlæsning af layouts. Prøv at oprette nye sider.', true);
-                checkForExistingPages();
             }
         }
         
@@ -1021,20 +875,7 @@ body {
             
             if (selectedPageId) {
                 try {
-                    let result;
-                    try {
-                        result = await fetchApi(`layout/${selectedPageId}`);
-                    } catch (error) {
-                        console.error('Error fetching page details:', error);
-                        
-                        // Vis en tom layout hvis API fejler
-                        currentPageId = selectedPageId;
-                        document.getElementById('currentPageId').value = selectedPageId;
-                        document.getElementById('layoutData').value = '{}';
-                        document.getElementById('pageDetails').style.display = 'block';
-                        updateUrlWithPage(selectedPageId);
-                        return;
-                    }
+                    const result = await fetchApi(`layout/${selectedPageId}`);
                     
                     if (result.status === 'success' && result.data) {
                         const layout = result.data;
@@ -1044,13 +885,9 @@ body {
                         document.getElementById('layoutData').value = JSON.stringify(layout.layout_data || {}, null, 2);
                         
                         document.getElementById('pageDetails').style.display = 'block';
-                        
-                        // Opdater URL med valgt side
-                        updateUrlWithPage(selectedPageId);
                     }
                 } catch (error) {
-                    console.error('Error handling page change:', error);
-                    showToast('Der opstod en fejl ved indlæsning af siden', true);
+                    console.error('Error loading page details:', error);
                 }
             } else {
                 document.getElementById('pageDetails').style.display = 'none';
@@ -1059,20 +896,12 @@ body {
         
         // Opret ny side
         async function createNewPage() {
-            const pageId = document.getElementById('newPageId').value.trim().toLowerCase();
+            const pageId = document.getElementById('newPageId').value.trim();
             
             if (!pageId) {
                 showToast('Indtast et gyldigt side-id', true);
                 return;
             }
-            
-            // Valider page-id (kun alfanumeriske tegn, bindestreg og understregning)
-            if (!/^[a-z0-9\-_]+$/.test(pageId)) {
-                showToast('Side-id må kun indeholde små bogstaver, tal, bindestreg og understregning', true);
-                return;
-            }
-            
-            showLoading();
             
             try {
                 const data = {
@@ -1080,72 +909,19 @@ body {
                     layout_data: {}
                 };
                 
-                try {
-                    // Forsøg at oprette siden gennem API
-                    const response = await fetch(`${API_URL}/layout`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
+                const result = await fetchApi('layout', 'POST', data);
+                
+                if (result.status === 'success') {
+                    showToast(`Siden "${pageId}" blev oprettet`);
+                    document.getElementById('newPageId').value = '';
+                    await loadLayouts();
                     
-                    let result;
-                    try {
-                        result = await response.json();
-                    } catch (jsonError) {
-                        console.error('JSON Parse Error:', jsonError);
-                        result = { status: 'error', message: 'Uventet svar fra serveren' };
-                    }
-                    
-                    if (result.status === 'success') {
-                        showToast(`Siden "${pageId}" blev oprettet`);
-                        document.getElementById('newPageId').value = '';
-                        
-                        // Manuelt tilføj den nye side til dropdown
-                        const pageSelect = document.getElementById('pageSelect');
-                        const bandPageSelect = document.getElementById('bandPageSelect');
-                        
-                        const option = document.createElement('option');
-                        option.value = pageId;
-                        option.textContent = pageId;
-                        
-                        const bandOption = option.cloneNode(true);
-                        
-                        pageSelect.appendChild(option);
-                        bandPageSelect.appendChild(bandOption);
-                        
-                        // Opdater layouts array
-                        layouts.push({ page_id: pageId, layout_data: {} });
-                        
-                        // Fjern eventuelle "ingen sider" beskeder
-                        const noPageMsg = document.querySelector('.no-pages-message');
-                        if (noPageMsg) noPageMsg.remove();
-                        
-                        // Vælg den nye side
-                        pageSelect.value = pageId;
-                        
-                        // Indlæs sidedetaljer
-                        currentPageId = pageId;
-                        document.getElementById('currentPageId').value = pageId;
-                        document.getElementById('layoutData').value = '{}';
-                        document.getElementById('pageDetails').style.display = 'block';
-                        
-                        // Opdater URL
-                        updateUrlWithPage(pageId);
-                    } else {
-                        console.error('API Error:', result);
-                        showToast(result.message || 'Fejl ved oprettelse af side', true);
-                    }
-                } catch (apiError) {
-                    console.error('API Error creating page:', apiError);
-                    showToast(`Kunne ikke oprette side. ${apiError.message}`, true);
+                    // Vælg den nye side
+                    document.getElementById('pageSelect').value = pageId;
+                    handlePageChange();
                 }
             } catch (error) {
                 console.error('Error creating page:', error);
-                showToast('Der skete en uventet fejl ved oprettelse af siden', true);
-            } finally {
-                hideLoading();
             }
         }
         
@@ -1204,112 +980,116 @@ body {
             }
         }
         
-        // Gå til bånd-styring for den valgte side
-        function goToBandManagement() {
-            const selectedPageId = document.getElementById('pageSelect').value;
-            
-            if (!selectedPageId) {
-                showToast('Vælg venligst en side først', true);
-                return;
-            }
-            
-            // Skift til bånd-styring fanen
-            document.querySelector('.nav-tab[data-tab="bandManagement"]').click();
-            
-            // Vælg den samme side i bånd-styring dropdown
-            document.getElementById('bandPageSelect').value = selectedPageId;
-            loadBands();
-        }
-        
         // Load bånd for en side
         async function loadBands() {
             const selectedPageId = document.getElementById('bandPageSelect').value;
             
             if (selectedPageId) {
                 try {
-                    const bands = await fetchApi(`bands/${selectedPageId}`).then(result => result.data || []);
+                    const result = await fetchApi(`bands/${selectedPageId}`);
                     
-                    // Opdater URL med valgt side
-                    updateUrlWithPage(selectedPageId);
-                    
-                    // Vis eller skjul relevante sektioner
-                    if (bands.length === 0) {
-                        document.getElementById('bandList').style.display = 'none';
-                        document.getElementById('noBands').style.display = 'block';
-                    } else {
+                    if (result.status === 'success') {
+                        const bands = result.data || [];
+                        
+                        if (bands.length === 0) {
+                            document.getElementById('bandList').innerHTML = `
+                                <div class="info-message">
+                                    <p>Ingen bånd fundet på denne side. Klik på "Tilføj nyt bånd" for at oprette et.</p>
+                                </div>
+                            `;
+                        } else {
+                            // Sorter bånd efter rækkefølge
+                            bands.sort((a, b) => a.band_order - b.band_order);
+                            
+                            // Generer HTML for bånd
+                            const bandsContainer = document.getElementById('bands');
+                            bandsContainer.innerHTML = '';
+                            
+                            bands.forEach(band => {
+                                const bandElement = document.createElement('div');
+                                bandElement.className = 'band';
+                                
+                                const bandContent = document.createElement('div');
+                                bandContent.className = 'band-header';
+                                
+                                const bandTitle = document.createElement('h4');
+                                bandTitle.textContent = `${band.band_type} (${band.band_height}x) - Position: ${band.band_order}`;
+                                
+                                const bandControls = document.createElement('div');
+                                bandControls.className = 'band-controls';
+                                
+                                const editButton = document.createElement('button');
+                                editButton.textContent = 'Rediger';
+                                editButton.addEventListener('click', () => editBand(band));
+                                
+                                const moveUpButton = document.createElement('button');
+                                moveUpButton.textContent = '↑';
+                                moveUpButton.disabled = band.band_order === 1;
+                                moveUpButton.addEventListener('click', () => changeBandOrder(band, -1));
+                                
+                                const moveDownButton = document.createElement('button');
+                                moveDownButton.textContent = '↓';
+                                moveDownButton.disabled = band.band_order === bands.length;
+                                moveDownButton.addEventListener('click', () => changeBandOrder(band, 1));
+                                
+                                bandControls.appendChild(editButton);
+                                bandControls.appendChild(moveUpButton);
+                                bandControls.appendChild(moveDownButton);
+                                
+                                bandContent.appendChild(bandTitle);
+                                bandContent.appendChild(bandControls);
+                                
+                                const bandDetails = document.createElement('div');
+                                bandDetails.innerHTML = `<pre>${JSON.stringify(band.band_content || {}, null, 2)}</pre>`;
+                                
+                                bandElement.appendChild(bandContent);
+                                bandElement.appendChild(bandDetails);
+                                
+                                bandsContainer.appendChild(bandElement);
+                            });
+                        }
+                        
                         document.getElementById('bandList').style.display = 'block';
-                        document.getElementById('noBands').style.display = 'none';
-                        
-                        // Sorter bånd efter rækkefølge
-                        bands.sort((a, b) => a.band_order - b.band_order);
-                        
-                        // Generer HTML for bånd
-                        const bandsContainer = document.getElementById('bands');
-                        bandsContainer.innerHTML = '';
-                        
-                        bands.forEach((band, index) => {
-                            const bandElement = document.createElement('div');
-                            bandElement.className = 'band';
-                            
-                            const bandHeader = document.createElement('div');
-                            bandHeader.className = 'band-header';
-                            
-                            const bandTitle = document.createElement('h4');
-                            bandTitle.textContent = `${band.band_type} (${band.band_height}x) - Position: ${band.band_order}`;
-                            
-                            const bandControls = document.createElement('div');
-                            bandControls.className = 'band-controls';
-                            
-                            const editButton = document.createElement('button');
-                            editButton.textContent = 'Rediger';
-                            editButton.className = 'primary';
-                            editButton.addEventListener('click', () => editBand(band.band_id, selectedPageId));
-                            
-                            const moveUpButton = document.createElement('button');
-                            moveUpButton.textContent = '↑';
-                            moveUpButton.disabled = index === 0;
-                            moveUpButton.addEventListener('click', () => changeBandOrder(band, -1, selectedPageId));
-                            
-                            const moveDownButton = document.createElement('button');
-                            moveDownButton.textContent = '↓';
-                            moveDownButton.disabled = index === bands.length - 1;
-                            moveDownButton.addEventListener('click', () => changeBandOrder(band, 1, selectedPageId));
-                            
-                            const deleteButton = document.createElement('button');
-                            deleteButton.textContent = 'Slet';
-                            deleteButton.className = 'danger';
-                            deleteButton.addEventListener('click', () => deleteBand(band.band_id, selectedPageId));
-                            
-                            bandControls.appendChild(editButton);
-                            bandControls.appendChild(moveUpButton);
-                            bandControls.appendChild(moveDownButton);
-                            bandControls.appendChild(deleteButton);
-                            
-                            bandHeader.appendChild(bandTitle);
-                            bandHeader.appendChild(bandControls);
-                            
-                            const bandDetails = document.createElement('div');
-                            bandDetails.innerHTML = `<pre>${JSON.stringify(band.band_content || {}, null, 2)}</pre>`;
-                            
-                            bandElement.appendChild(bandHeader);
-                            bandElement.appendChild(bandDetails);
-                            
-                            bandsContainer.appendChild(bandElement);
-                        });
                     }
                 } catch (error) {
                     console.error('Error loading bands:', error);
-                    document.getElementById('bandList').style.display = 'none';
-                    document.getElementById('noBands').style.display = 'block';
+                    showToast('Fejl ved indlæsning af bånd', true);
+                    document.getElementById('bandList').innerHTML = `
+                        <div class="info-message">
+                            <p>Der opstod en fejl ved indlæsning af bånd. Prøv igen senere.</p>
+                        </div>
+                    `;
+                    document.getElementById('bandList').style.display = 'block';
                 }
             } else {
                 document.getElementById('bandList').style.display = 'none';
-                document.getElementById('noBands').style.display = 'none';
             }
         }
         
-        // Tilføj nyt bånd
-        function addNewBand() {
+        // Vis formular til at tilføje nyt bånd
+        function showNewBandForm() {
+            document.getElementById('bandList').style.display = 'none';
+            document.getElementById('newBandForm').style.display = 'block';
+            document.getElementById('editBandForm').style.display = 'none';
+            
+            // Nulstil formularen
+            document.getElementById('newBandType').value = 'slideshow';
+            document.getElementById('newBandHeight').value = '1';
+            document.getElementById('newBandContent').value = '{}';
+            
+            // Sæt rækkefølge til næste ledige position
+            const selectedPageId = document.getElementById('bandPageSelect').value;
+            const layout = layouts.find(l => l.page_id === selectedPageId);
+            
+            if (layout && layout.bands) {
+                document.getElementById('newBandOrder').value = layout.bands.length + 1;
+            } else {
+                document.getElementById('newBandOrder').value = 1;
+            }
+        }
+        
+        // Gem nyt bånd
+        async function saveNewBand() {
             const selectedPageId = document.getElementById('bandPageSelect').value;
             
             if (!selectedPageId) {
@@ -1317,20 +1097,132 @@ body {
                 return;
             }
             
-            // Omdiriger til band_editor.html med side parameter
-            window.location.href = `band_editor.html?page=${selectedPageId}`;
+            const bandType = document.getElementById('newBandType').value;
+            const bandHeight = document.getElementById('newBandHeight').value;
+            const bandOrder = document.getElementById('newBandOrder').value;
+            
+            let bandContent;
+            try {
+                bandContent = JSON.parse(document.getElementById('newBandContent').value);
+            } catch (e) {
+                showToast('Ugyldig JSON i bånd indhold', true);
+                return;
+            }
+            
+            try {
+                const data = {
+                    band_type: bandType,
+                    band_height: bandHeight,
+                    band_order: bandOrder,
+                    band_content: bandContent
+                };
+                
+                const result = await fetchApi(`bands/${selectedPageId}`, 'POST', data);
+                
+                if (result.status === 'success') {
+                    showToast('Nyt bånd blev oprettet');
+                    document.getElementById('newBandForm').style.display = 'none';
+                    document.getElementById('bandList').style.display = 'block';
+                    await loadBands();
+                }
+            } catch (error) {
+                console.error('Error creating band:', error);
+                showToast('Fejl ved oprettelse af bånd', true);
+            }
         }
         
         // Rediger et bånd
-        function editBand(bandId, pageId) {
-            // Omdiriger til band_editor.html med side og bånd-id parametre
-            window.location.href = `band_editor.html?page=${pageId}&id=${bandId}`;
+        function editBand(band) {
+            document.getElementById('bandList').style.display = 'none';
+            document.getElementById('newBandForm').style.display = 'none';
+            document.getElementById('editBandForm').style.display = 'block';
+            
+            document.getElementById('editBandId').value = band.band_id;
+            document.getElementById('editBandType').value = band.band_type;
+            document.getElementById('editBandHeight').value = band.band_height;
+            document.getElementById('editBandContent').value = JSON.stringify(band.band_content || {}, null, 2);
+            document.getElementById('editBandOrder').value = band.band_order;
+        }
+        
+        // Opdater et bånd
+        async function updateBand() {
+            const selectedPageId = document.getElementById('bandPageSelect').value;
+            const bandId = document.getElementById('editBandId').value;
+            
+            if (!selectedPageId || !bandId) {
+                showToast('Der opstod en fejl', true);
+                return;
+            }
+            
+            const bandType = document.getElementById('editBandType').value;
+            const bandHeight = document.getElementById('editBandHeight').value;
+            const bandOrder = document.getElementById('editBandOrder').value;
+            
+            let bandContent;
+            try {
+                bandContent = JSON.parse(document.getElementById('editBandContent').value);
+            } catch (e) {
+                showToast('Ugyldig JSON i bånd indhold', true);
+                return;
+            }
+            
+            try {
+                const data = {
+                    band_type: bandType,
+                    band_height: bandHeight,
+                    band_order: bandOrder,
+                    band_content: bandContent
+                };
+                
+                const result = await fetchApi(`bands/${selectedPageId}/${bandId}`, 'PUT', data);
+                
+                if (result.status === 'success') {
+                    showToast('Båndet blev opdateret');
+                    document.getElementById('editBandForm').style.display = 'none';
+                    document.getElementById('bandList').style.display = 'block';
+                    await loadBands();
+                }
+            } catch (error) {
+                console.error('Error updating band:', error);
+                showToast('Fejl ved opdatering af bånd', true);
+            }
+        }
+        
+        // Slet et bånd
+        async function deleteBand() {
+            const selectedPageId = document.getElementById('bandPageSelect').value;
+            const bandId = document.getElementById('editBandId').value;
+            
+            if (!selectedPageId || !bandId) {
+                showToast('Der opstod en fejl', true);
+                return;
+            }
+            
+            if (!confirm('Er du sikker på, at du vil slette dette bånd?')) {
+                return;
+            }
+            
+            try {
+                const result = await fetchApi(`bands/${selectedPageId}/${bandId}`, 'DELETE');
+                
+                if (result.status === 'success') {
+                    showToast('Båndet blev slettet');
+                    document.getElementById('editBandForm').style.display = 'none';
+                    document.getElementById('bandList').style.display = 'block';
+                    await loadBands();
+                }
+            } catch (error) {
+                console.error('Error deleting band:', error);
+                showToast('Fejl ved sletning af bånd', true);
+            }
         }
         
         // Ændr rækkefølge for et bånd
-        async function changeBandOrder(band, direction, pageId) {
+        async function changeBandOrder(band, direction) {
+            const selectedPageId = document.getElementById('bandPageSelect').value;
+            
             try {
-                const bands = await fetchApi(`bands/${pageId}`).then(result => result.data || []);
+                const bands = await fetchApi(`bands/${selectedPageId}`).then(result => result.data || []);
                 
                 // Find båndets position
                 const bandIndex = bands.findIndex(b => b.band_id === band.band_id);
@@ -1356,56 +1248,53 @@ body {
                 
                 // Opdater båndene
                 await Promise.all([
-                    fetchApi(`bands/${pageId}/${band.band_id}`, 'PUT', { band_order: band.band_order }),
-                    fetchApi(`bands/${pageId}/${neighborBand.band_id}`, 'PUT', { band_order: neighborBand.band_order })
+                    fetchApi(`bands/${selectedPageId}/${band.band_id}`, 'PUT', { band_order: band.band_order }),
+                    fetchApi(`bands/${selectedPageId}/${neighborBand.band_id}`, 'PUT', { band_order: neighborBand.band_order })
                 ]);
                 
-                showToast('Båndenes rækkefølge blev opdateret');
-                
                 // Genindlæs bånd
-                loadBands();
+                await loadBands();
             } catch (error) {
                 console.error('Error changing band order:', error);
-                showToast('Der opstod en fejl ved ændring af båndets rækkefølge', true);
+                showToast('Fejl ved ændring af båndets rækkefølge', true);
             }
         }
         
-        // Slet et bånd
-        async function deleteBand(bandId, pageId) {
-            if (!confirm('Er du sikker på, at du vil slette dette bånd?')) {
-                return;
-            }
-            
+        // Helper funktion til at håndtere API-kald
+        async function fetchApi(endpoint, method = 'GET', data = null) {
             try {
-                await fetchApi(`bands/${pageId}/${bandId}`, 'DELETE');
+                loading.classList.add('show');
                 
-                showToast('Båndet blev slettet');
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
                 
-                // Genindlæs bånd
-                loadBands();
+                if (data && (method === 'POST' || method === 'PUT')) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`${API_URL}/${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.message || 'Der skete en fejl');
+                }
+                
+                return result;
             } catch (error) {
-                console.error('Error deleting band:', error);
-                showToast('Der opstod en fejl ved sletning af båndet', true);
+                console.error('API Error:', error);
+                showToast(error.message || 'Der skete en fejl ved kommunikation med serveren', true);
+                throw error;
+            } finally {
+                loading.classList.remove('show');
             }
         }
         
-        // Opdater URL med valgt side
-        function updateUrlWithPage(pageId) {
-            const url = new URL(window.location);
-            
-            // Opdater eller tilføj page parameter
-            url.searchParams.set('page', pageId);
-            
-            // Sæt tab parameter baseret på aktiv fane
-            if (document.querySelector('.nav-tab[data-tab="layoutPages"]').classList.contains('active')) {
-                url.searchParams.set('tab', 'layoutPages');
-            } else if (document.querySelector('.nav-tab[data-tab="bandManagement"]').classList.contains('active')) {
-                url.searchParams.set('tab', 'bandManagement');
-            }
-            
-            // Opdater URL uden at genindlæse siden
-            window.history.pushState({}, '', url);
-        }
+        // Initialiser app ved load
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
