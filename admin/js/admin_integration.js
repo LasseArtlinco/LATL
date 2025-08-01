@@ -2,6 +2,8 @@
  * LATL Admin Integration
  * This file provides integration between the main admin interface and specialized components
  * without redefining functions already available in admin-common.js and band-editor.js
+ * 
+ * IMPORTANT: This file must be loaded AFTER admin-common.js and band-editor.js
  */
 
 // Global variables for integration
@@ -264,7 +266,7 @@ async function moveBand(bandId, direction, pageId) {
         band.band_order = neighborBand.band_order;
         neighborBand.band_order = tempOrder;
         
-        // Update both bands
+        // Update both bands (using the global API_URL variable from admin-common.js)
         await fetch(`${API_URL}/bands/${pageId}/${band.band_id}`, {
             method: 'PUT',
             headers: {
