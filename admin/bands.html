@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LATL Bånd Oversigt</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body>
+    <div class="loading">
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>LATL Bånd Oversigt</h1>
+            <div>
+                <button id="add-band-button" class="primary">Tilføj nyt bånd</button>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Vælg side</h2>
+            <div class="form-group">
+                <select id="page-select">
+                    <option value="">-- Vælg side --</option>
+                    <!-- Sider hentes fra API -->
+                </select>
+            </div>
+        </div>
+        
+        <div id="bands-container" class="bands-container" style="display: none;">
+            <h2>Bånd på denne side</h2>
+            <div id="bands-list" class="bands-list">
+                <!-- Bånd vises her -->
+            </div>
+        </div>
+        
+        <div id="no-bands-message" class="info-message" style="display: none;">
+            <p>Ingen bånd fundet på denne side. Klik på "Tilføj nyt bånd" for at oprette et.</p>
+        </div>
+    </div>
+    
+    <script src="js/admin-common.js"></script>
+    <script>
+        // Konstanter
+        const API_URL = '/api';
+        
+        // DOM elementer
+        const pageSelect = document.getElementById('page-select');
+        const bandsContainer = document.getElementById('bands-container');
+        const bandsList = document.getElementById('bands-list');
+        const noBandsMessage = document.getElementById('no-bands-message');
+        const addBandButton = document.getElementById('add-band-button');
+        const loading = document.querySelector('.loading');
+        const toast = document.getElementById('toast');
+        
+        // Event listeners
+        pageSelect.addEventListener('change', loadBands);
+        addBandButton.addEventListener('click', addNewBand);
+        
+        // Indlæs sider ved opstart
+        document.addEventListener('DOMContentLoaded', loadPages);
+        
+        // Indlæs sider fra API
+        async function loadPages() {
+            try {
+                showLoading();
+                
+                const response = await fetch(`${API_URL}/layout`);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data) {
+                    const pages = result.data;
+                    
+                    // Ryd eksisterende muligheder
+                    pageSelect.innerHTML = '<option value="">-- Vælg side --</option>';
+                    
+                    // Tilføj sider til dropdown (undtagen global)
+                    pages.forEach(page => {
+                        if (page.page_id !== 'global') {
+                            const option = document.createElement('option');
+                            option.value = page.page_id;
+                            option.textContent = page.page_id;
+                            pageSelect.appendChild(option);
+                        }
+                    });
+                    
+                    // Tjek URL for sidevalg
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const pageId = urlParams.get('page');
+                    
+                    if (pageId) {
+                        pageSelect.value = pageId;
+                        loadBands();
+                    }
+                }
+            } catch (error) {
+                console.error('Fejl ved indlæsning af sider:', error);
+                showToast('Fejl ved indlæsning af sider', true);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Indlæs bånd for den valgte side
+        async function loadBands() {
+            const selectedPageId = pageSelect.value;
+            
+            if (!selectedPageId) {
+                bandsContainer.style.display = 'none';
+                noBandsMessage.style.display = 'none';
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                const response = await fetch(`${API_URL}/bands/${selectedPageId}`);
+                const result = await response.json();
+                
+                // Opdater URL med sidevalg
+                const url = new URL(window.location);
+                url.searchParams.set('page', selectedPageId);
+                window.history.pushState({}, '', url);
+                
+                if (result.status === 'success') {
+                    const bands = result.data || [];
+                    
+                    if (bands.length === 0) {
+                        bandsContainer.style.display = 'none';
+                        noBandsMessage.style.display = 'block';
+                    } else {
+                        renderBands(bands);
+                        bandsContainer.style.display = 'block';
+                        noBandsMessage.style.display = 'none';
+                    }
+                } else {
+                    showToast(result.message || 'Fejl ved indlæsning af bånd', true);
+                    bandsContainer.style.display = 'none';
+                    noBandsMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Fejl ved indlæsning af bånd:', error);
+                showToast('Fejl ved indlæsning af bånd', true);
+                bandsContainer.style.display = 'none';
+                noBandsMessage.style.display = 'block';
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Render bånd liste
+        function renderBands(bands) {
+            // Tøm bånd liste
+            bandsList.innerHTML = '';
+            
+            // Sorter bånd efter rækkefølge
+            bands.sort((a, b) => a.band_order - b.band_order);
+            
+            // Opret HTML for hvert bånd
+            bands.forEach((band, index) => {
+                const bandEl = document.createElement('div');
+                bandEl.className = 'band-item';
+                bandEl.dataset.bandId = band.band_id;
+                
+                // Bånd type ikon/billede
+                let typeIcon = '';
+                if (band.band_type === 'slideshow') {
+                    typeIcon = '<span class="band-icon slideshow-icon">🖼️</span>';
+                } else if (band.band_type === 'product') {
+                    typeIcon = '<span class="band-icon product-icon">🛍️</span>';
+                }
+                
+                // Bånd indhold baseret på type
+                let contentPreview = '';
+                if (band.band_type === 'slideshow') {
+                    const slides = band.band_content.slides || [];
+                    contentPreview = `<span class="band-meta">${slides.length} slide(s)</span>`;
+                } else if (band.band_type === 'product') {
+                    const title = band.band_content.title || 'Uden titel';
+                    contentPreview = `<span class="band-meta">${title}</span>`;
+                }
+                
+                // Band position/height indikator
+                const heightLabel = `${band.band_height}x højde`;
+                const orderLabel = `Position: ${band.band_order}`;
+                
+                // Knapper
+                const buttonsHtml = `
+                    <div class="band-actions">
+                        <button class="edit-band-btn" data-band-id="${band.band_id}" title="Rediger bånd">✏️</button>
+                        <button class="move-up-btn" data-band-id="${band.band_id}" title="Flyt op" ${index === 0 ? 'disabled' : ''}>↑</button>
+                        <button class="move-down-btn" data-band-id="${band.band_id}" title="Flyt ned" ${index === bands.length - 1 ? 'disabled' : ''}>↓</button>
+                        <button class="delete-band-btn" data-band-id="${band.band_id}" title="Slet bånd">🗑️</button>
+                    </div>
+                `;
+                
+                // Samlet band HTML
+                bandEl.innerHTML = `
+                    <div class="band-header">
+                        <div class="band-info">
+                            ${typeIcon}
+                            <h3 class="band-title">${band.band_type.charAt(0).toUpperCase() + band.band_type.slice(1)}</h3>
+                            ${contentPreview}
+                        </div>
+                        ${buttonsHtml}
+                    </div>
+                    <div class="band-meta-info">
+                        <span class="band-meta">${heightLabel}</span>
+                        <span class="band-meta">${orderLabel}</span>
+                    </div>
+                `;
+                
+                bandsList.appendChild(bandEl);
+                
+                // Tilføj event listeners til knapper
+                const editBtn = bandEl.querySelector('.edit-band-btn');
+                const moveUpBtn = bandEl.querySelector('.move-up-btn');
+                const moveDownBtn = bandEl.querySelector('.move-down-btn');
+                const deleteBtn = bandEl.querySelector('.delete-band-btn');
+                
+                editBtn.addEventListener('click', () => editBand(band.band_id));
+                moveUpBtn.addEventListener('click', () => moveBand(band.band_id, -1));
+                moveDownBtn.addEventListener('click', () => moveBand(band.band_id, 1));
+                deleteBtn.addEventListener('click', () => deleteBand(band.band_id));
+            });
+        }
+        
+        // Tilføj nyt bånd
+        function addNewBand() {
+            const selectedPageId = pageSelect.value;
+            
+            if (!selectedPageId) {
+                showToast('Vælg venligst en side først', true);
+                return;
+            }
+            
+            window.location.href = `band_editor.html?page=${selectedPageId}`;
+        }
+        
+        // Rediger et bånd
+        function editBand(bandId) {
+            const selectedPageId = pageSelect.value;
+            window.location.href = `band_editor.html?page=${selectedPageId}&id=${bandId}`;
+        }
+        
+        // Flyt et bånd op eller ned
+        async function moveBand(bandId, direction) {
+            const selectedPageId = pageSelect.value;
+            
+            try {
+                showLoading();
+                
+                // Hent alle bånd
+                const response = await fetch(`${API_URL}/bands/${selectedPageId}`);
+                const result = await response.json();
+                
+                if (result.status !== 'success') {
+                    showToast(result.message || 'Fejl ved flytning af bånd', true);
+                    return;
+                }
+                
+                const bands = result.data || [];
+                
+                // Find båndet og dets nabo
+                let bandIndex = -1;
+                let band = null;
+                
+                for (let i = 0; i < bands.length; i++) {
+                    if (bands[i].band_id === bandId) {
+                        bandIndex = i;
+                        band = bands[i];
+                        break;
+                    }
+                }
+                
+                if (bandIndex === -1 || !band) {
+                    showToast('Bånd ikke fundet', true);
+                    return;
+                }
+                
+                const newIndex = bandIndex + direction;
+                
+                // Kontroller at det nye index er gyldigt
+                if (newIndex < 0 || newIndex >= bands.length) {
+                    return;
+                }
+                
+                const neighborBand = bands[newIndex];
+                
+                // Byt om på rækkefølgen
+                const tempOrder = band.band_order;
+                band.band_order = neighborBand.band_order;
+                neighborBand.band_order = tempOrder;
+                
+                // Opdater begge bånd
+                const updateBand1 = await fetch(`${API_URL}/bands/${selectedPageId}/${band.band_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ band_order: band.band_order })
+                });
+                
+                const updateBand2 = await fetch(`${API_URL}/bands/${selectedPageId}/${neighborBand.band_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ band_order: neighborBand.band_order })
+                });
+                
+                // Genindlæs bånd
+                await loadBands();
+                
+                showToast('Båndets position blev ændret');
+            } catch (error) {
+                console.error('Fejl ved flytning af bånd:', error);
+                showToast('Fejl ved flytning af bånd', true);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Slet et bånd
+        async function deleteBand(bandId) {
+            const selectedPageId = pageSelect.value;
+            
+            if (!confirm('Er du sikker på, at du vil slette dette bånd?')) {
+                return;
+            }
+            
+            try {
+                showLoading();
+                
+                const response = await fetch(`${API_URL}/bands/${selectedPageId}/${bandId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showToast('Båndet blev slettet');
+                    await loadBands();
+                } else {
+                    showToast(result.message || 'Fejl ved sletning af bånd', true);
+                }
+            } catch (error) {
+                console.error('Fejl ved sletning af bånd:', error);
+                showToast('Fejl ved sletning af bånd', true);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Hjælpefunktioner
+        function showLoading() {
+            loading.classList.add('show');
+        }
+        
+        function hideLoading() {
+            loading.classList.remove('show');
+        }
+        
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = isError ? 'toast error show' : 'toast show';
+            
+            setTimeout(() => {
+                toast.className = toast.className.replace('show', '');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
