@@ -1,6 +1,8 @@
 # Følsomme filer
 config.php
+include/config.php
 db_setup.php
+include/db_setup.php
 .env
 
 # Systemfiler og caches
