@@ -2,20 +2,14 @@
 // api/index.php
 header('Content-Type: application/json');
 
-// Include required files
+// Inkluder nødvendige filer
 require_once '../config.php';
 require_once '../db.php';
 
-// Enable CORS for development
+// Aktiver CORS til udvikling
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 // Parse request path
 $requestUri = $_SERVER['REQUEST_URI'];
@@ -23,7 +17,7 @@ $basePath = '/api/';
 $path = substr($requestUri, strpos($requestUri, $basePath) + strlen($basePath));
 $pathParts = explode('/', $path);
 
-// Initialize database
+// Initialiser database
 $db = Database::getInstance();
 
 // Debug logging
@@ -32,7 +26,7 @@ if (defined('DEBUG') && DEBUG) {
     error_log("Method: " . $_SERVER['REQUEST_METHOD']);
 }
 
-// Handle different endpoints
+// Håndter forskellige endpoints
 switch ($pathParts[0]) {
     case 'layout':
         require_once 'layout.php';
@@ -51,7 +45,7 @@ switch ($pathParts[0]) {
                 // Return specific page layout
                 $result = $controller->getById($pageId);
                 
-                // VIGTIG ÆNDRING: Hvis layout findes, udpak bands fra layout_data
+                // KRITISK FIX: Hvis layout findes, udpak bands fra layout_data og læg dem i data.bands 
                 if ($result['status'] === 'success' && isset($result['data']['layout_data'])) {
                     $layoutData = $result['data']['layout_data'];
                     
@@ -73,10 +67,21 @@ switch ($pathParts[0]) {
         }
         break;
         
-    // Resten af din switch case for andre endpoints...
+    case 'bands':
+        require_once 'bands.php';
+        $controller = new BandsController($db);
+        
+        // Resten af din switch case for bands...
+        break;
+    
+    default:
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Unknown endpoint: ' . $pathParts[0]
+        ]);
 }
 
-// Helper function til at få globale styles
+// Hjælpefunktion til at få globale styles
 function getGlobalStyles() {
     global $db;
     
