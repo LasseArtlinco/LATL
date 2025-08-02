@@ -87,7 +87,7 @@ function initSlideshows() {
         /**
          * Går til det angivne slide
          */
-        function goToSlide(index, direction = null) {
+        function goToSlide(index, direction) {
             if (isAnimating) return;
             isAnimating = true;
             
@@ -102,12 +102,12 @@ function initSlideshows() {
             slides.style.transform = `translateX(-${index * 100}%)`;
             
             // Opdater active class
-            slideElements.forEach((slide, i) => {
+            slideElements.forEach(function(slide, i) {
                 slide.classList.toggle('active', i === index);
                 slide.setAttribute('aria-hidden', i !== index);
             });
             
-            indicators.forEach((indicator, i) => {
+            indicators.forEach(function(indicator, i) {
                 indicator.classList.toggle('active', i === index);
                 indicator.setAttribute('aria-selected', i === index);
             });
@@ -115,7 +115,7 @@ function initSlideshows() {
             currentSlide = index;
             
             // Nulstil animation flag efter transition
-            setTimeout(() => {
+            setTimeout(function() {
                 isAnimating = false;
                 if (direction) {
                     slides.classList.remove(`sliding-${direction}`);
@@ -149,7 +149,7 @@ function initSlideshows() {
         slideshow.setAttribute('role', 'region');
         slideshow.setAttribute('aria-label', 'Slideshow');
         
-        slideElements.forEach((slide, i) => {
+        slideElements.forEach(function(slide, i) {
             slide.setAttribute('role', 'tabpanel');
             slide.setAttribute('aria-hidden', i !== 0);
             slide.id = `slide-${slideshow.id}-${i}`;
@@ -166,8 +166,10 @@ function initSlideshows() {
             nextBtn.setAttribute('aria-label', 'Næste slide');
         }
         
-        indicators.forEach((indicator, i) => {
-            indicator.addEventListener('click', () => goToSlide(i));
+        indicators.forEach(function(indicator, i) {
+            indicator.addEventListener('click', function() {
+                goToSlide(i);
+            });
             indicator.setAttribute('role', 'tab');
             indicator.setAttribute('aria-selected', i === 0);
             indicator.setAttribute('aria-label', `Gå til slide ${i+1}`);
@@ -175,11 +177,11 @@ function initSlideshows() {
         });
         
         // Touch-support til mobile enheder
-        slideshow.addEventListener('touchstart', (e) => {
+        slideshow.addEventListener('touchstart', function(e) {
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
         
-        slideshow.addEventListener('touchend', (e) => {
+        slideshow.addEventListener('touchend', function(e) {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         }, { passive: true });
@@ -197,7 +199,7 @@ function initSlideshows() {
         }
         
         // Keyboard navigation
-        slideshow.addEventListener('keydown', (e) => {
+        slideshow.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowLeft') {
                 prevSlide();
             } else if (e.key === 'ArrowRight') {
@@ -230,7 +232,7 @@ function initSlideshows() {
             slideshow.addEventListener('focusout', startAutoplay);
             
             // Pause when page is not visible
-            document.addEventListener('visibilitychange', () => {
+            document.addEventListener('visibilitychange', function() {
                 if (document.hidden) {
                     stopAutoplay();
                 } else {
@@ -245,9 +247,9 @@ function initSlideshows() {
  * Lazy loading af billeder
  */
 function initLazyLoading() {
+    // Fallback for ældre browsere
     if (!('IntersectionObserver' in window)) {
-        // Fallback for ældre browsere
-        document.querySelectorAll('img[data-src]').forEach(img => {
+        document.querySelectorAll('img[data-src]').forEach(function(img) {
             img.setAttribute('src', img.getAttribute('data-src'));
             img.onload = function() {
                 img.removeAttribute('data-src');
@@ -256,8 +258,9 @@ function initLazyLoading() {
         return;
     }
     
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
+    // Brug IntersectionObserver til lazy loading af billeder
+    const imageObserver = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(function(entry) {
             if (entry.isIntersecting) {
                 const img = entry.target;
                 const src = img.getAttribute('data-src');
@@ -278,13 +281,13 @@ function initLazyLoading() {
         threshold: 0.01
     });
     
-    document.querySelectorAll('img[data-src]').forEach(img => {
+    document.querySelectorAll('img[data-src]').forEach(function(img) {
         imageObserver.observe(img);
     });
     
     // Også håndter baggrundsbilleder med data-bg
-    const bgObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
+    const bgObserver = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(function(entry) {
             if (entry.isIntersecting) {
                 const element = entry.target;
                 const bg = element.getAttribute('data-bg');
@@ -303,7 +306,7 @@ function initLazyLoading() {
         threshold: 0.01
     });
     
-    document.querySelectorAll('[data-bg]').forEach(el => {
+    document.querySelectorAll('[data-bg]').forEach(function(el) {
         bgObserver.observe(el);
     });
 }
@@ -314,7 +317,7 @@ function initLazyLoading() {
 function initProductBands() {
     const productBands = document.querySelectorAll('.product-band');
     
-    productBands.forEach(band => {
+    productBands.forEach(function(band) {
         // Animationer og hover-effekter
         band.addEventListener('mouseenter', function() {
             this.classList.add('hover');
@@ -370,13 +373,13 @@ function initAccessibility() {
     
     // Tilføj ID til main content
     const main = document.querySelector('main');
-    if (main) {
+    if (main && !main.id) {
         main.id = 'main-content';
         main.setAttribute('tabindex', '-1');
     }
     
     // Sørg for, at alle billeder har alt-tekst
-    document.querySelectorAll('img:not([alt])').forEach(img => {
+    document.querySelectorAll('img:not([alt])').forEach(function(img) {
         img.setAttribute('alt', '');
     });
 }
@@ -391,7 +394,7 @@ window.addEventListener('load', function() {
     }, 2000);
     
     // Prefetch links ved hover
-    document.querySelectorAll('a').forEach(link => {
+    document.querySelectorAll('a').forEach(function(link) {
         link.addEventListener('mouseenter', function() {
             const href = this.getAttribute('href');
             if (href && href.startsWith('/') && !link.prefetched) {
