@@ -1,5 +1,5 @@
 <?php
-// includes/image-handler.php - Håndtering af billeder og optimering
+// includes/image_handler.php - Håndtering af billeder og optimering
 
 require_once __DIR__ . '/config.php';
 
