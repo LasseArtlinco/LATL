@@ -2,7 +2,7 @@
 // api/upload.php - Forbedret API til fil-uploads
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/image-handler.php';
+require_once __DIR__ . '/../includes/image_handler.php'; // Ændret fra image-handler.php til image_handler.php
 
 // API til fil-uploads
 header('Content-Type: application/json');
