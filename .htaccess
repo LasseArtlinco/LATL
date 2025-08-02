@@ -1,112 +1,12 @@
-# .htaccess for LATL.dk
+# .htaccess for LATL.dk - Simpel version
 
 # Aktiver RewriteEngine
 RewriteEngine On
 
-# Omdiriger fra www til non-www
-RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
-
-# Force HTTPS
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
-
-# Beskyt følsomme filer
-<FilesMatch "\.(env|json|lock|md|yml|yaml|ini|log|sh|example)$">
-    Order Allow,Deny
-    Deny from all
-</FilesMatch>
-
-# Beskyt includes-mappen
-RewriteRule ^includes/.*$ - [F,L]
-
-# VIGTIGT: Tillad direkte adgang til specifikke filer FØRST
-RewriteRule ^session-debug\.php$ - [L]
-RewriteRule ^dbtest\.php$ - [L]
-RewriteRule ^test\.php$ - [L]
-
-# Tillad direkte adgang til admin (eksisterende filer)
-RewriteCond %{REQUEST_URI} ^/admin/
-RewriteCond %{REQUEST_FILENAME} -f
+# Stop rewriting for eksisterende filer og mapper
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Tillad direkte adgang til api (eksisterende filer)
-RewriteCond %{REQUEST_URI} ^/api/
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# Tillad direkte adgang til uploads
-RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
-
-# Tillad direkte adgang til assets
-RewriteRule ^(css|js|images|fonts)/(.*)$ public/$1/$2 [L]
-
-# Omdiriger alle ANDRE requests til public/index.php hvis filen ikke eksisterer
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Send alt andet til public/index.php
 RewriteRule ^(.*)$ public/index.php?page=$1 [QSA,L]
-
-# Sikkerhedsheaders
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-</IfModule>
-
-# Komprimering
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/xml
-    AddOutputFilterByType DEFLATE text/css
-    AddOutputFilterByType DEFLATE application/xml
-    AddOutputFilterByType DEFLATE application/xhtml+xml
-    AddOutputFilterByType DEFLATE application/rss+xml
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/x-javascript
-    AddOutputFilterByType DEFLATE image/svg+xml
-</IfModule>
-
-# Browser caching
-<IfModule mod_expires.c>
-    ExpiresActive On
-    
-    # Billeder
-    ExpiresByType image/jpeg "access plus 1 year"
-    ExpiresByType image/gif "access plus 1 year"
-    ExpiresByType image/png "access plus 1 year"
-    ExpiresByType image/webp "access plus 1 year"
-    ExpiresByType image/svg+xml "access plus 1 year"
-    ExpiresByType image/x-icon "access plus 1 year"
-    
-    # Video
-    ExpiresByType video/mp4 "access plus 1 year"
-    ExpiresByType video/mpeg "access plus 1 year"
-    
-    # CSS og JavaScript
-    ExpiresByType text/css "access plus 1 month"
-    ExpiresByType text/javascript "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    
-    # Skrifttyper
-    ExpiresByType font/ttf "access plus 1 year"
-    ExpiresByType font/otf "access plus 1 year"
-    ExpiresByType font/woff "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-    ExpiresByType application/font-woff "access plus 1 year"
-</IfModule>
-
-# Fejlsider
-ErrorDocument 404 /public/404.php
-ErrorDocument 500 /public/500.php
-
-# PHP-indstillinger
-<IfModule mod_php7.c>
-    php_value upload_max_filesize 10M
-    php_value post_max_size 10M
-    php_value memory_limit 256M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-</IfModule>
