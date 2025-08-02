@@ -22,7 +22,6 @@ function render_band($band) {
     $band_id = $band['id'];
     
     echo "<section id='band-{$band_id}' class='band band-{$type} band-height-{$height}'>";
-    echo "<div class='container'>";
     
     switch ($type) {
         case 'slideshow':
@@ -38,10 +37,9 @@ function render_band($band) {
             render_link_band($content, $band_id);
             break;
         default:
-            echo "<p>Ukendt båndtype: {$type}</p>";
+            echo "<div class='content-wrapper'><p>Ukendt båndtype: {$type}</p></div>";
     }
     
-    echo "</div>"; // .container
     echo "</section>"; // .band
 }
 
@@ -106,12 +104,13 @@ function render_slideshow_band($content, $band_id) {
         }
         
         echo "<div class='slide-content'>";
+        echo "<div class='content-wrapper'>";
         echo "<h2>{$title}</h2>";
         
         if ($subtitle) {
             echo "<p>{$subtitle}</p>";
         }
-        
+        echo "</div>"; // .content-wrapper
         echo "</div>"; // .slide-content
         
         if ($link) {
@@ -126,6 +125,7 @@ function render_slideshow_band($content, $band_id) {
     // Navigation - kun hvis der er flere slides
     if (count($slides) > 1) {
         echo "<div class='slideshow-nav'>";
+        echo "<div class='content-wrapper'>";
         echo "<div class='slideshow-controls'>";
         echo "<button class='prev' aria-label='Forrige slide'>&#10094;</button>";
         
@@ -138,6 +138,7 @@ function render_slideshow_band($content, $band_id) {
         
         echo "<button class='next' aria-label='Næste slide'>&#10095;</button>";
         echo "</div>"; // .slideshow-controls
+        echo "</div>"; // .content-wrapper
         echo "</div>"; // .slideshow-nav
     }
     
@@ -178,7 +179,8 @@ function render_product_band($content, $band_id) {
         $product_data['url'] = BASE_URL . $link;
     }
     
-    echo "<div class='product-band' id='product-{$band_id}' style='background-color: {$bgColor};'>";
+    echo "<div class='product-band' style='background-color: {$bgColor};'>";
+    echo "<div class='content-wrapper'>";
     
     if ($link) {
         echo "<a href='{$link}' class='product-link' aria-label='{$title}'>";
@@ -220,6 +222,7 @@ function render_product_band($content, $band_id) {
         echo "</a>"; // .product-link
     }
     
+    echo "</div>"; // .content-wrapper
     echo "</div>"; // .product-band
     
     // Output struktureret data
@@ -246,7 +249,8 @@ function render_html_band($content, $band_id) {
         $style .= "color: {$text_color};";
     }
     
-    echo "<div class='html-band' id='html-{$band_id}' style='{$style}'>";
+    echo "<div class='html-band' style='{$style}'>";
+    echo "<div class='content-wrapper'>";
     
     if ($title) {
         echo "<h2 class='html-band-title'>{$title}</h2>";
@@ -257,6 +261,7 @@ function render_html_band($content, $band_id) {
     echo $html; // Vi stoler på admins til at skrive sikker HTML
     echo "</div>"; // .html-band-content
     
+    echo "</div>"; // .content-wrapper
     echo "</div>"; // .html-band
 }
 
@@ -282,9 +287,8 @@ function render_link_band($content, $band_id) {
         $style .= "color: {$text_color};";
     }
     
-    echo "<div class='link-band text-{$alignment}' id='link-{$band_id}' style='{$style}'>";
-    
-    echo "<div class='link-band-content'>";
+    echo "<div class='link-band text-{$alignment}' style='{$style}'>";
+    echo "<div class='content-wrapper'>";
     
     if ($title) {
         echo "<h2 class='link-band-title'>{$title}</h2>";
@@ -309,7 +313,6 @@ function render_link_band($content, $band_id) {
         echo "</div>"; // .link-band-buttons
     }
     
-    echo "</div>"; // .link-band-content
-    
+    echo "</div>"; // .content-wrapper
     echo "</div>"; // .link-band
 }
