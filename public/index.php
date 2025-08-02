@@ -17,7 +17,7 @@ $bands = get_page_bands($page_id);
 // SEO-relaterede data
 $seo_title = htmlspecialchars($layout['title'] ?? 'LATL.dk');
 $seo_description = htmlspecialchars($layout['meta_description'] ?? '');
-$canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_URI'] : '');
+$canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_URI'] : '');
 ?>
 <!DOCTYPE html>
 <html lang="da">
@@ -41,10 +41,10 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "LATL.dk - Læder og Laserskæring",
-        "url": "<?= BASE_URL ?>",
+        "url": "<?= SITE_URL ?>",
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "<?= BASE_URL ?>/search?q={search_term_string}",
+            "target": "<?= SITE_URL ?>/search?q={search_term_string}",
             "query-input": "required name=search_term_string"
         }
     }
