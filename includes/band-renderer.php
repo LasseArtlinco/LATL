@@ -1,7 +1,7 @@
 <?php
 // includes/band-renderer.php - Rendering af forskellige båndtyper
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/image-handler.php';
+require_once __DIR__ . '/image_handler.php'; // Ændret fra image-handler.php til image_handler.php
 
 /**
  * Renderer et bånd baseret på type
