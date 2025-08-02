@@ -1,4 +1,5 @@
 <?php
+// Inkludér nødvendige filer
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/band-renderer.php';
@@ -282,6 +283,17 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             object-fit: cover;
             object-position: center;
             transition: transform 0.5s ease;
+        }
+        
+        .placeholder-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            color: #666;
+            font-style: italic;
         }
         
         .slide:hover img {
@@ -597,9 +609,18 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
 
     <!-- Bånd-indhold -->
     <main id="main-content" tabindex="-1">
-        <?php foreach ($bands as $band): ?>
-            <?php render_band($band); ?>
-        <?php endforeach; ?>
+        <?php if (!empty($bands)): ?>
+            <?php foreach ($bands as $band): ?>
+                <?php render_band($band); ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="container">
+                <div class="band band-html band-height-1">
+                    <h1>Velkommen til LATL.dk</h1>
+                    <p>Vi arbejder på at forbedre vores hjemmeside. Kom tilbage snart for at se vores læderprodukter og laserskæringstjenester.</p>
+                </div>
+            </div>
+        <?php endif; ?>
     </main>
 
     <!-- Footer -->
@@ -642,6 +663,120 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     </footer>
     
     <!-- JavaScript -->
-    <script src="/js/main.js"></script>
+    <script>
+    // Indlejret JavaScript for at undgå afhængighed af eksterne filer
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile navigation
+        const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+        const nav = document.querySelector('nav');
+        
+        if (mobileNavToggle && nav) {
+            mobileNavToggle.addEventListener('click', function() {
+                nav.classList.toggle('active');
+                const expanded = nav.classList.contains('active');
+                mobileNavToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            });
+            
+            // Luk nav når der klikkes udenfor
+            document.addEventListener('click', function(event) {
+                if (nav.classList.contains('active') && 
+                    !nav.contains(event.target) && 
+                    event.target !== mobileNavToggle) {
+                    nav.classList.remove('active');
+                    mobileNavToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+        
+        // Slideshow funktionalitet
+        const slideshows = document.querySelectorAll('.slideshow');
+        
+        slideshows.forEach(function(slideshow) {
+            const slides = slideshow.querySelector('.slides');
+            const slideElements = slideshow.querySelectorAll('.slide');
+            const indicators = slideshow.querySelectorAll('.indicator');
+            const prevBtn = slideshow.querySelector('.prev');
+            const nextBtn = slideshow.querySelector('.next');
+            
+            // Hvis der ikke er noget indhold, afbryd
+            if (!slides || !slideElements.length) return;
+            
+            let currentSlide = 0;
+            let isAnimating = false;
+            const slideCount = slideElements.length;
+            
+            // Hvis der kun er ét slide, gør vi ingenting
+            if (slideCount <= 1) return;
+            
+            function goToSlide(index) {
+                if (isAnimating) return;
+                isAnimating = true;
+                
+                // Sikre at index er indenfor gyldigt område
+                index = (index + slideCount) % slideCount;
+                
+                slides.style.transform = `translateX(-${index * 100}%)`;
+                
+                // Opdater active class
+                slideElements.forEach(function(slide, i) {
+                    slide.classList.toggle('active', i === index);
+                });
+                
+                indicators.forEach(function(indicator, i) {
+                    indicator.classList.toggle('active', i === index);
+                });
+                
+                currentSlide = index;
+                
+                // Nulstil animation flag efter transition
+                setTimeout(function() {
+                    isAnimating = false;
+                }, 500);
+            }
+            
+            function nextSlide() {
+                goToSlide(currentSlide + 1);
+            }
+            
+            function prevSlide() {
+                goToSlide(currentSlide - 1);
+            }
+            
+            // Event listeners
+            if (prevBtn) {
+                prevBtn.addEventListener('click', prevSlide);
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', nextSlide);
+            }
+            
+            indicators.forEach(function(indicator, i) {
+                indicator.addEventListener('click', function() {
+                    goToSlide(i);
+                });
+            });
+            
+            // Autoplay
+            const autoplay = slideshow.dataset.autoplay === 'true';
+            const interval = parseInt(slideshow.dataset.interval) || 5000;
+            
+            let autoplayTimer;
+            
+            if (autoplay && slideCount > 1) {
+                autoplayTimer = setInterval(nextSlide, interval);
+                
+                // Pause autoplay on hover
+                slideshow.addEventListener('mouseenter', function() {
+                    clearInterval(autoplayTimer);
+                });
+                
+                slideshow.addEventListener('mouseleave', function() {
+                    autoplayTimer = setInterval(nextSlide, interval);
+                });
+            }
+        });
+    });
+    </script>
 </body>
 </html>
