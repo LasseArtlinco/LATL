@@ -67,6 +67,8 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         /* Basis styling */
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         
         body {
@@ -96,6 +98,13 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         
         /* Layout styling */
         .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .content-wrapper {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
@@ -108,9 +117,10 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             padding: 1rem 0;
             position: relative;
             z-index: 100;
+            width: 100%;
         }
         
-        .site-header .container {
+        .site-header .content-wrapper {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -187,6 +197,7 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             background-color: var(--secondary-color, #005C53);
             color: white;
             padding: 2rem 0;
+            width: 100%;
         }
         
         .footer-content {
@@ -236,7 +247,9 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         
         /* Bånd styling */
         .band {
-            padding: 2rem 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
         }
         
         .band-height-1 {
@@ -259,15 +272,17 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         .slideshow {
             position: relative;
             overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+            box-shadow: none;
             height: 400px;
+            width: 100%;
         }
         
         .slides {
             display: flex;
             transition: transform 0.5s ease-in-out;
             height: 100%;
+            width: 100%;
         }
         
         .slide {
@@ -275,6 +290,7 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             position: relative;
             overflow: hidden;
             height: 100%;
+            width: 100%;
         }
         
         .slide img {
@@ -384,15 +400,14 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         .product-band {
             display: flex;
             align-items: center;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            width: 100%;
         }
         
-        .product-band:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        .band-product .container {
+            padding: 0;
         }
         
         .product-link {
@@ -400,6 +415,7 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             width: 100%;
             text-decoration: none;
             color: inherit;
+            padding: 2rem 0;
         }
         
         .product-image {
@@ -568,14 +584,6 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
                 height: 250px;
             }
             
-            .band {
-                padding: 1.5rem 0;
-            }
-            
-            .product-band {
-                padding: 1.5rem;
-            }
-            
             .band-height-1 {
                 min-height: auto;
             }
@@ -592,7 +600,7 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     
     <!-- Header -->
     <header class="site-header">
-        <div class="container">
+        <div class="content-wrapper">
             <a href="/" class="logo">LATL.dk</a>
             <button class="mobile-nav-toggle" aria-label="Åbn menu" aria-expanded="false">☰</button>
             <nav>
@@ -614,8 +622,8 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
                 <?php render_band($band); ?>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="container">
-                <div class="band band-html band-height-1">
+            <div class="band band-html band-height-1">
+                <div class="content-wrapper">
                     <h1>Velkommen til LATL.dk</h1>
                     <p>Vi arbejder på at forbedre vores hjemmeside. Kom tilbage snart for at se vores læderprodukter og laserskæringstjenester.</p>
                 </div>
@@ -625,7 +633,7 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
 
     <!-- Footer -->
     <footer class="site-footer">
-        <div class="container">
+        <div class="content-wrapper">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>LATL.dk</h3>
