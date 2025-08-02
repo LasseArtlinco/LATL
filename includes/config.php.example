@@ -1,28 +1,192 @@
 <?php
-// config.php - Database og applikationskonfiguration
-// Database konfiguration
+// includes/config.php.example - Kopier til config.php og tilpas værdierne
 
+// Start session
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Database konfiguration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'xxxxxx');
-define('DB_USER', 'xxxxxx');
-define('DB_PASS', 'xxxxxx');
+define('DB_NAME', 'latl_db');
+define('DB_USER', 'your_db_user');
+define('DB_PASS', 'your_db_password');
 define('DB_CHARSET', 'utf8mb4');
 
 // Sti-konfiguration
-define('BASE_URL', 'xxxxxxxx'); // Ændr til din aktuelle URL
-define('PUBLIC_PATH', __DIR__ . '/../public');
-define('UPLOAD_PATH', PUBLIC_PATH . '/uploads');
-define('UPLOADS_DIR', UPLOAD_PATH); // Tilføj denne linje
-define('ROOT_PATH', __DIR__ . '/..'); // Tilføj også denne linje
+define('ROOT_PATH', dirname(__DIR__));
+define('UPLOADS_PATH', ROOT_PATH . '/public/uploads');
+define('ADMIN_PATH', ROOT_PATH . '/admin');
+define('INCLUDES_PATH', ROOT_PATH . '/includes');
+define('PUBLIC_PATH', ROOT_PATH . '/public');
+
+// URL-konfiguration (uden trailing slash)
+define('SITE_URL', 'https://latl.dk');
+define('UPLOADS_URL', SITE_URL . '/uploads');
+
+// Site-konfiguration
 define('SITE_NAME', 'LATL.dk');
-// Fejlrapportering (sæt til false i produktion)
-define('DISPLAY_ERRORS', true);
-if (DISPLAY_ERRORS) {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
+define('SITE_TAGLINE', 'Læder og Laserskæring');
+define('SITE_EMAIL', 'info@latl.dk');
+define('ADMIN_EMAIL', 'admin@latl.dk');
+
+// Upload-konfiguration
+define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024); // 10 MB
+define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+define('ALLOWED_IMAGE_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
+// Billedstørrelser
+define('IMAGE_SIZES', [
+    'slideshow' => [
+        'large' => ['width' => 1920, 'height' => 800],
+        'medium' => ['width' => 1200, 'height' => 500],
+        'small' => ['width' => 600, 'height' => 250],
+        'thumb' => ['width' => 300, 'height' => 125]
+    ],
+    'product' => [
+        'large' => ['width' => 1200, 'height' => 1200],
+        'medium' => ['width' => 600, 'height' => 600],
+        'small' => ['width' => 300, 'height' => 300],
+        'thumb' => ['width' => 150, 'height' => 150]
+    ],
+    'gallery' => [
+        'large' => ['width' => 1200, 'height' => 900],
+        'medium' => ['width' => 600, 'height' => 450],
+        'small' => ['width' => 300, 'height' => 225],
+        'thumb' => ['width' => 150, 'height' => 112]
+    ]
+]);
+
+// Sikkerhedskonfiguration
+define('ADMIN_PASSWORD', '$2y$10$YourHashedPasswordHere'); // Brug password_hash() til at generere
+define('SESSION_LIFETIME', 3600); // 1 time
+define('CSRF_TOKEN_LENGTH', 32);
+
+// Debug-tilstand (sæt til false i produktion)
+define('DEBUG_MODE', true);
+
+// Fejlhåndtering
+if (DEBUG_MODE) {
     error_reporting(E_ALL);
+    ini_set('display_errors', 1);
 } else {
     error_reporting(0);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    ini_set('error_log', ROOT_PATH . '/logs/error.log');
 }
-// Session start
-session_start();
+
+// Tidszoneindstilling
+date_default_timezone_set('Europe/Copenhagen');
+
+// Locale-indstillinger
+setlocale(LC_ALL, 'da_DK.UTF-8', 'da_DK', 'danish');
+
+// WebP support check
+define('WEBP_SUPPORT', function_exists('imagewebp'));
+
+// API nøgler (hvis relevant)
+define('GOOGLE_ANALYTICS_ID', 'UA-XXXXXXXXX-X');
+define('GOOGLE_MAPS_API_KEY', 'your_google_maps_api_key');
+define('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key');
+define('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key');
+
+// E-mail konfiguration (SMTP)
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_USERNAME', 'your_email@gmail.com');
+define('SMTP_PASSWORD', 'your_email_password');
+define('SMTP_ENCRYPTION', 'tls');
+
+// Cache-konfiguration
+define('CACHE_ENABLED', true);
+define('CACHE_PATH', ROOT_PATH . '/cache');
+define('CACHE_LIFETIME', 3600); // 1 time
+
+// Vedligeholdelsestilstand
+define('MAINTENANCE_MODE', false);
+define('MAINTENANCE_MESSAGE', 'Vi opdaterer siden. Vi er tilbage om kort tid.');
+
+// Hjælpefunktioner
+
+/**
+ * Sikker output-funktion
+ */
+function e($string) {
+    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Generer CSRF-token
+ */
+function generate_csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(CSRF_TOKEN_LENGTH));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Valider CSRF-token
+ */
+function validate_csrf_token($token) {
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Check om brugeren er logget ind som admin
+ */
+function is_admin_logged_in() {
+    return isset($_SESSION['admin_authenticated']) && $_SESSION['admin_authenticated'] === true;
+}
+
+/**
+ * Log fejl
+ */
+function log_error($message, $context = []) {
+    $logFile = ROOT_PATH . '/logs/error.log';
+    $timestamp = date('Y-m-d H:i:s');
+    $contextStr = !empty($context) ? ' | Context: ' . json_encode($context) : '';
+    $logMessage = "[{$timestamp}] {$message}{$contextStr}" . PHP_EOL;
+    
+    // Opret logs-mappe hvis den ikke eksisterer
+    $logDir = dirname($logFile);
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0755, true);
+    }
+    
+    error_log($logMessage, 3, $logFile);
+}
+
+/**
+ * Redirect med besked
+ */
+function redirect_with_message($url, $message, $type = 'info') {
+    $_SESSION['flash_message'] = $message;
+    $_SESSION['flash_type'] = $type;
+    header('Location: ' . $url);
+    exit;
+}
+
+/**
+ * Hent og ryd flash-besked
+ */
+function get_flash_message() {
+    if (isset($_SESSION['flash_message'])) {
+        $message = [
+            'text' => $_SESSION['flash_message'],
+            'type' => $_SESSION['flash_type'] ?? 'info'
+        ];
+        unset($_SESSION['flash_message'], $_SESSION['flash_type']);
+        return $message;
+    }
+    return null;
+}
+
+// Autoloader for klasser (hvis ikke composer bruges)
+spl_autoload_register(function ($class) {
+    $file = INCLUDES_PATH . '/' . str_replace('\\', '/', $class) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
