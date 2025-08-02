@@ -1,9 +1,16 @@
 <?php
+// api/upload.php - Forbedret API til fil-uploads
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/image-handler.php';
 
 // API til fil-uploads
 header('Content-Type: application/json');
+
+// Starter session hvis den ikke allerede er startet
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check om brugeren er logget ind
 if (!isset($_SESSION['admin_authenticated']) || $_SESSION['admin_authenticated'] !== true) {
@@ -26,41 +33,67 @@ if (empty($_FILES['file'])) {
     exit;
 }
 
-// Definer tilladte filtyper
-$allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+// Få upload-type fra parameter (slideshow, product, etc.)
+$upload_type = $_POST['type'] ?? 'general';
 
-// Check filtype
-$file = $_FILES['file'];
-$file_type = $file['type'];
-
-if (!in_array($file_type, $allowed_types)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Ugyldig filtype. Tilladt: JPG, PNG, GIF, WebP']);
-    exit;
+// Bestem undermappe baseret på type
+$subdir = '';
+switch ($upload_type) {
+    case 'slideshow':
+        $subdir = 'slides';
+        break;
+    case 'product':
+        $subdir = 'products';
+        break;
+    case 'logo':
+        $subdir = 'logos';
+        break;
+    default:
+        $subdir = 'general';
 }
 
-// Opret upload-mappe hvis den ikke findes
-$upload_dir = UPLOAD_PATH;
+// Få SEO-metadata fra POST
+$alt_text = $_POST['alt_text'] ?? '';
+$title = $_POST['title'] ?? '';
+$description = $_POST['description'] ?? '';
 
-if (!file_exists($upload_dir)) {
-    mkdir($upload_dir, 0755, true);
-}
-
-// Generer et unikt filnavn
-$file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-$new_filename = uniqid() . '.' . $file_extension;
-$upload_path = $upload_dir . '/' . $new_filename;
-
-// Upload filen
-if (move_uploaded_file($file['tmp_name'], $upload_path)) {
-    // Konverter til WebP vil komme her senere
+try {
+    // Upload og optimer billedet
+    $file = $_FILES['file'];
+    $image_data = upload_image($file, $subdir);
     
+    // Tilføj metadata
+    $image_data['seo'] = [
+        'alt_text' => $alt_text,
+        'title' => $title,
+        'description' => $description
+    ];
+    
+    // Generer responsiv HTML-kode til billedet
+    $responsive_html = responsive_image(
+        $image_data, 
+        $alt_text, 
+        'uploaded-image',
+        [
+            'title' => $title,
+            'data-description' => $description
+        ]
+    );
+    
+    // Returner succesrespons
     echo json_encode([
         'success' => true,
-        'filename' => $new_filename,
-        'path' => '/uploads/' . $new_filename
+        'image' => $image_data,
+        'filename' => basename($image_data['original']['path']),
+        'path' => $image_data['original']['path'],
+        'webp_path' => $image_data['optimized']['original_webp']['path'] ?? '',
+        'responsive_sizes' => array_keys($image_data['optimized']),
+        'responsive_html' => $responsive_html
     ]);
-} else {
+} catch (Exception $e) {
+    // Returner fejlbesked
     http_response_code(500);
-    echo json_encode(['error' => 'Kunne ikke uploade filen']);
+    echo json_encode([
+        'error' => $e->getMessage()
+    ]);
 }
