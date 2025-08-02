@@ -1,6 +1,24 @@
 <?php
+// DEBUG START - Fjern dette efter test
+echo "<pre style='background: yellow; padding: 10px; margin: 10px;'>";
+echo "Session status før config: " . session_status() . "\n";
+echo "Session ID før config: " . session_id() . "\n";
+echo "</pre>";
+// DEBUG SLUT
+
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
+
+// DEBUG START - Fjern dette efter test
+echo "<pre style='background: lightgreen; padding: 10px; margin: 10px;'>";
+echo "Session status efter config: " . session_status() . "\n";
+echo "Session ID efter config: " . session_id() . "\n";
+echo "Session data: ";
+print_r($_SESSION);
+echo "\nCookies: ";
+print_r($_COOKIE);
+echo "</pre>";
+// DEBUG SLUT
 
 // Simpel admin-beskyttelse (erstat med ordentlig login senere)
 $admin_password = 'admin123'; // Ændr dette til et sikkert password!
