@@ -1,7 +1,14 @@
 <?php
 // includes/band-renderer.php - Rendering af forskellige båndtyper
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/image_handler.php'; // Ændret fra image-handler.php til image_handler.php
+
+// Sikrer at upload-mappe konstanter er defineret
+if (!defined('UPLOAD_PATH')) {
+    define('UPLOAD_PATH', __DIR__ . '/../public/uploads');
+}
+if (!defined('BASE_URL')) {
+    define('BASE_URL', 'https://new.leatherandthelikes.dk');
+}
 
 /**
  * Renderer et bånd baseret på type
@@ -84,27 +91,18 @@ function render_slideshow_band($content, $band_id) {
             echo "<a href='{$link}' aria-label='{$title}'>";
         }
         
-        // Check om billedet allerede er optimeret
-        $image_path = UPLOADS_DIR . '/' . $image;
-        $webp_path = UPLOADS_DIR . '/' . pathinfo($image, PATHINFO_FILENAME) . '.webp';
-        
-        // Hvis WebP-versionen ikke eksisterer, optimer billedet
-        if (!file_exists($webp_path) && file_exists($image_path)) {
-            $optimized = optimize_image($image_path);
+        // Sikrer at vi har et billede og det eksisterer
+        if (!empty($image)) {
+            $image_path = UPLOAD_PATH . '/' . $image;
             
-            // Render responsivt billede med WebP-støtte
-            echo "<picture>";
-            echo "<source type='image/webp' srcset='" . BASE_URL . $optimized['original_webp']['path'] . "'>";
-            echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
-            echo "</picture>";
-        } else {
-            // Render billede med WebP-understøttelse hvis det findes
-            echo "<picture>";
-            if (file_exists($webp_path)) {
-                echo "<source type='image/webp' srcset='/uploads/" . pathinfo($image, PATHINFO_FILENAME) . ".webp'>";
+            if (file_exists($image_path)) {
+                echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
+            } else {
+                echo "<div class='placeholder-image'>Billede ikke fundet: {$image}</div>";
             }
-            echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
-            echo "</picture>";
+        } else {
+            // Vis et pladsholderbillede hvis billedet ikke findes
+            echo "<div class='placeholder-image'>Intet billede</div>";
         }
         
         echo "<div class='slide-content'>";
@@ -189,28 +187,16 @@ function render_product_band($content, $band_id) {
     echo "<div class='product-image'>";
     
     if (!empty($image)) {
-        // Check om billedet allerede er optimeret
-        $image_path = UPLOADS_DIR . '/' . $image;
-        $webp_path = UPLOADS_DIR . '/' . pathinfo($image, PATHINFO_FILENAME) . '.webp';
+        $image_path = UPLOAD_PATH . '/' . $image;
         
-        // Hvis WebP-versionen ikke eksisterer, optimer billedet
-        if (!file_exists($webp_path) && file_exists($image_path)) {
-            $optimized = optimize_image($image_path);
-            
-            // Render responsivt billede med WebP-støtte
-            echo "<picture>";
-            echo "<source type='image/webp' srcset='" . BASE_URL . $optimized['original_webp']['path'] . "'>";
+        if (file_exists($image_path)) {
             echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='product-img'>";
-            echo "</picture>";
         } else {
-            // Render billede med WebP-understøttelse hvis det findes
-            echo "<picture>";
-            if (file_exists($webp_path)) {
-                echo "<source type='image/webp' srcset='/uploads/" . pathinfo($image, PATHINFO_FILENAME) . ".webp'>";
-            }
-            echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='product-img'>";
-            echo "</picture>";
+            echo "<div class='placeholder-image'>Billede ikke fundet: {$image}</div>";
         }
+    } else {
+        // Vis en pladsholder hvis billedet ikke findes
+        echo "<div class='placeholder-image'>Intet billede</div>";
     }
     
     echo "</div>"; // .product-image
@@ -315,7 +301,7 @@ function render_link_band($content, $band_id) {
             $url = htmlspecialchars($link['url'] ?? '#');
             $text = htmlspecialchars($link['text'] ?? 'Læs mere');
             $style = htmlspecialchars($link['style'] ?? 'primary');
-            $target = $link['new_window'] ? ' target="_blank" rel="noopener"' : '';
+            $target = isset($link['new_window']) && $link['new_window'] ? ' target="_blank" rel="noopener"' : '';
             
             echo "<a href='{$url}' class='button button-{$style}'{$target}>{$text}</a>";
         }
