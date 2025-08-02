@@ -37,6 +37,9 @@ RewriteRule ^(.*)$ public/index.php?page=$1 [QSA,L]
 # Tillad direkte adgang til uploads
 RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
 
+# Tillad direkte adgang til debug-filer
+RewriteRule ^session-debug\.php$ - [L]
+
 # Tillad direkte adgang til assets
 RewriteRule ^(css|js|images|fonts)/(.*)$ public/$1/$2 [L]
 
@@ -104,3 +107,4 @@ ErrorDocument 500 /public/500.php
     php_value max_execution_time 300
     php_value max_input_time 300
 </IfModule>
+
