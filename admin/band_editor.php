@@ -1,8 +1,8 @@
 <?php
-// admin/band-editor.php - Forbedret bånd-editor med billedupload og flere båndtyper
+// admin/band_editor.php - Forbedret bånd-editor med billedupload og SEO-optimering
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/image-handler.php';
+require_once __DIR__ . '/../includes/image_handler.php';
 
 // Starter session hvis den ikke allerede er startet
 if (session_status() == PHP_SESSION_NONE) {
@@ -42,7 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'title' => $_POST["slide_{$i}_title"] ?? '',
                         'subtitle' => $_POST["slide_{$i}_subtitle"] ?? '',
                         'link' => $_POST["slide_{$i}_link"] ?? '',
-                        'alt' => $_POST["slide_{$i}_alt"] ?? ''
+                        'alt' => $_POST["slide_{$i}_alt"] ?? '',
+                        'seo_title' => $_POST["slide_{$i}_seo_title"] ?? '',
+                        'seo_description' => $_POST["slide_{$i}_seo_description"] ?? ''
                     ];
                     $slides[] = $slide;
                 }
@@ -50,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $band_content = [
                     'title' => $_POST['slideshow_title'] ?? '',
                     'description' => $_POST['slideshow_description'] ?? '',
+                    'seo_schema' => $_POST['slideshow_seo_schema'] ?? '',
                     'slides' => $slides,
                     'autoplay' => isset($_POST['autoplay']) && $_POST['autoplay'] === 'on',
                     'interval' => (int)($_POST['interval'] ?? 5000)
@@ -64,43 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'subtitle' => $_POST['product_subtitle'] ?? '',
                     'link' => $_POST['product_link'] ?? '',
                     'alt' => $_POST['product_alt'] ?? '',
+                    'seo_title' => $_POST['product_seo_title'] ?? '',
+                    'seo_description' => $_POST['product_seo_description'] ?? '',
                     'background_color' => $_POST['product_bg_color'] ?? '#ffffff',
                     'button_text' => $_POST['product_button_text'] ?? 'Se mere'
-                ];
-                break;
-                
-            case 'html':
-                // Håndter HTML indhold
-                $band_content = [
-                    'title' => $_POST['html_title'] ?? '',
-                    'html' => $_POST['html_content'] ?? '',
-                    'background_color' => $_POST['html_bg_color'] ?? '',
-                    'text_color' => $_POST['html_text_color'] ?? ''
-                ];
-                break;
-                
-            case 'link':
-                // Håndter link-bånd indhold
-                $links = [];
-                $link_count = (int)($_POST['link_count'] ?? 0);
-                
-                for ($i = 0; $i < $link_count; $i++) {
-                    $link = [
-                        'url' => $_POST["link_{$i}_url"] ?? '',
-                        'text' => $_POST["link_{$i}_text"] ?? '',
-                        'style' => $_POST["link_{$i}_style"] ?? 'primary',
-                        'new_window' => isset($_POST["link_{$i}_new_window"]) && $_POST["link_{$i}_new_window"] === 'on'
-                    ];
-                    $links[] = $link;
-                }
-                
-                $band_content = [
-                    'title' => $_POST['link_band_title'] ?? '',
-                    'subtitle' => $_POST['link_band_subtitle'] ?? '',
-                    'background_color' => $_POST['link_bg_color'] ?? '',
-                    'text_color' => $_POST['link_text_color'] ?? '',
-                    'alignment' => $_POST['link_alignment'] ?? 'center',
-                    'links' => $links
                 ];
                 break;
                 
@@ -614,6 +584,7 @@ function color_picker($name, $value = '', $label = '') {
             margin-bottom: 15px;
             padding: 15px;
             border: 1px solid var(--gray-300);
+            position: relative;
         }
         
         .slide-header {
@@ -641,6 +612,17 @@ function color_picker($name, $value = '', $label = '') {
         
         .slide-content.active {
             display: block;
+        }
+
+        .seo-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--gray-300);
+        }
+        
+        .seo-section h4 {
+            margin-top: 0;
+            color: var(--secondary-color);
         }
         
         .image-preview {
@@ -718,6 +700,29 @@ function color_picker($name, $value = '', $label = '') {
             color: var(--gray-600);
             margin-top: 5px;
         }
+
+        .sortable-ghost {
+            opacity: 0.5;
+            background-color: var(--gray-200);
+        }
+
+        .slide-drag-handle {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            color: var(--gray-500);
+            cursor: move;
+            padding: 0 10px;
+        }
+
+        .slide-drag-handle:hover {
+            color: var(--primary-color);
+        }
+
+        .schema-editor {
+            font-family: monospace;
+            min-height: 150px;
+        }
         
         /* Responsivt design */
         @media (max-width: 768px) {
@@ -758,6 +763,7 @@ function color_picker($name, $value = '', $label = '') {
                 <a href="layout-editor.php?page=om-os" class="<?= $page_id === 'om-os' ? 'active' : '' ?>">Om os</a>
                 <a href="layout-editor.php?page=kontakt" class="<?= $page_id === 'kontakt' ? 'active' : '' ?>">Kontakt</a>
                 <a href="layout-editor.php?page=shop" class="<?= $page_id === 'shop' ? 'active' : '' ?>">Shop</a>
+                <a href="design-editor.php" class="<?= isset($_GET['design']) ? 'active' : '' ?>">Design</a>
             </div>
             
             <div class="page-title">
@@ -811,7 +817,7 @@ function color_picker($name, $value = '', $label = '') {
                     <p>Ingen bånd fundet for denne side. Tilføj et bånd nedenfor.</p>
                 <?php else: ?>
                     <?php foreach ($bands as $band): ?>
-                        <div class="band-item" data-id="<?= $band['id'] ?>">
+                        <div class="band-item" data-id="<?= $band['id'] ?>" data-height="<?= $band['band_height'] ?>">
                             <div class="band-header">
                                 <h3 class="band-title">
                                     <i class="drag-handle fas fa-grip-vertical"></i>
@@ -823,7 +829,7 @@ function color_picker($name, $value = '', $label = '') {
                                     <button class="band-action toggle-preview" title="Vis/skjul indhold">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <a href="band-editor.php?page=<?= urlencode($page_id) ?>&edit=<?= $band['id'] ?>" class="band-action" title="Rediger">
+                                    <a href="band_editor.php?page=<?= urlencode($page_id) ?>&edit=<?= $band['id'] ?>" class="band-action" title="Rediger">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button class="band-action delete" data-id="<?= $band['id'] ?>" title="Slet">
@@ -833,7 +839,7 @@ function color_picker($name, $value = '', $label = '') {
                             </div>
                             <div class="band-content">
                                 <div class="preview-label">Indhold:</div>
-                                <div class="json-content"><?= htmlspecialchars(json_encode($band['band_content'], JSON_PRETTY_PRINT)) ?></div>
+                                <div class="json-content"><?= htmlspecialchars(json_encode($band['band_content'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -847,7 +853,7 @@ function color_picker($name, $value = '', $label = '') {
                     <h3>Tilføj nyt bånd</h3>
                 <?php endif; ?>
                 
-                <form action="band-editor.php" method="post" enctype="multipart/form-data">
+                <form action="band_editor.php" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="save">
                     <input type="hidden" name="page_id" value="<?= htmlspecialchars($page_id) ?>">
                     <?php if ($edit_band): ?>
@@ -862,8 +868,6 @@ function color_picker($name, $value = '', $label = '') {
                                 <option value="">Vælg type</option>
                                 <option value="slideshow">Slideshow</option>
                                 <option value="product">Produkt</option>
-                                <option value="html">HTML</option>
-                                <option value="link">Link</option>
                             </select>
                             <div class="help-text">Vælg den type bånd du vil tilføje</div>
                         </div>
@@ -899,6 +903,15 @@ function color_picker($name, $value = '', $label = '') {
                             <textarea name="slideshow_description" id="slideshow_description"><?= $edit_band && isset($edit_band['band_content']['description']) ? htmlspecialchars($edit_band['band_content']['description']) : '' ?></textarea>
                         </div>
                         
+                        <div class="seo-section">
+                            <h4>SEO-optimering</h4>
+                            <div class="form-group">
+                                <label for="slideshow_seo_schema">JSON-LD Schema:</label>
+                                <textarea name="slideshow_seo_schema" id="slideshow_seo_schema" class="schema-editor"><?= $edit_band && isset($edit_band['band_content']['seo_schema']) ? htmlspecialchars($edit_band['band_content']['seo_schema']) : '' ?></textarea>
+                                <div class="help-text">JSON-LD schema for struktureret data (carousel, gallery, etc.). Lad feltet være tomt for at generere automatisk.</div>
+                            </div>
+                        </div>
+                        
                         <div class="flex-row">
                             <div class="flex-column">
                                 <div class="checkbox-group">
@@ -909,421 +922,6 @@ function color_picker($name, $value = '', $label = '') {
                             
                             <div class="flex-column">
                                 <div class="form-group">
-                                    <label for="slide_${index}_alt">Alt-tekst (SEO):</label>
-                                    <input type="text" name="slide_${index}_alt" id="slide_${index}_alt" value="">
-                                    <div class="help-text">Beskrivende tekst til billedet for SEO og tilgængelighed</div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="slide_${index}_title">Titel:</label>
-                                    <input type="text" name="slide_${index}_title" id="slide_${index}_title" value="">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="slide_${index}_subtitle">Undertitel:</label>
-                                    <input type="text" name="slide_${index}_subtitle" id="slide_${index}_subtitle" value="">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="slide_${index}_link">Link:</label>
-                                    <input type="text" name="slide_${index}_link" id="slide_${index}_link" value="">
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    slideList.insertAdjacentHTML('beforeend', slideHtml);
-                    slideCount++;
-                    slideCountInput.value = slideCount;
-                    
-                    // Tilføj event listeners til den nye slide
-                    initSlideEvents();
-                    setupUploadAreas();
-                });
-                
-                // Link bånd håndtering
-                const addLinkBtn = document.getElementById('add_link');
-                const linkList = document.getElementById('link_list');
-                const linkCountInput = document.getElementById('link_count');
-                
-                if (addLinkBtn && linkList && linkCountInput) {
-                    let linkCount = parseInt(linkCountInput.value) || 0;
-                    
-                    addLinkBtn.addEventListener('click', function() {
-                        const index = linkCount;
-                        const linkHtml = `
-                            <div class="slide-item" data-index="${index}">
-                                <div class="slide-header">
-                                    <h4 class="slide-title">Link ${index + 1}</h4>
-                                    <div class="slide-actions">
-                                        <button type="button" class="toggle-slide">Vis/skjul</button>
-                                        <button type="button" class="remove-link">Fjern</button>
-                                    </div>
-                                </div>
-                                <div class="slide-content active">
-                                    <div class="form-group">
-                                        <label for="link_${index}_text">Tekst:</label>
-                                        <input type="text" name="link_${index}_text" id="link_${index}_text" value="Læs mere">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="link_${index}_url">URL:</label>
-                                        <input type="url" name="link_${index}_url" id="link_${index}_url" value="">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="link_${index}_style">Stil:</label>
-                                        <select name="link_${index}_style" id="link_${index}_style">
-                                            <option value="primary" selected>Primær</option>
-                                            <option value="secondary">Sekundær</option>
-                                            <option value="accent">Fremhævet</option>
-                                            <option value="text">Tekst</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" name="link_${index}_new_window" id="link_${index}_new_window">
-                                        <label for="link_${index}_new_window">Åbn i nyt vindue</label>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        linkList.insertAdjacentHTML('beforeend', linkHtml);
-                        linkCount++;
-                        linkCountInput.value = linkCount;
-                        
-                        // Tilføj event listeners til det nye link
-                        initLinkEvents();
-                    });
-                }
-                
-                // Initialiser event listeners for slides
-                function initSlideEvents() {
-                    document.querySelectorAll('.toggle-slide').forEach(btn => {
-                        btn.removeEventListener('click', toggleSlideContent);
-                        btn.addEventListener('click', toggleSlideContent);
-                    });
-                    
-                    document.querySelectorAll('.remove-slide').forEach(btn => {
-                        btn.removeEventListener('click', removeSlide);
-                        btn.addEventListener('click', removeSlide);
-                    });
-                }
-                
-                // Initialiser event listeners for links
-                function initLinkEvents() {
-                    document.querySelectorAll('.toggle-slide').forEach(btn => {
-                        btn.removeEventListener('click', toggleSlideContent);
-                        btn.addEventListener('click', toggleSlideContent);
-                    });
-                    
-                    document.querySelectorAll('.remove-link').forEach(btn => {
-                        btn.removeEventListener('click', removeLink);
-                        btn.addEventListener('click', removeLink);
-                    });
-                }
-                
-                // Toggle slide content
-                function toggleSlideContent() {
-                    const content = this.closest('.slide-item').querySelector('.slide-content');
-                    content.classList.toggle('active');
-                }
-                
-                // Fjern slide
-                function removeSlide() {
-                    if (confirm('Er du sikker på, at du vil fjerne dette slide?')) {
-                        const slideItem = this.closest('.slide-item');
-                        slideItem.remove();
-                        updateSlideIndices();
-                    }
-                }
-                
-                // Fjern link
-                function removeLink() {
-                    if (confirm('Er du sikker på, at du vil fjerne dette link?')) {
-                        const linkItem = this.closest('.slide-item');
-                        linkItem.remove();
-                        updateLinkIndices();
-                    }
-                }
-                
-                // Opdater slide indekser
-                function updateSlideIndices() {
-                    const slides = slideList.querySelectorAll('.slide-item');
-                    slideCount = slides.length;
-                    slideCountInput.value = slideCount;
-                    
-                    slides.forEach((slide, i) => {
-                        slide.dataset.index = i;
-                        slide.querySelector('.slide-title').textContent = `Slide ${i + 1}`;
-                        
-                        // Opdater indekser i input-navne
-                        const inputs = slide.querySelectorAll('input, select, textarea');
-                        inputs.forEach(input => {
-                            const name = input.name;
-                            if (name) {
-                                input.name = name.replace(/slide_\d+/, `slide_${i}`);
-                                input.id = input.id.replace(/slide_\d+/, `slide_${i}`);
-                            }
-                        });
-                        
-                        // Opdater labels
-                        const labels = slide.querySelectorAll('label');
-                        labels.forEach(label => {
-                            const forAttr = label.getAttribute('for');
-                            if (forAttr) {
-                                label.setAttribute('for', forAttr.replace(/slide_\d+/, `slide_${i}`));
-                            }
-                        });
-                        
-                        // Opdater upload area
-                        const uploadArea = slide.querySelector('.upload-area');
-                        if (uploadArea) {
-                            uploadArea.dataset.target = `slide_${i}_image`;
-                        }
-                    });
-                }
-                
-                // Opdater link indekser
-                function updateLinkIndices() {
-                    const links = linkList.querySelectorAll('.slide-item');
-                    linkCount = links.length;
-                    linkCountInput.value = linkCount;
-                    
-                    links.forEach((link, i) => {
-                        link.dataset.index = i;
-                        link.querySelector('.slide-title').textContent = `Link ${i + 1}`;
-                        
-                        // Opdater indekser i input-navne
-                        const inputs = link.querySelectorAll('input, select');
-                        inputs.forEach(input => {
-                            const name = input.name;
-                            if (name) {
-                                input.name = name.replace(/link_\d+/, `link_${i}`);
-                                input.id = input.id.replace(/link_\d+/, `link_${i}`);
-                            }
-                        });
-                        
-                        // Opdater labels
-                        const labels = link.querySelectorAll('label');
-                        labels.forEach(label => {
-                            const forAttr = label.getAttribute('for');
-                            if (forAttr) {
-                                label.setAttribute('for', forAttr.replace(/link_\d+/, `link_${i}`));
-                            }
-                        });
-                    });
-                }
-                
-                // Initialiser events
-                initSlideEvents();
-                initLinkEvents();
-            }
-            
-            // Visning/skjul af båndindhold
-            document.querySelectorAll('.toggle-preview').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const content = this.closest('.band-item').querySelector('.band-content');
-                    content.classList.toggle('active');
-                });
-            });
-            
-            // Sletning af bånd
-            document.querySelectorAll('.band-action.delete').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (confirm('Er du sikker på, at du vil slette dette bånd? Denne handling kan ikke fortrydes.')) {
-                        const bandId = this.dataset.id;
-                        document.getElementById('delete_band_id').value = bandId;
-                        document.getElementById('delete_form').submit();
-                    }
-                });
-            });
-            
-            // Drag-and-drop rækkefølge
-            const sortableList = document.querySelector('.sortable');
-            if (sortableList) {
-                const sortable = new Sortable(sortableList, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    onEnd: function() {
-                        // Opdater rækkefølgen i databasen via AJAX
-                        const items = sortableList.querySelectorAll('.band-item');
-                        const bandOrders = {};
-                        
-                        items.forEach((item, index) => {
-                            const bandId = item.dataset.id;
-                            bandOrders[bandId] = index + 1;
-                            
-                            // Opdater den synlige rækkefølge
-                            const title = item.querySelector('.band-title');
-                            const regex = /\(Højde: \d+, Rækkefølge: \d+\)/;
-                            const newText = title.textContent.replace(regex, `(Højde: ${item.dataset.height || '?'}, Rækkefølge: ${index + 1})`);
-                            title.textContent = newText;
-                        });
-                        
-                        // Send opdatering til server
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('POST', 'band-editor.php', true);
-                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                        xhr.onreadystatechange = function() {
-                            if (xhr.readyState === 4) {
-                                if (xhr.status === 200) {
-                                    try {
-                                        const response = JSON.parse(xhr.responseText);
-                                        if (response.error) {
-                                            alert('Fejl: ' + response.error);
-                                        }
-                                    } catch (e) {
-                                        console.error('Fejl ved parsing af svar:', e);
-                                    }
-                                } else {
-                                    alert('Fejl ved opdatering af rækkefølge.');
-                                }
-                            }
-                        };
-                        xhr.send('action=update_order&page_id=' + encodeURIComponent('<?= $page_id ?>') + '&band_orders=' + encodeURIComponent(JSON.stringify(bandOrders)));
-                    }
-                });
-            }
-            
-            // Billedupload
-            function setupUploadAreas() {
-                document.querySelectorAll('.upload-area').forEach(area => {
-                    const targetId = area.dataset.target;
-                    const uploadInput = document.getElementById(targetId + '_upload');
-                    
-                    if (!uploadInput) return;
-                    
-                    // Klik på upload-område
-                    area.addEventListener('click', function() {
-                        uploadInput.click();
-                    });
-                    
-                    // Drag and drop
-                    area.addEventListener('dragover', function(e) {
-                        e.preventDefault();
-                        area.classList.add('dragover');
-                    });
-                    
-                    area.addEventListener('dragleave', function() {
-                        area.classList.remove('dragover');
-                    });
-                    
-                    area.addEventListener('drop', function(e) {
-                        e.preventDefault();
-                        area.classList.remove('dragover');
-                        
-                        if (e.dataTransfer.files.length) {
-                            uploadInput.files = e.dataTransfer.files;
-                            handleFileUpload(uploadInput, targetId);
-                        }
-                    });
-                    
-                    // Filinput ændring
-                    uploadInput.addEventListener('change', function() {
-                        handleFileUpload(this, targetId);
-                    });
-                });
-            }
-            
-            function handleFileUpload(fileInput, targetId) {
-                if (!fileInput.files.length) return;
-                
-                const file = fileInput.files[0];
-                const parent = fileInput.closest('.form-group');
-                const uploadArea = parent.querySelector('.upload-area');
-                
-                // Vis loading indikator
-                uploadArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Uploader...</p>';
-                
-                // Opret formdata
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('type', '<?= $edit_band ? $edit_band['band_type'] : '' ?>');
-                
-                // Send filen til server
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '../api/upload.php', true);
-                
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200) {
-                            try {
-                                const response = JSON.parse(xhr.responseText);
-                                
-                                if (response.success) {
-                                    // Opdater hidden input
-                                    document.getElementById(targetId).value = response.filename;
-                                    
-                                    // Vis billed-preview
-                                    let preview = parent.querySelector('.image-preview');
-                                    if (!preview) {
-                                        preview = document.createElement('div');
-                                        preview.className = 'image-preview';
-                                        parent.appendChild(preview);
-                                    }
-                                    
-                                    preview.innerHTML = `<img src="${response.path}" alt="Preview">`;
-                                    
-                                    // Nulstil upload-område
-                                    uploadArea.innerHTML = '<i class="fas fa-check-circle" style="color: green;"></i><p>Billede uploadet</p>';
-                                } else {
-                                    uploadArea.innerHTML = `<i class="fas fa-exclamation-circle" style="color: red;"></i><p>Fejl: ${response.error}</p>`;
-                                }
-                            } catch (e) {
-                                uploadArea.innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i><p>Fejl ved parsing af svar</p>';
-                                console.error('Fejl ved parsing af svar:', e);
-                            }
-                        } else {
-                            uploadArea.innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i><p>Fejl ved upload</p>';
-                        }
-                    }
-                };
-                
-                xhr.send(formData);
-            }
-            
-            // Initialiser upload-områder
-            setupUploadAreas();
-        });
-        
-        // Hjælpefunktion til at få båndikon
-        function get_band_icon(type) {
-            switch (type) {
-                case 'slideshow':
-                    return 'images';
-                case 'product':
-                    return 'shopping-cart';
-                case 'html':
-                    return 'code';
-                case 'link':
-                    return 'link';
-                default:
-                    return 'layer-group';
-            }
-        }
-    </script>
-</body>
-</html>
-
-<?php
-// Hjælpefunktion til at få korrekt band-ikon
-function get_band_icon($type) {
-    switch ($type) {
-        case 'slideshow':
-            return 'images';
-        case 'product':
-            return 'shopping-cart';
-        case 'html':
-            return 'code';
-        case 'link':
-            return 'link';
-        default:
-            return 'layer-group';
-    }
-}
-?>
                                     <label for="interval">Interval (ms):</label>
                                     <input type="number" name="interval" id="interval" min="1000" step="500" value="<?= $edit_band && isset($edit_band['band_content']['interval']) ? (int)$edit_band['band_content']['interval'] : 5000 ?>">
                                 </div>
@@ -1331,12 +929,13 @@ function get_band_icon($type) {
                         </div>
                         
                         <h4>Slides</h4>
-                        <div id="slide_list" class="slide-list">
+                        <div id="slide_list" class="slide-list sortable-slides">
                             <?php 
                             $slides = $edit_band && isset($edit_band['band_content']['slides']) ? $edit_band['band_content']['slides'] : [];
                             foreach ($slides as $index => $slide): 
                             ?>
                                 <div class="slide-item" data-index="<?= $index ?>">
+                                    <i class="slide-drag-handle fas fa-grip-vertical"></i>
                                     <div class="slide-header">
                                         <h4 class="slide-title">Slide <?= $index + 1 ?></h4>
                                         <div class="slide-actions">
@@ -1369,7 +968,7 @@ function get_band_icon($type) {
                                         
                                         <div class="form-group">
                                             <label for="slide_<?= $index ?>_title">Titel:</label>
-                                            <input type="text" name="slide_<?= $index ?>_title" id="slide_<?= $index ?>_title" value="<?= htmlspecialchars($slide['title']) ?>">
+                                            <input type="text" name="slide_<?= $index ?>_title" id="slide_<?= $index ?>_title" value="<?= htmlspecialchars($slide['title'] ?? '') ?>">
                                         </div>
                                         
                                         <div class="form-group">
@@ -1380,6 +979,21 @@ function get_band_icon($type) {
                                         <div class="form-group">
                                             <label for="slide_<?= $index ?>_link">Link:</label>
                                             <input type="text" name="slide_<?= $index ?>_link" id="slide_<?= $index ?>_link" value="<?= htmlspecialchars($slide['link'] ?? '') ?>">
+                                        </div>
+
+                                        <div class="seo-section">
+                                            <h4>SEO-metadata</h4>
+                                            <div class="form-group">
+                                                <label for="slide_<?= $index ?>_seo_title">SEO Titel:</label>
+                                                <input type="text" name="slide_<?= $index ?>_seo_title" id="slide_<?= $index ?>_seo_title" value="<?= htmlspecialchars($slide['seo_title'] ?? '') ?>">
+                                                <div class="help-text">Titel til brug i struktureret data (JSON-LD)</div>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="slide_<?= $index ?>_seo_description">SEO Beskrivelse:</label>
+                                                <textarea name="slide_<?= $index ?>_seo_description" id="slide_<?= $index ?>_seo_description"><?= htmlspecialchars($slide['seo_description'] ?? '') ?></textarea>
+                                                <div class="help-text">Beskrivelse til brug i struktureret data og meta-tags</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1396,7 +1010,7 @@ function get_band_icon($type) {
                     <!-- Produkt bånd form -->
                     <div id="product_form" class="band-type-form" style="display: <?= ($edit_band && $edit_band['band_type'] === 'product') ? 'block' : 'none' ?>;">
                         <div class="form-group">
-                            <label for="product_image">Produktbillede:</label>
+                            <label for="product_image">Produktbillede (PNG med transparent baggrund):</label>
                             <div class="upload-area" data-target="product_image">
                                 <i class="fas fa-cloud-upload-alt"></i>
                                 <p>Klik for at uploade eller træk en fil hertil</p>
@@ -1442,117 +1056,23 @@ function get_band_icon($type) {
                             $edit_band && isset($edit_band['band_content']['background_color']) ? $edit_band['band_content']['background_color'] : '#D6D58E',
                             'Baggrundsfarve'
                         ) ?>
+
+                        <div class="seo-section">
+                            <h4>SEO-metadata</h4>
+                            <div class="form-group">
+                                <label for="product_seo_title">SEO Titel:</label>
+                                <input type="text" name="product_seo_title" id="product_seo_title" value="<?= $edit_band && isset($edit_band['band_content']['seo_title']) ? htmlspecialchars($edit_band['band_content']['seo_title']) : '' ?>">
+                                <div class="help-text">Titel til brug i struktureret data og meta-tags</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="product_seo_description">SEO Beskrivelse:</label>
+                                <textarea name="product_seo_description" id="product_seo_description"><?= $edit_band && isset($edit_band['band_content']['seo_description']) ? htmlspecialchars($edit_band['band_content']['seo_description']) : '' ?></textarea>
+                                <div class="help-text">Beskrivelse til brug i struktureret data og meta-tags</div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- HTML bånd form -->
-                    <div id="html_form" class="band-type-form" style="display: <?= ($edit_band && $edit_band['band_type'] === 'html') ? 'block' : 'none' ?>;">
-                        <div class="form-group">
-                            <label for="html_title">Titel:</label>
-                            <input type="text" name="html_title" id="html_title" value="<?= $edit_band && isset($edit_band['band_content']['title']) ? htmlspecialchars($edit_band['band_content']['title']) : '' ?>">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="html_content">HTML-indhold:</label>
-                            <textarea name="html_content" id="html_content" rows="10"><?= $edit_band && isset($edit_band['band_content']['html']) ? htmlspecialchars($edit_band['band_content']['html']) : '' ?></textarea>
-                        </div>
-                        
-                        <?= color_picker(
-                            'html_bg_color', 
-                            $edit_band && isset($edit_band['band_content']['background_color']) ? $edit_band['band_content']['background_color'] : '',
-                            'Baggrundsfarve'
-                        ) ?>
-                        
-                        <?= color_picker(
-                            'html_text_color', 
-                            $edit_band && isset($edit_band['band_content']['text_color']) ? $edit_band['band_content']['text_color'] : '',
-                            'Tekstfarve'
-                        ) ?>
-                    </div>
-                    
-                    <!-- Link bånd form -->
-                    <div id="link_form" class="band-type-form" style="display: <?= ($edit_band && $edit_band['band_type'] === 'link') ? 'block' : 'none' ?>;">
-                        <div class="form-group">
-                            <label for="link_band_title">Titel:</label>
-                            <input type="text" name="link_band_title" id="link_band_title" value="<?= $edit_band && isset($edit_band['band_content']['title']) ? htmlspecialchars($edit_band['band_content']['title']) : '' ?>">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="link_band_subtitle">Undertitel:</label>
-                            <input type="text" name="link_band_subtitle" id="link_band_subtitle" value="<?= $edit_band && isset($edit_band['band_content']['subtitle']) ? htmlspecialchars($edit_band['band_content']['subtitle']) : '' ?>">
-                        </div>
-                        
-                        <?= color_picker(
-                            'link_bg_color', 
-                            $edit_band && isset($edit_band['band_content']['background_color']) ? $edit_band['band_content']['background_color'] : '',
-                            'Baggrundsfarve'
-                        ) ?>
-                        
-                        <?= color_picker(
-                            'link_text_color', 
-                            $edit_band && isset($edit_band['band_content']['text_color']) ? $edit_band['band_content']['text_color'] : '',
-                            'Tekstfarve'
-                        ) ?>
-                        
-                        <div class="form-group">
-                            <label for="link_alignment">Justering:</label>
-                            <select name="link_alignment" id="link_alignment">
-                                <option value="left" <?= $edit_band && isset($edit_band['band_content']['alignment']) && $edit_band['band_content']['alignment'] === 'left' ? 'selected' : '' ?>>Venstre</option>
-                                <option value="center" <?= $edit_band && isset($edit_band['band_content']['alignment']) && $edit_band['band_content']['alignment'] === 'center' ? 'selected' : '' ?>>Centreret</option>
-                                <option value="right" <?= $edit_band && isset($edit_band['band_content']['alignment']) && $edit_band['band_content']['alignment'] === 'right' ? 'selected' : '' ?>>Højre</option>
-                            </select>
-                        </div>
-                        
-                        <h4>Links</h4>
-                        <div id="link_list" class="slide-list">
-                            <?php 
-                            $links = $edit_band && isset($edit_band['band_content']['links']) ? $edit_band['band_content']['links'] : [];
-                            foreach ($links as $index => $link): 
-                            ?>
-                                <div class="slide-item" data-index="<?= $index ?>">
-                                    <div class="slide-header">
-                                        <h4 class="slide-title">Link <?= $index + 1 ?></h4>
-                                        <div class="slide-actions">
-                                            <button type="button" class="toggle-slide">Vis/skjul</button>
-                                            <button type="button" class="remove-link">Fjern</button>
-                                        </div>
-                                    </div>
-                                    <div class="slide-content">
-                                        <div class="form-group">
-                                            <label for="link_<?= $index ?>_text">Tekst:</label>
-                                            <input type="text" name="link_<?= $index ?>_text" id="link_<?= $index ?>_text" value="<?= htmlspecialchars($link['text']) ?>">
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="link_<?= $index ?>_url">URL:</label>
-                                            <input type="url" name="link_<?= $index ?>_url" id="link_<?= $index ?>_url" value="<?= htmlspecialchars($link['url']) ?>">
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="link_<?= $index ?>_style">Stil:</label>
-                                            <select name="link_<?= $index ?>_style" id="link_<?= $index ?>_style">
-                                                <option value="primary" <?= $link['style'] === 'primary' ? 'selected' : '' ?>>Primær</option>
-                                                <option value="secondary" <?= $link['style'] === 'secondary' ? 'selected' : '' ?>>Sekundær</option>
-                                                <option value="accent" <?= $link['style'] === 'accent' ? 'selected' : '' ?>>Fremhævet</option>
-                                                <option value="text" <?= $link['style'] === 'text' ? 'selected' : '' ?>>Tekst</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="checkbox-group">
-                                            <input type="checkbox" name="link_<?= $index ?>_new_window" id="link_<?= $index ?>_new_window" <?= isset($link['new_window']) && $link['new_window'] ? 'checked' : '' ?>>
-                                            <label for="link_<?= $index ?>_new_window">Åbn i nyt vindue</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        
-                        <button type="button" id="add_link" class="button secondary">
-                            <i class="fas fa-plus"></i> Tilføj link
-                        </button>
-                        
-                        <input type="hidden" name="link_count" id="link_count" value="<?= count($links) ?>">
-                    </div>
-                    
+
                     <div class="form-group" style="margin-top: 20px;">
                         <button type="submit" class="button">
                             <?= $edit_band ? 'Gem ændringer' : 'Tilføj bånd' ?>
@@ -1563,7 +1083,7 @@ function get_band_icon($type) {
                 </form>
                 
                 <!-- Delete form for modal submit -->
-                <form id="delete_form" action="band-editor.php" method="post" style="display: none;">
+                <form id="delete_form" action="band_editor.php" method="post" style="display: none;">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="page_id" value="<?= htmlspecialchars($page_id) ?>">
                     <input type="hidden" name="band_id" id="delete_band_id" value="">
@@ -1600,6 +1120,15 @@ function get_band_icon($type) {
                     const targetId = this.dataset.target;
                     document.getElementById(targetId).value = this.value;
                 });
+
+                // Synkroniser input-felt med color-picker
+                const targetId = picker.dataset.target;
+                const inputField = document.getElementById(targetId);
+                if (inputField) {
+                    inputField.addEventListener('input', function() {
+                        picker.value = this.value;
+                    });
+                }
             });
             
             // Slideshow håndtering
@@ -1614,6 +1143,7 @@ function get_band_icon($type) {
                     const index = slideCount;
                     const slideHtml = `
                         <div class="slide-item" data-index="${index}">
+                            <i class="slide-drag-handle fas fa-grip-vertical"></i>
                             <div class="slide-header">
                                 <h4 class="slide-title">Slide ${index + 1}</h4>
                                 <div class="slide-actions">
@@ -1633,3 +1163,212 @@ function get_band_icon($type) {
                                 </div>
                                 
                                 <div class="form-group">
+                                    <label for="slide_${index}_alt">Alt-tekst (SEO):</label>
+                                    <input type="text" name="slide_${index}_alt" id="slide_${index}_alt" value="">
+                                    <div class="help-text">Beskrivende tekst til billedet for SEO og tilgængelighed</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="slide_${index}_title">Titel:</label>
+                                    <input type="text" name="slide_${index}_title" id="slide_${index}_title" value="">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="slide_${index}_subtitle">Undertitel:</label>
+                                    <input type="text" name="slide_${index}_subtitle" id="slide_${index}_subtitle" value="">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="slide_${index}_link">Link:</label>
+                                    <input type="text" name="slide_${index}_link" id="slide_${index}_link" value="">
+                                </div>
+
+                                <div class="seo-section">
+                                    <h4>SEO-metadata</h4>
+                                    <div class="form-group">
+                                        <label for="slide_${index}_seo_title">SEO Titel:</label>
+                                        <input type="text" name="slide_${index}_seo_title" id="slide_${index}_seo_title" value="">
+                                        <div class="help-text">Titel til brug i struktureret data (JSON-LD)</div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="slide_${index}_seo_description">SEO Beskrivelse:</label>
+                                        <textarea name="slide_${index}_seo_description" id="slide_${index}_seo_description"></textarea>
+                                        <div class="help-text">Beskrivelse til brug i struktureret data og meta-tags</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    slideList.insertAdjacentHTML('beforeend', slideHtml);
+                    slideCount++;
+                    slideCountInput.value = slideCount;
+                    
+                    // Tilføj event listeners til den nye slide
+                    initSlideEvents();
+                    setupUploadAreas();
+                    
+                    // Initialiser sortable på den nye slide-liste
+                    initSortableSlides();
+                });
+            }
+            
+            // Initialiser event listeners for slides
+            function initSlideEvents() {
+                document.querySelectorAll('.toggle-slide').forEach(btn => {
+                    btn.removeEventListener('click', toggleSlideContent);
+                    btn.addEventListener('click', toggleSlideContent);
+                });
+                
+                document.querySelectorAll('.remove-slide').forEach(btn => {
+                    btn.removeEventListener('click', removeSlide);
+                    btn.addEventListener('click', removeSlide);
+                });
+            }
+            
+            // Toggle slide content
+            function toggleSlideContent() {
+                const content = this.closest('.slide-item').querySelector('.slide-content');
+                content.classList.toggle('active');
+            }
+            
+            // Fjern slide
+            function removeSlide() {
+                if (confirm('Er du sikker på, at du vil fjerne dette slide?')) {
+                    const slideItem = this.closest('.slide-item');
+                    slideItem.remove();
+                    updateSlideIndices();
+                }
+            }
+            
+            // Opdater slide indekser
+            function updateSlideIndices() {
+                const slides = slideList.querySelectorAll('.slide-item');
+                slideCount = slides.length;
+                slideCountInput.value = slideCount;
+                
+                slides.forEach((slide, i) => {
+                    slide.dataset.index = i;
+                    slide.querySelector('.slide-title').textContent = `Slide ${i + 1}`;
+                    
+                    // Opdater indekser i input-navne
+                    const inputs = slide.querySelectorAll('input, select, textarea');
+                    inputs.forEach(input => {
+                        const name = input.name;
+                        if (name) {
+                            input.name = name.replace(/slide_\d+/, `slide_${i}`);
+                            input.id = input.id.replace(/slide_\d+/, `slide_${i}`);
+                        }
+                    });
+                    
+                    // Opdater labels
+                    const labels = slide.querySelectorAll('label');
+                    labels.forEach(label => {
+                        const forAttr = label.getAttribute('for');
+                        if (forAttr) {
+                            label.setAttribute('for', forAttr.replace(/slide_\d+/, `slide_${i}`));
+                        }
+                    });
+                    
+                    // Opdater upload area
+                    const uploadArea = slide.querySelector('.upload-area');
+                    if (uploadArea) {
+                        uploadArea.dataset.target = `slide_${i}_image`;
+                    }
+                });
+            }
+            
+            // Initialiser events
+            initSlideEvents();
+            
+            // Visning/skjul af båndindhold
+            document.querySelectorAll('.toggle-preview').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const content = this.closest('.band-item').querySelector('.band-content');
+                    content.classList.toggle('active');
+                });
+            });
+            
+            // Sletning af bånd
+            document.querySelectorAll('.band-action.delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('Er du sikker på, at du vil slette dette bånd? Denne handling kan ikke fortrydes.')) {
+                        const bandId = this.dataset.id;
+                        document.getElementById('delete_band_id').value = bandId;
+                        document.getElementById('delete_form').submit();
+                    }
+                });
+            });
+            
+            // Drag-and-drop for slides
+            function initSortableSlides() {
+                const slideSortableList = document.querySelector('.sortable-slides');
+                if (slideSortableList) {
+                    // Fjern eventuelle eksisterende sortable instanser
+                    const oldInstance = slideSortableList._sortable;
+                    if (oldInstance) {
+                        oldInstance.destroy();
+                    }
+                    
+                    new Sortable(slideSortableList, {
+                        handle: '.slide-drag-handle',
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        onEnd: function() {
+                            updateSlideIndices();
+                        }
+                    });
+                }
+            }
+            
+            // Initialiser sortable for slides
+            initSortableSlides(); rækkefølge for bånd
+            const sortableList = document.querySelector('.sortable');
+            if (sortableList) {
+                const sortable = new Sortable(sortableList, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function() {
+                        // Opdater rækkefølgen i databasen via AJAX
+                        const items = sortableList.querySelectorAll('.band-item');
+                        const bandOrders = {};
+                        
+                        items.forEach((item, index) => {
+                            const bandId = item.dataset.id;
+                            bandOrders[bandId] = index + 1;
+                            
+                            // Opdater den synlige rækkefølge
+                            const title = item.querySelector('.band-title');
+                            const regex = /\(Højde: \d+, Rækkefølge: \d+\)/;
+                            const newText = title.textContent.replace(regex, `(Højde: ${item.dataset.height || '?'}, Rækkefølge: ${index + 1})`);
+                            title.textContent = newText;
+                        });
+                        
+                        // Send opdatering til server
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', 'band_editor.php', true);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 4) {
+                                if (xhr.status === 200) {
+                                    try {
+                                        const response = JSON.parse(xhr.responseText);
+                                        if (response.error) {
+                                            alert('Fejl: ' + response.error);
+                                        }
+                                    } catch (e) {
+                                        console.error('Fejl ved parsing af svar:', e);
+                                    }
+                                } else {
+                                    alert('Fejl ved opdatering af rækkefølge.');
+                                }
+                            }
+                        };
+                        xhr.send('action=update_order&page_id=' + encodeURIComponent('<?= $page_id ?>') + '&band_orders=' + encodeURIComponent(JSON.stringify(bandOrders)));
+                    }
+                });
+            }
+
+            // Drag-and-drop
