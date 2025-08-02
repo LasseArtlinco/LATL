@@ -1,47 +1,26 @@
 <?php
 // config.php - Database og applikationskonfiguration
-
 // Database konfiguration
+
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'xxxxxx');
 define('DB_USER', 'xxxxxx');
-define('DB_PASS', 'xxxxxxxxx');
+define('DB_PASS', 'xxxxxx');
 define('DB_CHARSET', 'utf8mb4');
 
-// Sti konfiguration
-define('BASE_URL', 'https://new.leatherandthelikes.dk');
-define('ROOT_PATH', dirname(__FILE__));
-define('UPLOADS_DIR', ROOT_PATH . '/uploads');
-define('IMAGES_DIR', UPLOADS_DIR . '/images');
-define('PRODUCTS_DIR', IMAGES_DIR . '/products');
-
-// Betalings integration
-define('QUICKPAY_API_KEY', ''); // Tilføj din QuickPay API nøgle
-define('QUICKPAY_PRIVATE_KEY', ''); // Tilføj din QuickPay private nøgle
-
-// Fragt integration
-define('SHIPMONDO_API_KEY', ''); // Tilføj din Shipmondo API nøgle
-define('SHIPMONDO_API_SECRET', ''); // Tilføj din Shipmondo API secret
-
-// Globale indstillinger
-define('DEFAULT_CURRENCY', 'DKK');
-define('VAT_RATE', 0.25); // 25% moms
-define('DEBUG_MODE', true);
-
-// Opret mappestruktur hvis den ikke eksisterer
-function ensureDirectoriesExist() {
-    $directories = [
-        UPLOADS_DIR,
-        IMAGES_DIR,
-        PRODUCTS_DIR
-    ];
-    
-    foreach ($directories as $dir) {
-        if (!file_exists($dir)) {
-            mkdir($dir, 0755, true);
-        }
-    }
+// Sti-konfiguration
+define('BASE_URL', 'xxxxxxxx'); // Ændr til din aktuelle URL
+define('PUBLIC_PATH', __DIR__ . '/../public');
+define('UPLOAD_PATH', PUBLIC_PATH . '/uploads');
+define('SITE_NAME', 'LATL.dk');
+// Fejlrapportering (sæt til false i produktion)
+define('DISPLAY_ERRORS', true);
+if (DISPLAY_ERRORS) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+} else {
+    error_reporting(0);
 }
-
-// Sikr at upload mapper eksisterer
-ensureDirectoriesExist();
+// Session start
+session_start();
