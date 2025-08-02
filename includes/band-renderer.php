@@ -1,116 +1,137 @@
 <?php
-// includes/band-renderer.php - Rendering af forskellige båndtyper
+// includes/band-renderer.php - Forbedret bånd-renderer med SEO og responsive billeder
 require_once __DIR__ . '/config.php';
-
-// Sikrer at upload-mappe konstanter er defineret
-if (!defined('UPLOAD_PATH')) {
-    define('UPLOAD_PATH', __DIR__ . '/../public/uploads');
-}
-if (!defined('BASE_URL')) {
-    define('BASE_URL', 'https://new.leatherandthelikes.dk');
-}
+require_once __DIR__ . '/image_handler.php';
 
 /**
- * Renderer et bånd baseret på type
+ * Renderer et bånd baseret på type og indhold
  * 
- * @param array $band Bånd-data fra databasen
+ * @param array $band Bånddata fra databasen
  */
 function render_band($band) {
     $type = $band['band_type'];
-    $content = $band['band_content'];
+    $content = is_array($band['band_content']) ? $band['band_content'] : json_decode($band['band_content'], true);
     $height = $band['band_height'];
-    $band_id = $band['id'];
     
-    echo "<section id='band-{$band_id}' class='band band-{$type} band-height-{$height}'>";
+    echo "<div class='band band-{$type} band-height-{$height}'>";
     
     switch ($type) {
         case 'slideshow':
-            render_slideshow_band($content, $band_id);
+            render_slideshow_band($content);
             break;
         case 'product':
-            render_product_band($content, $band_id);
-            break;
-        case 'html':
-            render_html_band($content, $band_id);
-            break;
-        case 'link':
-            render_link_band($content, $band_id);
+            render_product_band($content);
             break;
         default:
-            echo "<div class='content-wrapper'><p>Ukendt båndtype: {$type}</p></div>";
+            echo "<div class='container'><p>Ukendt båndtype: {$type}</p></div>";
     }
     
-    echo "</section>"; // .band
+    echo "</div>"; // .band
 }
 
 /**
- * Renderer et slideshow-bånd med responsivt design
+ * Renderer et slideshow-bånd
  * 
- * @param array $content Båndets indhold
- * @param int $band_id Båndets ID
+ * @param array $content Båndindhold
  */
-function render_slideshow_band($content, $band_id) {
+function render_slideshow_band($content) {
     $slides = $content['slides'] ?? [];
     $autoplay = $content['autoplay'] ?? false;
     $interval = $content['interval'] ?? 5000;
+    $title = $content['title'] ?? '';
+    $description = $content['description'] ?? '';
     
-    // Struktureret data for slideshow (JSON-LD)
-    $slideshow_data = [
-        '@context' => 'https://schema.org',
-        '@type' => 'ImageGallery',
-        'name' => $content['title'] ?? 'Billedgalleri',
-        'description' => $content['description'] ?? 'Vores billedgalleri',
-        'image' => []
-    ];
+    // Slideshow ID for ARIA og kontroller
+    $slideshowId = 'slideshow-' . uniqid();
     
-    echo "<div class='slideshow' id='slideshow-{$band_id}' data-autoplay='{$autoplay}' data-interval='{$interval}'>";
+    echo "<div class='slideshow' id='{$slideshowId}' data-autoplay='{$autoplay}' data-interval='{$interval}' role='region' aria-roledescription='carousel' aria-label='{$title}'>";
+    
+    // SEO: Struktureret data med JSON-LD
+    if (!empty($content['seo_schema'])) {
+        echo "<script type='application/ld+json'>";
+        echo $content['seo_schema'];
+        echo "</script>";
+    } else if (count($slides) > 0) {
+        // Auto-generér struktureret data hvis det ikke er angivet
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'ImageGallery',
+            'name' => $title,
+            'description' => $description,
+            'image' => []
+        ];
+        
+        foreach ($slides as $slide) {
+            $schema['image'][] = [
+                '@type' => 'ImageObject',
+                'name' => $slide['title'] ?? '',
+                'description' => $slide['seo_description'] ?? ($slide['subtitle'] ?? ''),
+                'contentUrl' => get_full_url('/uploads/' . ($slide['image'] ?? ''))
+            ];
+        }
+        
+        echo "<script type='application/ld+json'>";
+        echo json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        echo "</script>";
+    }
+    
+    echo "<div class='container'>";
+    
+    if ($title) {
+        echo "<h2 class='slideshow-title'>{$title}</h2>";
+    }
+    
+    if ($description) {
+        echo "<div class='slideshow-description'>{$description}</div>";
+    }
+    
     echo "<div class='slides'>";
     
     foreach ($slides as $index => $slide) {
         $active = $index === 0 ? 'active' : '';
-        $image = htmlspecialchars($slide['image']);
-        $title = htmlspecialchars($slide['title']);
+        $image = htmlspecialchars($slide['image'] ?? '');
+        $title = htmlspecialchars($slide['title'] ?? '');
         $subtitle = htmlspecialchars($slide['subtitle'] ?? '');
+        $alt = htmlspecialchars($slide['alt'] ?? $title);
         $link = htmlspecialchars($slide['link'] ?? '');
-        $image_alt = htmlspecialchars($slide['alt'] ?? $title);
         
-        // Tilføj til struktureret data
-        $slideshow_data['image'][] = [
-            '@type' => 'ImageObject',
-            'contentUrl' => BASE_URL . '/uploads/' . $image,
-            'name' => $title,
-            'description' => $subtitle,
-            'caption' => $subtitle
-        ];
-        
-        echo "<div class='slide {$active}'>";
+        echo "<div class='slide {$active}' role='group' aria-roledescription='slide' aria-label='Slide " . ($index + 1) . "'>";
         
         if ($link) {
             echo "<a href='{$link}' aria-label='{$title}'>";
         }
         
-        // Sikrer at vi har et billede og det eksisterer
-        if (!empty($image)) {
-            $image_path = UPLOAD_PATH . '/' . $image;
-            
-            if (file_exists($image_path)) {
-                echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
-            } else {
-                echo "<div class='placeholder-image'>Billede ikke fundet: {$image}</div>";
-            }
-        } else {
-            // Vis et pladsholderbillede hvis billedet ikke findes
-            echo "<div class='placeholder-image'>Intet billede</div>";
-        }
+        // Brug responsive billeder med WebP support
+        echo "<picture>";
+        
+        // WebP version
+        echo "<source type='image/webp' srcset='";
+        echo "/uploads/slideshow/large/{$image}.webp 1200w, ";
+        echo "/uploads/slideshow/medium/{$image}.webp 600w, ";
+        echo "/uploads/slideshow/small/{$image}.webp 300w";
+        echo "' sizes='(max-width: 767px) 100vw, (max-width: 1200px) 1200px, 100vw'>";
+        
+        // Original format som fallback
+        echo "<source srcset='";
+        echo "/uploads/slideshow/large/{$image} 1200w, ";
+        echo "/uploads/slideshow/medium/{$image} 600w, ";
+        echo "/uploads/slideshow/small/{$image} 300w";
+        echo "' sizes='(max-width: 767px) 100vw, (max-width: 1200px) 1200px, 100vw'>";
+        
+        // Fallback img-tag
+        echo "<img src='/uploads/{$image}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
+        echo "</picture>";
         
         echo "<div class='slide-content'>";
-        echo "<div class='content-wrapper'>";
-        echo "<h2>{$title}</h2>";
+        
+        if ($title) {
+            echo "<h3 class='slide-title'>{$title}</h3>";
+        }
         
         if ($subtitle) {
-            echo "<p>{$subtitle}</p>";
+            echo "<p class='slide-subtitle'>{$subtitle}</p>";
         }
-        echo "</div>"; // .content-wrapper
+        
         echo "</div>"; // .slide-content
         
         if ($link) {
@@ -122,65 +143,61 @@ function render_slideshow_band($content, $band_id) {
     
     echo "</div>"; // .slides
     
-    // Navigation - kun hvis der er flere slides
+    // Navigation
     if (count($slides) > 1) {
         echo "<div class='slideshow-nav'>";
-        echo "<div class='content-wrapper'>";
-        echo "<div class='slideshow-controls'>";
-        echo "<button class='prev' aria-label='Forrige slide'>&#10094;</button>";
+        echo "<button class='prev' aria-label='Forrige slide'><span class='sr-only'>Forrige</span><i class='fas fa-chevron-left' aria-hidden='true'></i></button>";
+        echo "<div class='indicators' role='tablist'>";
         
-        echo "<div class='indicators'>";
         foreach ($slides as $index => $slide) {
             $active = $index === 0 ? 'active' : '';
-            echo "<button class='indicator {$active}' data-slide='{$index}' aria-label='Gå til slide " . ($index + 1) . "'></button>";
+            $label = htmlspecialchars($slide['title'] ?? 'Slide ' . ($index + 1));
+            echo "<button class='indicator {$active}' data-slide='{$index}' role='tab' aria-label='{$label}' aria-selected='" . ($active ? 'true' : 'false') . "'></button>";
         }
-        echo "</div>"; // .indicators
         
-        echo "<button class='next' aria-label='Næste slide'>&#10095;</button>";
-        echo "</div>"; // .slideshow-controls
-        echo "</div>"; // .content-wrapper
+        echo "</div>"; // .indicators
+        echo "<button class='next' aria-label='Næste slide'><span class='sr-only'>Næste</span><i class='fas fa-chevron-right' aria-hidden='true'></i></button>";
         echo "</div>"; // .slideshow-nav
     }
     
+    echo "</div>"; // .container
     echo "</div>"; // .slideshow
-    
-    // Output struktureret data
-    echo "<script type='application/ld+json'>" . json_encode($slideshow_data) . "</script>";
 }
 
 /**
- * Renderer et produkt-bånd med responsivt design
+ * Renderer et produkt-bånd
  * 
- * @param array $content Båndets indhold
- * @param int $band_id Båndets ID
+ * @param array $content Båndindhold
  */
-function render_product_band($content, $band_id) {
+function render_product_band($content) {
     $image = htmlspecialchars($content['image'] ?? '');
     $bgColor = htmlspecialchars($content['background_color'] ?? '#ffffff');
     $title = htmlspecialchars($content['title'] ?? '');
     $subtitle = htmlspecialchars($content['subtitle'] ?? '');
     $link = htmlspecialchars($content['link'] ?? '');
-    $image_alt = htmlspecialchars($content['alt'] ?? $title);
-    $button_text = htmlspecialchars($content['button_text'] ?? 'Se mere');
+    $alt = htmlspecialchars($content['alt'] ?? $title);
+    $buttonText = htmlspecialchars($content['button_text'] ?? 'Se mere');
     
-    // Struktureret data for produkt (JSON-LD)
-    $product_data = [
+    // Product ID for ARIA
+    $productId = 'product-' . uniqid();
+    
+    echo "<div id='{$productId}' class='product-band' style='background-color: {$bgColor};'>";
+    
+    // SEO: Struktureret data med JSON-LD
+    $schema = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
-        'name' => $title,
-        'description' => $subtitle
+        'name' => $content['seo_title'] ?? $title,
+        'description' => $content['seo_description'] ?? $subtitle,
+        'image' => get_full_url('/uploads/' . $image)
     ];
     
-    if (!empty($image)) {
-        $product_data['image'] = BASE_URL . '/uploads/' . $image;
-    }
+    echo "<script type='application/ld+json'>";
+    echo json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    echo "</script>";
     
-    if (!empty($link)) {
-        $product_data['url'] = BASE_URL . $link;
-    }
-    
-    echo "<div class='product-band' style='background-color: {$bgColor};'>";
-    echo "<div class='content-wrapper'>";
+    echo "<div class='container'>";
+    echo "<div class='product-inner'>";
     
     if ($link) {
         echo "<a href='{$link}' class='product-link' aria-label='{$title}'>";
@@ -188,31 +205,42 @@ function render_product_band($content, $band_id) {
     
     echo "<div class='product-image'>";
     
-    if (!empty($image)) {
-        $image_path = UPLOAD_PATH . '/' . $image;
-        
-        if (file_exists($image_path)) {
-            echo "<img src='/uploads/{$image}' alt='{$image_alt}' class='product-img'>";
-        } else {
-            echo "<div class='placeholder-image'>Billede ikke fundet: {$image}</div>";
-        }
-    } else {
-        // Vis en pladsholder hvis billedet ikke findes
-        echo "<div class='placeholder-image'>Intet billede</div>";
-    }
+    // Brug responsive billeder med WebP support for produkter
+    echo "<picture>";
+    
+    // WebP version
+    echo "<source type='image/webp' srcset='";
+    echo "/uploads/product/large/{$image}.webp 1200w, ";
+    echo "/uploads/product/medium/{$image}.webp 600w, ";
+    echo "/uploads/product/small/{$image}.webp 300w";
+    echo "' sizes='(max-width: 767px) 300px, (max-width: 1200px) 600px, 1200px'>";
+    
+    // Original format som fallback
+    echo "<source srcset='";
+    echo "/uploads/product/large/{$image} 1200w, ";
+    echo "/uploads/product/medium/{$image} 600w, ";
+    echo "/uploads/product/small/{$image} 300w";
+    echo "' sizes='(max-width: 767px) 300px, (max-width: 1200px) 600px, 1200px'>";
+    
+    // Fallback img-tag
+    echo "<img src='/uploads/{$image}' alt='{$alt}' class='product-image-file' loading='lazy'>";
+    echo "</picture>";
     
     echo "</div>"; // .product-image
     
     echo "<div class='product-content'>";
-    echo "<h2>{$title}</h2>";
+    
+    if ($title) {
+        echo "<h3 class='product-title'>{$title}</h3>";
+    }
     
     if ($subtitle) {
-        echo "<p>{$subtitle}</p>";
+        echo "<p class='product-subtitle'>{$subtitle}</p>";
     }
     
     if ($link) {
         echo "<div class='product-cta'>";
-        echo "<span class='button'>{$button_text}</span>";
+        echo "<span class='button'>{$buttonText}</span>";
         echo "</div>"; // .product-cta
     }
     
@@ -222,97 +250,17 @@ function render_product_band($content, $band_id) {
         echo "</a>"; // .product-link
     }
     
-    echo "</div>"; // .content-wrapper
+    echo "</div>"; // .product-inner
+    echo "</div>"; // .container
     echo "</div>"; // .product-band
-    
-    // Output struktureret data
-    echo "<script type='application/ld+json'>" . json_encode($product_data) . "</script>";
 }
 
 /**
- * Renderer et HTML-bånd med fritekst-indhold
- * 
- * @param array $content Båndets indhold
- * @param int $band_id Båndets ID
+ * Hjælpefunktion til at få fuld URL med domæne
  */
-function render_html_band($content, $band_id) {
-    $title = htmlspecialchars($content['title'] ?? '');
-    $html = $content['html'] ?? '';
-    $bg_color = htmlspecialchars($content['background_color'] ?? '');
-    $text_color = htmlspecialchars($content['text_color'] ?? '');
-    
-    $style = '';
-    if ($bg_color) {
-        $style .= "background-color: {$bg_color};";
-    }
-    if ($text_color) {
-        $style .= "color: {$text_color};";
-    }
-    
-    echo "<div class='html-band' style='{$style}'>";
-    echo "<div class='content-wrapper'>";
-    
-    if ($title) {
-        echo "<h2 class='html-band-title'>{$title}</h2>";
-    }
-    
-    // Filtrer og vis HTML-indhold
-    echo "<div class='html-band-content'>";
-    echo $html; // Vi stoler på admins til at skrive sikker HTML
-    echo "</div>"; // .html-band-content
-    
-    echo "</div>"; // .content-wrapper
-    echo "</div>"; // .html-band
+function get_full_url($path) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $domain = $_SERVER['HTTP_HOST'];
+    return $protocol . $domain . $path;
 }
-
-/**
- * Renderer et link-bånd med CTA-knapper
- * 
- * @param array $content Båndets indhold
- * @param int $band_id Båndets ID
- */
-function render_link_band($content, $band_id) {
-    $title = htmlspecialchars($content['title'] ?? '');
-    $subtitle = htmlspecialchars($content['subtitle'] ?? '');
-    $bg_color = htmlspecialchars($content['background_color'] ?? '');
-    $text_color = htmlspecialchars($content['text_color'] ?? '');
-    $links = $content['links'] ?? [];
-    $alignment = htmlspecialchars($content['alignment'] ?? 'center');
-    
-    $style = '';
-    if ($bg_color) {
-        $style .= "background-color: {$bg_color};";
-    }
-    if ($text_color) {
-        $style .= "color: {$text_color};";
-    }
-    
-    echo "<div class='link-band text-{$alignment}' style='{$style}'>";
-    echo "<div class='content-wrapper'>";
-    
-    if ($title) {
-        echo "<h2 class='link-band-title'>{$title}</h2>";
-    }
-    
-    if ($subtitle) {
-        echo "<p class='link-band-subtitle'>{$subtitle}</p>";
-    }
-    
-    if (!empty($links)) {
-        echo "<div class='link-band-buttons'>";
-        
-        foreach ($links as $link) {
-            $url = htmlspecialchars($link['url'] ?? '#');
-            $text = htmlspecialchars($link['text'] ?? 'Læs mere');
-            $style = htmlspecialchars($link['style'] ?? 'primary');
-            $target = isset($link['new_window']) && $link['new_window'] ? ' target="_blank" rel="noopener"' : '';
-            
-            echo "<a href='{$url}' class='button button-{$style}'{$target}>{$text}</a>";
-        }
-        
-        echo "</div>"; // .link-band-buttons
-    }
-    
-    echo "</div>"; // .content-wrapper
-    echo "</div>"; // .link-band
-}
+?>
