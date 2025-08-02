@@ -342,7 +342,12 @@ function generate_css($colorPalette, $fontConfig, $globalStyles) {
     }
     
     // Gem CSS-filen
-    file_put_contents(ROOT_PATH . '/public/css/style.css', $css);
+    $css_dir = ROOT_PATH . '/public/css';
+    if (!file_exists($css_dir)) {
+        mkdir($css_dir, 0755, true);
+    }
+    
+    file_put_contents($css_dir . '/style.css', $css);
     
     return true;
 }
@@ -761,4 +766,508 @@ $fontWeights = [
                 </div>
             <?php endif; ?>
             
-            <?php if (isset($_GET['error
+            <?php if (isset($_GET['error'])): ?>
+                <div class="alert alert-danger">
+                    <?= htmlspecialchars($_GET['error']) ?>
+                </div>
+            <?php endif; ?>
+            
+            <div class="design-editor">
+                <div class="tabs">
+                    <div class="tab active" data-tab="colors">Farver</div>
+                    <div class="tab" data-tab="typography">Typografi</div>
+                    <div class="tab" data-tab="custom">Tilpasset CSS</div>
+                    <div class="tab" data-tab="preview">Forhåndsvisning</div>
+                </div>
+                
+                <form action="design-editor.php" method="post">
+                    <input type="hidden" name="action" value="save_design">
+                    
+                    <!-- Tab: Farver -->
+                    <div class="tab-content active" id="tab-colors">
+                        <h3>Farveskema</h3>
+                        
+                        <div class="preview-wrapper">
+                            <h4 class="preview-title">Farveprøver</h4>
+                            <div class="flex-grid">
+                                <div class="color-preview" id="preview-primary" style="background-color: <?= htmlspecialchars($colorPalette['primary'] ?? '#042940') ?>">
+                                    <div class="color-label">Primær</div>
+                                </div>
+                                <div class="color-preview" id="preview-secondary" style="background-color: <?= htmlspecialchars($colorPalette['secondary'] ?? '#005C53') ?>">
+                                    <div class="color-label">Sekundær</div>
+                                </div>
+                                <div class="color-preview" id="preview-accent" style="background-color: <?= htmlspecialchars($colorPalette['accent'] ?? '#9FC131') ?>">
+                                    <div class="color-label">Accent</div>
+                                </div>
+                                <div class="color-preview" id="preview-bright" style="background-color: <?= htmlspecialchars($colorPalette['bright'] ?? '#DBF227') ?>">
+                                    <div class="color-label">Lys accent</div>
+                                </div>
+                                <div class="color-preview" id="preview-background" style="background-color: <?= htmlspecialchars($colorPalette['background'] ?? '#D6D58E') ?>">
+                                    <div class="color-label">Baggrund</div>
+                                </div>
+                                <div class="color-preview" id="preview-text" style="background-color: <?= htmlspecialchars($colorPalette['text'] ?? '#042940') ?>">
+                                    <div class="color-label" style="color: white;">Tekst</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-row">
+                            <div class="flex-column">
+                                <?= color_picker(
+                                    'color_primary',
+                                    $colorPalette['primary'] ?? '#042940',
+                                    'Primær farve'
+                                ) ?>
+                                <div class="help-text">Bruges til hovedoverskrifter og vigtige elementer</div>
+                            </div>
+                            
+                            <div class="flex-column">
+                                <?= color_picker(
+                                    'color_secondary',
+                                    $colorPalette['secondary'] ?? '#005C53',
+                                    'Sekundær farve'
+                                ) ?>
+                                <div class="help-text">Bruges til understøttende elementer</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-row">
+                            <div class="flex-column">
+                                <?= color_picker(
+                                    'color_accent',
+                                    $colorPalette['accent'] ?? '#9FC131',
+                                    'Accent farve'
+                                ) ?>
+                                <div class="help-text">Bruges til at fremhæve vigtige elementer som knapper</div>
+                            </div>
+                            
+                            <div class="flex-column">
+                                <?= color_picker(
+                                    'color_bright',
+                                    $colorPalette['bright'] ?? '#DBF227',
+                                    'Lys accent farve'
+                                ) ?>
+                                <div class="help-text">Bruges til hover-effekter og lysere accenter</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-row">
+                            <div class="flex-column">
+                                <?= color_picker(
+                                    'color_background',
+                                    $colorPalette['background'] ?? '#D6D58E',
+                                    'Baggrundsfarve'
+                                ) ?>
+                                <div class="help-text">Standard baggrundsfarve for hjemmesiden</div>
+                            </div>
+                            
+                            <div class="flex-column">
+                                <?= color_picker(
+                                    'color_text',
+                                    $colorPalette['text'] ?? '#042940',
+                                    'Tekstfarve'
+                                ) ?>
+                                <div class="help-text">Standard tekstfarve</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Typografi -->
+                    <div class="tab-content" id="tab-typography">
+                        <h3>Skrifttyper</h3>
+                        
+                        <div class="preview-wrapper">
+                            <h4 class="preview-title">Typografi-eksempler</h4>
+                            
+                            <div class="font-preview">
+                                <h2 style="font-family: <?= htmlspecialchars($fontConfig['heading']['font-family'] ?? 'inherit') ?>; font-weight: <?= htmlspecialchars($fontConfig['heading']['font-weight'] ?? 'inherit') ?>;">
+                                    Overskrift-eksempel
+                                </h2>
+                                <p style="font-family: <?= htmlspecialchars($fontConfig['body']['font-family'] ?? 'inherit') ?>; font-weight: <?= htmlspecialchars($fontConfig['body']['font-weight'] ?? 'inherit') ?>;">
+                                    Dette er et eksempel på brødtekst. Den viser, hvordan den valgte skrifttype vil se ud på hjemmesiden.
+                                </p>
+                                <button style="font-family: <?= htmlspecialchars($fontConfig['button']['font-family'] ?? 'inherit') ?>; font-weight: <?= htmlspecialchars($fontConfig['button']['font-weight'] ?? 'inherit') ?>;">
+                                    Knap-eksempel
+                                </button>
+                                <p>
+                                    <span style="font-family: <?= htmlspecialchars($fontConfig['price']['font-family'] ?? 'inherit') ?>; font-weight: <?= htmlspecialchars($fontConfig['price']['font-weight'] ?? 'inherit') ?>; font-size: 1.5rem;">
+                                        299,95 kr
+                                    </span>
+                                </p>
+                            </div>
+                            
+                            <div class="help-text">
+                                <p>For at benytte Google Fonts, tilføj først import-koden til "Tilpasset CSS"-fanen og vælg derefter skrifttypen her.</p>
+                                <p>Eksempel på Google Fonts import:</p>
+                                <code>@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');</code>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="font_heading">Overskrift-skrifttype:</label>
+                            <select name="font_heading" id="font_heading">
+                                <?php foreach ($commonFonts as $value => $label): ?>
+                                    <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['heading']['font-family'] ?? '') === $value ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                                <option value="custom" <?= !in_array($fontConfig['heading']['font-family'] ?? '', array_keys($commonFonts)) ? 'selected' : '' ?>>
+                                    Tilpasset (skriv nedenfor)
+                                </option>
+                            </select>
+                            <div id="custom_heading_font" style="display: <?= !in_array($fontConfig['heading']['font-family'] ?? '', array_keys($commonFonts)) ? 'block' : 'none' ?>;">
+                                <input type="text" name="custom_heading_font" value="<?= !in_array($fontConfig['heading']['font-family'] ?? '', array_keys($commonFonts)) ? htmlspecialchars($fontConfig['heading']['font-family']) : '' ?>" placeholder="f.eks. 'Roboto, sans-serif'">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="font_heading_weight">Overskrift-tykkelse:</label>
+                                <select name="font_heading_weight" id="font_heading_weight">
+                                    <?php foreach ($fontWeights as $value => $label): ?>
+                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['heading']['font-weight'] ?? '') === $value ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($label) ?> (<?= htmlspecialchars($value) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="font_body">Brødtekst-skrifttype:</label>
+                            <select name="font_body" id="font_body">
+                                <?php foreach ($commonFonts as $value => $label): ?>
+                                    <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['body']['font-family'] ?? '') === $value ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                                <option value="custom" <?= !in_array($fontConfig['body']['font-family'] ?? '', array_keys($commonFonts)) ? 'selected' : '' ?>>
+                                    Tilpasset (skriv nedenfor)
+                                </option>
+                            </select>
+                            <div id="custom_body_font" style="display: <?= !in_array($fontConfig['body']['font-family'] ?? '', array_keys($commonFonts)) ? 'block' : 'none' ?>;">
+                                <input type="text" name="custom_body_font" value="<?= !in_array($fontConfig['body']['font-family'] ?? '', array_keys($commonFonts)) ? htmlspecialchars($fontConfig['body']['font-family']) : '' ?>" placeholder="f.eks. 'Roboto, sans-serif'">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="font_body_weight">Brødtekst-tykkelse:</label>
+                                <select name="font_body_weight" id="font_body_weight">
+                                    <?php foreach ($fontWeights as $value => $label): ?>
+                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['body']['font-weight'] ?? '') === $value ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($label) ?> (<?= htmlspecialchars($value) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="font_button">Knap-skrifttype:</label>
+                            <select name="font_button" id="font_button">
+                                <?php foreach ($commonFonts as $value => $label): ?>
+                                    <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['button']['font-family'] ?? '') === $value ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                                <option value="custom" <?= !in_array($fontConfig['button']['font-family'] ?? '', array_keys($commonFonts)) ? 'selected' : '' ?>>
+                                    Tilpasset (skriv nedenfor)
+                                </option>
+                            </select>
+                            <div id="custom_button_font" style="display: <?= !in_array($fontConfig['button']['font-family'] ?? '', array_keys($commonFonts)) ? 'block' : 'none' ?>;">
+                                <input type="text" name="custom_button_font" value="<?= !in_array($fontConfig['button']['font-family'] ?? '', array_keys($commonFonts)) ? htmlspecialchars($fontConfig['button']['font-family']) : '' ?>" placeholder="f.eks. 'Roboto, sans-serif'">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="font_button_weight">Knap-tykkelse:</label>
+                                <select name="font_button_weight" id="font_button_weight">
+                                    <?php foreach ($fontWeights as $value => $label): ?>
+                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['button']['font-weight'] ?? '') === $value ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($label) ?> (<?= htmlspecialchars($value) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="font_price">Pris-skrifttype:</label>
+                            <select name="font_price" id="font_price">
+                                <?php foreach ($commonFonts as $value => $label): ?>
+                                    <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['price']['font-family'] ?? '') === $value ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                                <option value="custom" <?= !in_array($fontConfig['price']['font-family'] ?? '', array_keys($commonFonts)) ? 'selected' : '' ?>>
+                                    Tilpasset (skriv nedenfor)
+                                </option>
+                            </select>
+                            <div id="custom_price_font" style="display: <?= !in_array($fontConfig['price']['font-family'] ?? '', array_keys($commonFonts)) ? 'block' : 'none' ?>;">
+                                <input type="text" name="custom_price_font" value="<?= !in_array($fontConfig['price']['font-family'] ?? '', array_keys($commonFonts)) ? htmlspecialchars($fontConfig['price']['font-family']) : '' ?>" placeholder="f.eks. 'Roboto, sans-serif'">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="font_price_weight">Pris-tykkelse:</label>
+                                <select name="font_price_weight" id="font_price_weight">
+                                    <?php foreach ($fontWeights as $value => $label): ?>
+                                        <option value="<?= htmlspecialchars($value) ?>" <?= ($fontConfig['price']['font-weight'] ?? '') === $value ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($label) ?> (<?= htmlspecialchars($value) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Tilpasset CSS -->
+                    <div class="tab-content" id="tab-custom">
+                        <h3>Tilpasset CSS</h3>
+                        
+                        <div class="form-group">
+                            <label for="global_css">Tilføj egen CSS:</label>
+                            <textarea name="global_css" id="global_css" rows="15"><?= htmlspecialchars($css) ?></textarea>
+                            <div class="help-text">
+                                <p>Her kan du tilføje din egen CSS-kode, som vil blive tilføjet til slutningen af den genererede stylesheet-fil.</p>
+                                <p>Dette er også et godt sted at tilføje Google Fonts imports, f.eks.:</p>
+                                <code>@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab: Forhåndsvisning -->
+                    <div class="tab-content" id="tab-preview">
+                        <h3>Forhåndsvisning</h3>
+                        
+                        <div class="preview-wrapper">
+                            <div id="live-preview" style="padding: 20px;">
+                                <h1 style="font-family: var(--heading-font); color: var(--primary-color);">Overskrift niveau 1</h1>
+                                <h2 style="font-family: var(--heading-font); color: var(--primary-color);">Overskrift niveau 2</h2>
+                                <h3 style="font-family: var(--heading-font); color: var(--primary-color);">Overskrift niveau 3</h3>
+                                
+                                <p style="font-family: var(--body-font); color: var(--text-color);">
+                                    Dette er et eksempel på brødtekst. Den viser, hvordan den valgte skrifttype og tekstfarve vil se ud på hjemmesiden.
+                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris.
+                                </p>
+                                
+                                <p>
+                                    <a href="#" style="color: var(--accent-color);">Dette er et link</a>
+                                </p>
+                                
+                                <div style="margin: 20px 0;">
+                                    <button style="background-color: var(--accent-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-family: var(--button-font);">
+                                        Knap-eksempel
+                                    </button>
+                                </div>
+                                
+                                <div style="background-color: var(--secondary-color); color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                                    <h3 style="color: white; font-family: var(--heading-font);">Indholdsblok</h3>
+                                    <p>Dette er et eksempel på en indholdsblok med en anden baggrundsfarve.</p>
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; background-color: var(--background-color); padding: 20px; border-radius: 5px;">
+                                    <div style="flex: 1; padding-right: 20px;">
+                                        <h3 style="font-family: var(--heading-font); color: var(--primary-color);">Produkttitel</h3>
+                                        <p style="font-family: var(--body-font); color: var(--text-color);">Produktbeskrivelse og information.</p>
+                                        <p style="font-family: var(--price-font); font-size: 1.5rem; color: var(--primary-color);">299,95 kr</p>
+                                    </div>
+                                    <div style="flex: 1; text-align: center;">
+                                        <div style="width: 100px; height: 100px; background-color: var(--bright-color); border-radius: 5px; margin: 0 auto;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <button type="submit" class="button">
+                            Gem design-indstillinger
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab navigation
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Fjern active class fra alle tabs og indhold
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Tilføj active class til det valgte tab og indhold
+                    this.classList.add('active');
+                    document.getElementById('tab-' + tabId).classList.add('active');
+                });
+            });
+            
+            // Farveværktøj
+            const colorPickers = document.querySelectorAll('.color-picker');
+            colorPickers.forEach(picker => {
+                picker.addEventListener('input', function() {
+                    const targetId = this.dataset.target;
+                    const inputField = document.getElementById(targetId);
+                    inputField.value = this.value;
+                    
+                    // Opdater farveprøve
+                    const previewId = targetId.replace('color_', 'preview-');
+                    const preview = document.getElementById(previewId);
+                    if (preview) {
+                        preview.style.backgroundColor = this.value;
+                    }
+                    
+                    // Opdater live preview
+                    updateLivePreview();
+                });
+                
+                // Synkroniser input-felt med color-picker
+                const targetId = picker.dataset.target;
+                const inputField = document.getElementById(targetId);
+                if (inputField) {
+                    inputField.addEventListener('input', function() {
+                        picker.value = this.value;
+                        
+                        // Opdater farveprøve
+                        const previewId = targetId.replace('color_', 'preview-');
+                        const preview = document.getElementById(previewId);
+                        if (preview) {
+                            preview.style.backgroundColor = this.value;
+                        }
+                        
+                        // Opdater live preview
+                        updateLivePreview();
+                    });
+                }
+            });
+            
+            // Tilpasset skrifttype toggle
+            const fontSelects = {
+                'font_heading': 'custom_heading_font',
+                'font_body': 'custom_body_font',
+                'font_button': 'custom_button_font',
+                'font_price': 'custom_price_font'
+            };
+            
+            Object.entries(fontSelects).forEach(([selectId, customId]) => {
+                const select = document.getElementById(selectId);
+                const customDiv = document.getElementById(customId);
+                
+                if (select && customDiv) {
+                    select.addEventListener('change', function() {
+                        if (this.value === 'custom') {
+                            customDiv.style.display = 'block';
+                        } else {
+                            customDiv.style.display = 'none';
+                        }
+                        
+                        // Opdater typografi-preview
+                        updateTypographyPreview();
+                    });
+                }
+            });
+            
+            // Opdater typografi-preview når værdier ændres
+            document.querySelectorAll('#tab-typography select, #tab-typography input').forEach(el => {
+                el.addEventListener('change', updateTypographyPreview);
+                el.addEventListener('input', updateTypographyPreview);
+            });
+            
+            // Live preview opdatering
+            function updateLivePreview() {
+                const preview = document.getElementById('live-preview');
+                const styles = document.createElement('style');
+                
+                // Farver
+                let css = ':root {\n';
+                
+                // Farver fra color-pickers
+                css += `  --primary-color: ${document.getElementById('color_primary').value || '#042940'};\n`;
+                css += `  --secondary-color: ${document.getElementById('color_secondary').value || '#005C53'};\n`;
+                css += `  --accent-color: ${document.getElementById('color_accent').value || '#9FC131'};\n`;
+                css += `  --bright-color: ${document.getElementById('color_bright').value || '#DBF227'};\n`;
+                css += `  --background-color: ${document.getElementById('color_background').value || '#D6D58E'};\n`;
+                css += `  --text-color: ${document.getElementById('color_text').value || '#042940'};\n`;
+                
+                // Skrifttyper
+                const getFontFamily = (selectId, customId) => {
+                    const select = document.getElementById(selectId);
+                    if (select.value === 'custom') {
+                        return document.getElementById(customId).value || 'inherit';
+                    } else {
+                        return select.value;
+                    }
+                };
+                
+                css += `  --heading-font: ${getFontFamily('font_heading', 'custom_heading_font')};\n`;
+                css += `  --body-font: ${getFontFamily('font_body', 'custom_body_font')};\n`;
+                css += `  --button-font: ${getFontFamily('font_button', 'custom_button_font')};\n`;
+                css += `  --price-font: ${getFontFamily('font_price', 'custom_price_font')};\n`;
+                
+                css += `  --heading-weight: ${document.getElementById('font_heading_weight').value || '400'};\n`;
+                css += `  --body-weight: ${document.getElementById('font_body_weight').value || '400'};\n`;
+                css += `  --button-weight: ${document.getElementById('font_button_weight').value || '600'};\n`;
+                css += `  --price-weight: ${document.getElementById('font_price_weight').value || '400'};\n`;
+                
+                css += '}\n';
+                
+                styles.textContent = css;
+                
+                // Fjern tidligere style-tag og tilføj det nye
+                const oldStyle = preview.querySelector('style');
+                if (oldStyle) {
+                    preview.removeChild(oldStyle);
+                }
+                preview.prepend(styles);
+            }
+            
+            // Opdater typografi-preview
+            function updateTypographyPreview() {
+                const headingPreview = document.querySelector('.font-preview h2');
+                const bodyPreview = document.querySelector('.font-preview p');
+                const buttonPreview = document.querySelector('.font-preview button');
+                const pricePreview = document.querySelector('.font-preview span');
+                
+                const getFontFamily = (selectId, customId) => {
+                    const select = document.getElementById(selectId);
+                    if (select.value === 'custom') {
+                        return document.getElementById(customId).value || 'inherit';
+                    } else {
+                        return select.value;
+                    }
+                };
+                
+                if (headingPreview) {
+                    headingPreview.style.fontFamily = getFontFamily('font_heading', 'custom_heading_font');
+                    headingPreview.style.fontWeight = document.getElementById('font_heading_weight').value || 'inherit';
+                }
+                
+                if (bodyPreview) {
+                    bodyPreview.style.fontFamily = getFontFamily('font_body', 'custom_body_font');
+                    bodyPreview.style.fontWeight = document.getElementById('font_body_weight').value || 'inherit';
+                }
+                
+                if (buttonPreview) {
+                    buttonPreview.style.fontFamily = getFontFamily('font_button', 'custom_button_font');
+                    buttonPreview.style.fontWeight = document.getElementById('font_button_weight').value || 'inherit';
+                }
+                
+                if (pricePreview) {
+                    pricePreview.style.fontFamily = getFontFamily('font_price', 'custom_price_font');
+                    pricePreview.style.fontWeight = document.getElementById('font_price_weight').value || 'inherit';
+                }
+                
+                // Opdater også live preview
+                updateLivePreview();
+            }
+            
+            // Initialiser previews
+            updateTypographyPreview();
+            updateLivePreview();
+        });
+    </script>
+</body>
+</html>
