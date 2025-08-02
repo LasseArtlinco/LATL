@@ -20,28 +20,31 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 # Beskyt includes-mappen
 RewriteRule ^includes/.*$ - [F,L]
 
-# Beskyt admin-mappen (undtagen når man er logget ind)
-# RewriteCond %{REQUEST_URI} ^/admin/
-# RewriteCond %{HTTP_COOKIE} !admin_authenticated=true
-# RewriteRule ^admin/(?!index\.php) - [F,L]
+# VIGTIGT: Tillad direkte adgang til specifikke filer FØRST
+RewriteRule ^session-debug\.php$ - [L]
+RewriteRule ^dbtest\.php$ - [L]
+RewriteRule ^test\.php$ - [L]
 
-# Omdiriger alle requests til public/index.php hvis filen ikke eksisterer
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} !^/admin/
-RewriteCond %{REQUEST_URI} !^/api/
-RewriteCond %{REQUEST_URI} !^/uploads/
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(.*)$ public/index.php?page=$1 [QSA,L]
+# Tillad direkte adgang til admin (eksisterende filer)
+RewriteCond %{REQUEST_URI} ^/admin/
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Tillad direkte adgang til api (eksisterende filer)
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 
 # Tillad direkte adgang til uploads
 RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
 
-# Tillad direkte adgang til debug-filer
-RewriteRule ^session-debug\.php$ - [L]
-
 # Tillad direkte adgang til assets
 RewriteRule ^(css|js|images|fonts)/(.*)$ public/$1/$2 [L]
+
+# Omdiriger alle ANDRE requests til public/index.php hvis filen ikke eksisterer
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/index.php?page=$1 [QSA,L]
 
 # Sikkerhedsheaders
 <IfModule mod_headers.c>
@@ -107,4 +110,3 @@ ErrorDocument 500 /public/500.php
     php_value max_execution_time 300
     php_value max_input_time 300
 </IfModule>
-
