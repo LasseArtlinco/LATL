@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/band-renderer.php';
-require_once __DIR__ . '/../includes/image-handler.php'; // Ny fil til billedhåndtering
 
 // Hent den anmodede side (default: forside)
 $page_id = isset($_GET['page']) ? $_GET['page'] : 'forside';
@@ -441,6 +440,21 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
+        /* Tilgængelighed */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary-color, #042940);
+            color: white;
+            padding: 8px;
+            z-index: 100;
+        }
+        
+        .skip-link:focus {
+            top: 0;
+        }
+        
         /* Responsivt design */
         @media (max-width: 992px) {
             .slideshow {
@@ -561,11 +575,14 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     </style>
 </head>
 <body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Gå til indhold</a>
+    
     <!-- Header -->
     <header class="site-header">
         <div class="container">
             <a href="/" class="logo">LATL.dk</a>
-            <button class="mobile-nav-toggle" aria-label="Åbn menu">☰</button>
+            <button class="mobile-nav-toggle" aria-label="Åbn menu" aria-expanded="false">☰</button>
             <nav>
                 <ul>
                     <li><a href="/shop">Shop</a></li>
@@ -579,7 +596,7 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     </header>
 
     <!-- Bånd-indhold -->
-    <main>
+    <main id="main-content" tabindex="-1">
         <?php foreach ($bands as $band): ?>
             <?php render_band($band); ?>
         <?php endforeach; ?>
@@ -625,195 +642,6 @@ $canonical_url = BASE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     </footer>
     
     <!-- JavaScript -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mobile navigation toggle
-        const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
-        const nav = document.querySelector('nav');
-        
-        if (mobileNavToggle && nav) {
-            mobileNavToggle.addEventListener('click', function() {
-                nav.classList.toggle('active');
-            });
-        }
-        
-        // Forbedret slideshow funktionalitet
-        const slideshows = document.querySelectorAll('.slideshow');
-        
-        slideshows.forEach(function(slideshow) {
-            const slides = slideshow.querySelector('.slides');
-            const slideElements = slideshow.querySelectorAll('.slide');
-            const indicators = slideshow.querySelectorAll('.indicator');
-            const prevBtn = slideshow.querySelector('.prev');
-            const nextBtn = slideshow.querySelector('.next');
-            
-            let currentSlide = 0;
-            let isAnimating = false;
-            const slideCount = slideElements.length;
-            let touchStartX = 0;
-            let touchEndX = 0;
-            
-            // Hvis der kun er ét slide, gør vi ingenting
-            if (slideCount <= 1) return;
-            
-            function goToSlide(index, direction = null) {
-                if (isAnimating) return;
-                isAnimating = true;
-                
-                // Sikre at index er indenfor gyldigt område
-                index = (index + slideCount) % slideCount;
-                
-                // Hvis en retning er angivet, tilføj CSS-klasse for animation
-                if (direction) {
-                    slides.classList.add(`sliding-${direction}`);
-                }
-                
-                slides.style.transform = `translateX(-${index * 100}%)`;
-                
-                // Opdater active class
-                slideElements.forEach((slide, i) => {
-                    slide.classList.toggle('active', i === index);
-                    slide.setAttribute('aria-hidden', i !== index);
-                });
-                
-                indicators.forEach((indicator, i) => {
-                    indicator.classList.toggle('active', i === index);
-                    indicator.setAttribute('aria-selected', i === index);
-                });
-                
-                currentSlide = index;
-                
-                // Reset animation flag efter transition
-                setTimeout(() => {
-                    isAnimating = false;
-                    if (direction) {
-                        slides.classList.remove(`sliding-${direction}`);
-                    }
-                }, 500);
-            }
-            
-            function nextSlide() {
-                goToSlide(currentSlide + 1, 'right');
-            }
-            
-            function prevSlide() {
-                goToSlide(currentSlide - 1, 'left');
-            }
-            
-            // Tilføj accessibility attributter
-            slideshow.setAttribute('role', 'region');
-            slideshow.setAttribute('aria-label', 'Slideshow');
-            
-            slideElements.forEach((slide, i) => {
-                slide.setAttribute('role', 'tabpanel');
-                slide.setAttribute('aria-hidden', i !== 0);
-                slide.id = `slide-${slideshow.id || 'main'}-${i}`;
-            });
-            
-            // Event listeners
-            if (prevBtn) {
-                prevBtn.addEventListener('click', prevSlide);
-                prevBtn.setAttribute('aria-label', 'Forrige slide');
-            }
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', nextSlide);
-                nextBtn.setAttribute('aria-label', 'Næste slide');
-            }
-            
-            indicators.forEach((indicator, i) => {
-                indicator.addEventListener('click', () => goToSlide(i));
-                indicator.setAttribute('role', 'tab');
-                indicator.setAttribute('aria-selected', i === 0);
-                indicator.setAttribute('aria-label', `Gå til slide ${i+1}`);
-                indicator.setAttribute('aria-controls', `slide-${slideshow.id || 'main'}-${i}`);
-            });
-            
-            // Touch-support til mobile enheder
-            slideshow.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
-            
-            slideshow.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-            
-            function handleSwipe() {
-                const swipeThreshold = 50; // Minimum swipe distance
-                
-                if (touchEndX < touchStartX - swipeThreshold) {
-                    // Swipe venstre - gå til næste slide
-                    nextSlide();
-                } else if (touchEndX > touchStartX + swipeThreshold) {
-                    // Swipe højre - gå til forrige slide
-                    prevSlide();
-                }
-            }
-            
-            // Keyboard navigation
-            slideshow.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') {
-                    prevSlide();
-                } else if (e.key === 'ArrowRight') {
-                    nextSlide();
-                }
-            });
-            
-            // Autoplay
-            const autoplay = slideshow.dataset.autoplay === 'true';
-            const interval = parseInt(slideshow.dataset.interval) || 5000;
-            
-            let autoplayTimer;
-            
-            if (autoplay && slideCount > 1) {
-                startAutoplay();
-                
-                // Pause autoplay on hover or focus
-                slideshow.addEventListener('mouseenter', stopAutoplay);
-                slideshow.addEventListener('focusin', stopAutoplay);
-                
-                slideshow.addEventListener('mouseleave', startAutoplay);
-                slideshow.addEventListener('focusout', startAutoplay);
-            }
-            
-            function startAutoplay() {
-                if (autoplayTimer) return;
-                autoplayTimer = setInterval(nextSlide, interval);
-            }
-            
-            function stopAutoplay() {
-                clearInterval(autoplayTimer);
-                autoplayTimer = null;
-            }
-            
-            // Lazy loading af billeder
-            const lazyImages = slideshow.querySelectorAll('img[data-src]');
-            
-            if ('IntersectionObserver' in window) {
-                const imageObserver = new IntersectionObserver((entries, observer) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const img = entry.target;
-                            img.src = img.dataset.src;
-                            img.removeAttribute('data-src');
-                            imageObserver.unobserve(img);
-                        }
-                    });
-                });
-                
-                lazyImages.forEach(img => {
-                    imageObserver.observe(img);
-                });
-            } else {
-                // Fallback for ældre browsere
-                lazyImages.forEach(img => {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                });
-            }
-        });
-    });
-    </script>
+    <script src="/js/main.js"></script>
 </body>
 </html>
