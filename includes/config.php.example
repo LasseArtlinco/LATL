@@ -12,6 +12,8 @@ define('DB_CHARSET', 'utf8mb4');
 define('BASE_URL', 'xxxxxxxx'); // Ændr til din aktuelle URL
 define('PUBLIC_PATH', __DIR__ . '/../public');
 define('UPLOAD_PATH', PUBLIC_PATH . '/uploads');
+define('UPLOADS_DIR', UPLOAD_PATH); // Tilføj denne linje
+define('ROOT_PATH', __DIR__ . '/..'); // Tilføj også denne linje
 define('SITE_NAME', 'LATL.dk');
 // Fejlrapportering (sæt til false i produktion)
 define('DISPLAY_ERRORS', true);
