@@ -1,13 +1,13 @@
 <?php
-// api/upload.php - Forbedret API til fil-uploads
+// api/upload.php - Forbedret upload-API med WebP-konvertering og SEO-optimering
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/image_handler.php'; // Ændret fra image-handler.php til image_handler.php
+require_once __DIR__ . '/../includes/image_handler.php';
 
 // API til fil-uploads
 header('Content-Type: application/json');
 
-// Starter session hvis den ikke allerede er startet
+// Start session hvis den ikke allerede er startet
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -33,67 +33,67 @@ if (empty($_FILES['file'])) {
     exit;
 }
 
-// Få upload-type fra parameter (slideshow, product, etc.)
-$upload_type = $_POST['type'] ?? 'general';
+// Få information om båndtype og mål
+$band_type = $_POST['type'] ?? '';
+$target_field = $_POST['target'] ?? '';
 
-// Bestem undermappe baseret på type
+// Bestem hvilken mappe billedet skal gemmes i
 $subdir = '';
-switch ($upload_type) {
-    case 'slideshow':
-        $subdir = 'slides';
-        break;
-    case 'product':
-        $subdir = 'products';
-        break;
-    case 'logo':
-        $subdir = 'logos';
-        break;
-    default:
-        $subdir = 'general';
+if ($band_type) {
+    $subdir = strtolower($band_type);
 }
-
-// Få SEO-metadata fra POST
-$alt_text = $_POST['alt_text'] ?? '';
-$title = $_POST['title'] ?? '';
-$description = $_POST['description'] ?? '';
 
 try {
-    // Upload og optimer billedet
-    $file = $_FILES['file'];
-    $image_data = upload_image($file, $subdir);
+    // Brug ImageHandler klassen til at uploade og optimere billedet
+    $handler = new ImageHandler();
+    $result = $handler->uploadImage($_FILES['file'], $subdir);
     
-    // Tilføj metadata
-    $image_data['seo'] = [
-        'alt_text' => $alt_text,
-        'title' => $title,
-        'description' => $description
-    ];
+    // Tjek om det er et produktbillede og optimér for transparens
+    if ($band_type === 'product' && strpos($target_field, 'product_image') !== false) {
+        // Sikre at produktbilleder har transparent baggrund
+        $preserveTransparency = true;
+    } else {
+        $preserveTransparency = false;
+    }
     
-    // Generer responsiv HTML-kode til billedet
-    $responsive_html = responsive_image(
-        $image_data, 
-        $alt_text, 
-        'uploaded-image',
-        [
-            'title' => $title,
-            'data-description' => $description
-        ]
-    );
+    // Bestem hvilken sti der skal returneres (prioritér WebP)
+    $webpPath = '';
     
-    // Returner succesrespons
+    // Find den bedste WebP version for responsive billeder
+    if (isset($result['optimized']['hero']['webp'])) {
+        $webpPath = $result['optimized']['hero']['webp']['path'];
+    } elseif (isset($result['optimized']['large']['webp'])) {
+        $webpPath = $result['optimized']['large']['webp']['path'];
+    } elseif (isset($result['optimized']['original_webp'])) {
+        $webpPath = $result['optimized']['original_webp']['path'];
+    }
+    
+    // Hvis ingen WebP blev genereret, brug originalen
+    $path = $webpPath ? $webpPath : $result['original']['path'];
+    
+    // Fjern ROOT_PATH fra stien og tilføj evt. manglende '/'
+    if (strpos($path, '/') !== 0) {
+        $path = '/' . $path;
+    }
+    
+    // Returner resultat
     echo json_encode([
         'success' => true,
-        'image' => $image_data,
-        'filename' => basename($image_data['original']['path']),
-        'path' => $image_data['original']['path'],
-        'webp_path' => $image_data['optimized']['original_webp']['path'] ?? '',
-        'responsive_sizes' => array_keys($image_data['optimized']),
-        'responsive_html' => $responsive_html
+        'filename' => $result['original']['filename'],
+        'path' => $path,
+        'dimensions' => [
+            'width' => $result['metadata']['width'] ?? 0,
+            'height' => $result['metadata']['height'] ?? 0
+        ],
+        'metadata' => $result['metadata'],
+        'formats' => [
+            'original' => $result['original']['path'],
+            'webp' => $webpPath
+        ]
     ]);
+    
 } catch (Exception $e) {
-    // Returner fejlbesked
     http_response_code(500);
-    echo json_encode([
-        'error' => $e->getMessage()
-    ]);
+    echo json_encode(['error' => $e->getMessage()]);
 }
+?>
