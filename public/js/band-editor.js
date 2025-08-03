@@ -272,3 +272,32 @@ document.addEventListener('DOMContentLoaded', function() {
                         const regex = /Rækkefølge: \d+/;
                         title.textContent = title.textContent.replace(regex, `Rækkefølge: ${index + 1}`);
                     }
+                });
+                
+                // Send opdatering til server
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'band-editor.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                if (response.error) {
+                                    alert('Fejl: ' + response.error);
+                                }
+                            } catch (e) {
+                                console.error('Fejl ved parsing af svar:', e);
+                            }
+                        } else {
+                            alert('Fejl ved opdatering af rækkefølge.');
+                        }
+                    }
+                };
+                
+                // Brug pageId-variablen der blev defineret i band-editor.php
+                xhr.send('action=update_order&page_id=' + encodeURIComponent(pageId) + '&band_orders=' + encodeURIComponent(JSON.stringify(bandOrders)));
+            }
+        });
+    }
+});
