@@ -18,7 +18,7 @@ function setupUploadAreas() {
         const targetId = area.dataset.target;
         const fileInput = document.getElementById(targetId + '_upload');
         const hiddenInput = document.getElementById(targetId);
-        const progressBar = area.nextElementSibling.nextElementSibling;
+        const progressBar = area.nextElementSibling?.nextElementSibling;
         
         if (!fileInput) return;
         
@@ -62,7 +62,7 @@ function setupUploadAreas() {
  * @param {File} file - Filen der skal uploades
  * @param {HTMLElement} uploadArea - Upload-området
  * @param {HTMLInputElement} hiddenInput - Det skjulte input-felt til filsti
- * @param {HTMLElement} progressBar - Progress bar element
+ * @param {HTMLElement|null} progressBar - Progress bar element (kan være null)
  */
 function handleFileUpload(file, uploadArea, hiddenInput, progressBar) {
     // Valider filtype
@@ -72,10 +72,13 @@ function handleFileUpload(file, uploadArea, hiddenInput, progressBar) {
     }
     
     // Vis progress bar
+    let progressFill = null;
     if (progressBar) {
         progressBar.classList.add('active');
-        const progressFill = progressBar.querySelector('.progress-bar-fill');
-        progressFill.style.width = '0%';
+        progressFill = progressBar.querySelector('.progress-bar-fill');
+        if (progressFill) {
+            progressFill.style.width = '0%';
+        }
     }
     
     // Opret FormData
@@ -91,9 +94,8 @@ function handleFileUpload(file, uploadArea, hiddenInput, progressBar) {
     const xhr = new XMLHttpRequest();
     
     xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable && progressBar) {
+        if (e.lengthComputable && progressFill) {
             const percentComplete = (e.loaded / e.total) * 100;
-            const progressFill = progressBar.querySelector('.progress-bar-fill');
             progressFill.style.width = percentComplete + '%';
         }
     });
@@ -101,8 +103,9 @@ function handleFileUpload(file, uploadArea, hiddenInput, progressBar) {
     xhr.addEventListener('load', function() {
         if (xhr.status === 200) {
             try {
+                console.log('Server response text:', xhr.responseText);
                 const response = JSON.parse(xhr.responseText);
-                console.log('Server response:', response);
+                console.log('Server response parsed:', response);
                 
                 if (response.success) {
                     // Opdater hidden input med filstien
@@ -143,6 +146,14 @@ function handleFileUpload(file, uploadArea, hiddenInput, progressBar) {
     xhr.addEventListener('error', function(e) {
         console.error('Network error:', e);
         alert('Upload fejlede: Netværksfejl. Tjek din forbindelse og prøv igen.');
+    });
+    
+    // Mere detaljeret debug information til konsollen
+    console.log('Uploading file:', file.name, 'to URL:', '../api/upload.php');
+    console.log('Form data:', {
+        'file': file.name,
+        'type': targetField.includes('slide') ? 'slideshow' : 'product',
+        'target': targetField
     });
     
     // Korrekt URL til upload API - dette fungerer fra admin-siden
