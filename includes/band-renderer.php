@@ -41,6 +41,11 @@ function render_slideshow_band($content) {
     $title = $content['title'] ?? '';
     $description = $content['description'] ?? '';
     
+    // Debug info
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        echo "<!-- DEBUG: Slideshow content: " . json_encode($content) . " -->";
+    }
+    
     // Slideshow ID for ARIA og kontroller
     $slideshowId = 'slideshow-' . uniqid();
     
@@ -62,12 +67,14 @@ function render_slideshow_band($content) {
         ];
         
         foreach ($slides as $slide) {
-            $schema['image'][] = [
-                '@type' => 'ImageObject',
-                'name' => $slide['title'] ?? '',
-                'description' => $slide['seo_description'] ?? ($slide['subtitle'] ?? ''),
-                'contentUrl' => get_full_url('/uploads/' . ($slide['image'] ?? ''))
-            ];
+            if (!empty($slide['image'])) {
+                $schema['image'][] = [
+                    '@type' => 'ImageObject',
+                    'name' => $slide['title'] ?? '',
+                    'description' => $slide['seo_description'] ?? ($slide['subtitle'] ?? ''),
+                    'contentUrl' => get_full_url('/' . format_image_path($slide['image'] ?? ''))
+                ];
+            }
         }
         
         echo "<script type='application/ld+json'>";
@@ -87,13 +94,23 @@ function render_slideshow_band($content) {
     
     echo "<div class='slides'>";
     
+    // Debug-information om antal slides
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        echo "<!-- DEBUG: Antal slides: " . count($slides) . " -->";
+    }
+    
     foreach ($slides as $index => $slide) {
         $active = $index === 0 ? 'active' : '';
-        $image = htmlspecialchars($slide['image'] ?? '');
+        $image = $slide['image'] ?? '';
         $title = htmlspecialchars($slide['title'] ?? '');
         $subtitle = htmlspecialchars($slide['subtitle'] ?? '');
         $alt = htmlspecialchars($slide['alt'] ?? $title);
         $link = htmlspecialchars($slide['link'] ?? '');
+        
+        // Debug-information om denne slide
+        if (defined('DEBUG_MODE') && DEBUG_MODE) {
+            echo "<!-- DEBUG: Slide " . ($index + 1) . " billede: {$image} -->";
+        }
         
         echo "<div class='slide {$active}' role='group' aria-roledescription='slide' aria-label='Slide " . ($index + 1) . "'>";
         
@@ -101,26 +118,14 @@ function render_slideshow_band($content) {
             echo "<a href='{$link}' aria-label='{$title}'>";
         }
         
-        // Brug responsive billeder med WebP support
-        echo "<picture>";
-        
-        // WebP version
-        echo "<source type='image/webp' srcset='";
-        echo "/uploads/slideshow/large/{$image}.webp 1200w, ";
-        echo "/uploads/slideshow/medium/{$image}.webp 600w, ";
-        echo "/uploads/slideshow/small/{$image}.webp 300w";
-        echo "' sizes='(max-width: 767px) 100vw, (max-width: 1200px) 1200px, 100vw'>";
-        
-        // Original format som fallback
-        echo "<source srcset='";
-        echo "/uploads/slideshow/large/{$image} 1200w, ";
-        echo "/uploads/slideshow/medium/{$image} 600w, ";
-        echo "/uploads/slideshow/small/{$image} 300w";
-        echo "' sizes='(max-width: 767px) 100vw, (max-width: 1200px) 1200px, 100vw'>";
-        
-        // Fallback img-tag
-        echo "<img src='/uploads/{$image}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
-        echo "</picture>";
+        // Brug billedet direkte som det er gemt i databasen
+        if (!empty($image)) {
+            $imagePath = format_image_path($image);
+            echo "<img src='/{$imagePath}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
+        } else {
+            // Vis fejlbesked hvis der ikke er et billede
+            echo "<div class='slide-image-placeholder'>Intet billede</div>";
+        }
         
         echo "<div class='slide-content'>";
         
@@ -170,13 +175,18 @@ function render_slideshow_band($content) {
  * @param array $content Båndindhold
  */
 function render_product_band($content) {
-    $image = htmlspecialchars($content['image'] ?? '');
+    $image = $content['image'] ?? '';
     $bgColor = htmlspecialchars($content['background_color'] ?? '#ffffff');
     $title = htmlspecialchars($content['title'] ?? '');
     $subtitle = htmlspecialchars($content['subtitle'] ?? '');
     $link = htmlspecialchars($content['link'] ?? '');
     $alt = htmlspecialchars($content['alt'] ?? $title);
     $buttonText = htmlspecialchars($content['button_text'] ?? 'Se mere');
+    
+    // Debug info
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        echo "<!-- DEBUG: Product image: {$image} -->";
+    }
     
     // Product ID for ARIA
     $productId = 'product-' . uniqid();
@@ -189,8 +199,11 @@ function render_product_band($content) {
         '@type' => 'Product',
         'name' => $content['seo_title'] ?? $title,
         'description' => $content['seo_description'] ?? $subtitle,
-        'image' => get_full_url('/uploads/' . $image)
     ];
+    
+    if (!empty($image)) {
+        $schema['image'] = get_full_url('/' . format_image_path($image));
+    }
     
     echo "<script type='application/ld+json'>";
     echo json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -205,26 +218,14 @@ function render_product_band($content) {
     
     echo "<div class='product-image'>";
     
-    // Brug responsive billeder med WebP support for produkter
-    echo "<picture>";
-    
-    // WebP version
-    echo "<source type='image/webp' srcset='";
-    echo "/uploads/product/large/{$image}.webp 1200w, ";
-    echo "/uploads/product/medium/{$image}.webp 600w, ";
-    echo "/uploads/product/small/{$image}.webp 300w";
-    echo "' sizes='(max-width: 767px) 300px, (max-width: 1200px) 600px, 1200px'>";
-    
-    // Original format som fallback
-    echo "<source srcset='";
-    echo "/uploads/product/large/{$image} 1200w, ";
-    echo "/uploads/product/medium/{$image} 600w, ";
-    echo "/uploads/product/small/{$image} 300w";
-    echo "' sizes='(max-width: 767px) 300px, (max-width: 1200px) 600px, 1200px'>";
-    
-    // Fallback img-tag
-    echo "<img src='/uploads/{$image}' alt='{$alt}' class='product-image-file' loading='lazy'>";
-    echo "</picture>";
+    // Brug billedet direkte som det er gemt i databasen
+    if (!empty($image)) {
+        $imagePath = format_image_path($image);
+        echo "<img src='/{$imagePath}' alt='{$alt}' class='product-image-file' loading='lazy'>";
+    } else {
+        // Vis fejlbesked hvis der ikke er et billede
+        echo "<div class='product-image-placeholder'>Intet billede</div>";
+    }
     
     echo "</div>"; // .product-image
     
@@ -262,5 +263,18 @@ function get_full_url($path) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
     $domain = $_SERVER['HTTP_HOST'];
     return $protocol . $domain . $path;
+}
+
+/**
+ * Formaterer billedsti til brug i HTML
+ * Fjerner 'public/' fra starten hvis det findes
+ */
+function format_image_path($path) {
+    // Fjern 'public/' fra starten hvis det findes
+    if (strpos($path, 'public/') === 0) {
+        $path = substr($path, 7);
+    }
+    
+    return $path;
 }
 ?>
