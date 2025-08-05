@@ -24,21 +24,22 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialiser alle slideshow elementer på siden
  */
 function initSlideshows() {
-    const slideshows = document.querySelectorAll('.slideshow');
+    var slideshows = document.querySelectorAll('.slideshow');
     
-    slideshows.forEach(slideshow => {
-        const slides = slideshow.querySelectorAll('.slide');
-        const slidesContainer = slideshow.querySelector('.slides');
-        const indicators = slideshow.querySelectorAll('.indicator');
-        const prevButton = slideshow.querySelector('.prev');
-        const nextButton = slideshow.querySelector('.next');
+    for (var i = 0; i < slideshows.length; i++) {
+        var slideshow = slideshows[i];
+        var slides = slideshow.querySelectorAll('.slide');
+        var slidesContainer = slideshow.querySelector('.slides');
+        var indicators = slideshow.querySelectorAll('.indicator');
+        var prevButton = slideshow.querySelector('.prev');
+        var nextButton = slideshow.querySelector('.next');
         
-        if (!slides.length) return;
+        if (!slides.length) continue;
         
-        let currentIndex = 0;
-        let autoplayInterval = null;
-        const autoplay = slideshow.dataset.autoplay === 'true';
-        const interval = parseInt(slideshow.dataset.interval) || 5000;
+        var currentIndex = 0;
+        var autoplayInterval = null;
+        var autoplay = slideshow.dataset.autoplay === 'true';
+        var interval = parseInt(slideshow.dataset.interval) || 5000;
         
         // Funktion til at skifte slide
         function goToSlide(index) {
@@ -50,21 +51,29 @@ function initSlideshows() {
             currentIndex = index;
             
             // Flyt slidesContainer
-            slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+            slidesContainer.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
             
             // Opdater active-klasse på slides
-            slides.forEach((slide, i) => {
-                slide.classList.toggle('active', i === currentIndex);
-                
-                // Opdater ARIA attributter for tilgængelighed
-                slide.setAttribute('aria-hidden', i !== currentIndex);
-            });
+            for (var j = 0; j < slides.length; j++) {
+                if (j === currentIndex) {
+                    slides[j].classList.add('active');
+                    slides[j].setAttribute('aria-hidden', 'false');
+                } else {
+                    slides[j].classList.remove('active');
+                    slides[j].setAttribute('aria-hidden', 'true');
+                }
+            }
             
             // Opdater indicators
-            indicators.forEach((indicator, i) => {
-                indicator.classList.toggle('active', i === currentIndex);
-                indicator.setAttribute('aria-selected', i === currentIndex);
-            });
+            for (var k = 0; k < indicators.length; k++) {
+                if (k === currentIndex) {
+                    indicators[k].classList.add('active');
+                    indicators[k].setAttribute('aria-selected', 'true');
+                } else {
+                    indicators[k].classList.remove('active');
+                    indicators[k].setAttribute('aria-selected', 'false');
+                }
+            }
             
             // Nulstil autoplay hvis aktiveret
             if (autoplay) {
@@ -82,78 +91,84 @@ function initSlideshows() {
             }
         }
         
-        // Tilføj event listeners til navigationsknapper
-        if (prevButton) {
-            prevButton.addEventListener('click', function() {
-                goToSlide(currentIndex - 1);
-            });
-        }
-        
-        if (nextButton) {
-            nextButton.addEventListener('click', function() {
-                goToSlide(currentIndex + 1);
-            });
-        }
-        
-        // Tilføj event listeners til indicators
-        indicators.forEach(function(indicator, i) {
-            indicator.addEventListener('click', function() {
-                goToSlide(i);
-            });
-        });
-        
-        // Tilføj touch-support til mobilenheder
-        let touchStartX = 0;
-        let touchEndX = 0;
-        
-        slideshow.addEventListener('touchstart', function(e) {
-            touchStartX = e.changedTouches[0].screenX;
-        }, { passive: true });
-        
-        slideshow.addEventListener('touchend', function(e) {
-            touchEndX = e.changedTouches[0].screenX;
-            
-            // Beregn swipe-retning
-            const diff = touchStartX - touchEndX;
-            
-            // Hvis swipe er signifikant (mere end 50px)
-            if (Math.abs(diff) > 50) {
-                if (diff > 0) {
-                    // Swipe til venstre - næste slide
-                    goToSlide(currentIndex + 1);
-                } else {
-                    // Swipe til højre - forrige slide
+        // Luk over variabler for hver slideshow (IIFE)
+        (function(slideshow, slides, slidesContainer, indicators, prevButton, nextButton, goToSlide, startAutoplay) {
+            // Tilføj event listeners til navigationsknapper
+            if (prevButton) {
+                prevButton.addEventListener('click', function() {
                     goToSlide(currentIndex - 1);
+                });
+            }
+            
+            if (nextButton) {
+                nextButton.addEventListener('click', function() {
+                    goToSlide(currentIndex + 1);
+                });
+            }
+            
+            // Tilføj event listeners til indicators
+            for (var i = 0; i < indicators.length; i++) {
+                (function(index) {
+                    indicators[index].addEventListener('click', function() {
+                        goToSlide(index);
+                    });
+                })(i);
+            }
+            
+            // Tilføj touch-support til mobilenheder
+            var touchStartX = 0;
+            var touchEndX = 0;
+            
+            slideshow.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            slideshow.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                
+                // Beregn swipe-retning
+                var diff = touchStartX - touchEndX;
+                
+                // Hvis swipe er signifikant (mere end 50px)
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        // Swipe til venstre - næste slide
+                        goToSlide(currentIndex + 1);
+                    } else {
+                        // Swipe til højre - forrige slide
+                        goToSlide(currentIndex - 1);
+                    }
                 }
-            }
-        }, { passive: true });
-        
-        // Håndter keyboard navigation
-        slideshow.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                goToSlide(currentIndex - 1);
-            } else if (e.key === 'ArrowRight') {
-                goToSlide(currentIndex + 1);
-            }
-        });
-        
-        // Håndter pause ved hover
-        if (autoplay) {
-            slideshow.addEventListener('mouseenter', function() {
-                clearInterval(autoplayInterval);
+            }, { passive: true });
+            
+            // Håndter keyboard navigation
+            slideshow.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    goToSlide(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    goToSlide(currentIndex + 1);
+                }
             });
             
-            slideshow.addEventListener('mouseleave', function() {
+            // Håndter pause ved hover
+            if (autoplay) {
+                slideshow.addEventListener('mouseenter', function() {
+                    clearInterval(autoplayInterval);
+                });
+                
+                slideshow.addEventListener('mouseleave', function() {
+                    startAutoplay();
+                });
+                
+                // Start autoplay
                 startAutoplay();
-            });
+            }
             
-            // Start autoplay
-            startAutoplay();
-        }
-        
-        // Initialiser første slide
-        goToSlide(0);
-    });
+            // Initialiser første slide
+            goToSlide(0);
+            
+        })(slideshow, slides, slidesContainer, indicators, prevButton, nextButton, goToSlide, startAutoplay);
+    }
 }
 
 /**
@@ -162,12 +177,13 @@ function initSlideshows() {
 function initLazyLoading() {
     // Tjek om browseren understøtter IntersectionObserver
     if ('IntersectionObserver' in window) {
-        const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+        var lazyImages = document.querySelectorAll('img[loading="lazy"]');
         
-        const imageObserver = new IntersectionObserver(function(entries, observer) {
-            entries.forEach(function(entry) {
+        var imageObserver = new IntersectionObserver(function(entries, observer) {
+            for (var i = 0; i < entries.length; i++) {
+                var entry = entries[i];
                 if (entry.isIntersecting) {
-                    const img = entry.target;
+                    var img = entry.target;
                     
                     // Hvis der er et data-src, brug det som src
                     if (img.dataset.src) {
@@ -187,12 +203,12 @@ function initLazyLoading() {
                     // Stop med at observere billedet
                     observer.unobserve(img);
                 }
-            });
+            }
         });
         
-        lazyImages.forEach(function(img) {
-            imageObserver.observe(img);
-        });
+        for (var i = 0; i < lazyImages.length; i++) {
+            imageObserver.observe(lazyImages[i]);
+        }
     } else {
         // Fallback for browsere uden IntersectionObserver support
         // De vil bruge standard loading="lazy" attribut
@@ -204,7 +220,7 @@ function initLazyLoading() {
  */
 function initAccessibility() {
     // "Skip to content" link
-    const skipLink = document.createElement('a');
+    var skipLink = document.createElement('a');
     skipLink.href = '#main-content';
     skipLink.className = 'skip-link';
     skipLink.textContent = 'Spring til indhold';
@@ -213,33 +229,33 @@ function initAccessibility() {
     
     // Tilføj main-content id til hovedindholdet hvis det ikke findes
     if (!document.getElementById('main-content')) {
-        const main = document.querySelector('main') || document.querySelector('.main-content');
+        var main = document.querySelector('main') || document.querySelector('.main-content');
         if (main) {
             main.id = 'main-content';
         }
     }
     
     // Keyboard-navigation for bånd
-    const bands = document.querySelectorAll('.band');
-    bands.forEach(band => {
-        if (!band.hasAttribute('tabindex')) {
-            band.setAttribute('tabindex', '0');
+    var bands = document.querySelectorAll('.band');
+    for (var i = 0; i < bands.length; i++) {
+        if (!bands[i].hasAttribute('tabindex')) {
+            bands[i].setAttribute('tabindex', '0');
         }
-    });
+    }
 }
 
 /**
  * Initialiser responsive menu til mobilvisning
  */
 function initResponsiveMenu() {
-    const menuToggle = document.querySelector('.menu-toggle');
-    const mobileMenu = document.querySelector('.mobile-menu');
+    var menuToggle = document.querySelector('.menu-toggle');
+    var mobileMenu = document.querySelector('.mobile-menu');
     
     if (menuToggle && mobileMenu) {
         menuToggle.addEventListener('click', function() {
-            const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+            var expanded = menuToggle.getAttribute('aria-expanded') === 'true';
             
-            menuToggle.setAttribute('aria-expanded', !expanded);
+            menuToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
             mobileMenu.classList.toggle('active');
             
             if (!expanded) {
@@ -271,33 +287,35 @@ function initResponsiveMenu() {
 function initScrollAnimations() {
     // Tjek om browseren understøtter IntersectionObserver
     if ('IntersectionObserver' in window) {
-        const elements = document.querySelectorAll('.animate-on-scroll');
+        var elements = document.querySelectorAll('.animate-on-scroll');
         
-        const options = {
+        var options = {
             root: null,
             rootMargin: '0px',
             threshold: 0.1
         };
         
-        const observer = new IntersectionObserver(function(entries, observer) {
-            entries.forEach(function(entry) {
+        var observer = new IntersectionObserver(function(entries, observer) {
+            for (var i = 0; i < entries.length; i++) {
+                var entry = entries[i];
                 if (entry.isIntersecting) {
                     entry.target.classList.add('animated');
                     
                     // Stop med at observere elementet efter animation
                     observer.unobserve(entry.target);
                 }
-            });
+            }
         }, options);
         
-        elements.forEach(function(element) {
-            observer.observe(element);
-        });
+        for (var i = 0; i < elements.length; i++) {
+            observer.observe(elements[i]);
+        }
     } else {
         // Fallback for browsere uden IntersectionObserver support
-        document.querySelectorAll('.animate-on-scroll').forEach(element => {
-            element.classList.add('animated');
-        });
+        var elements = document.querySelectorAll('.animate-on-scroll');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].classList.add('animated');
+        }
     }
 }
 
