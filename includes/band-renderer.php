@@ -44,12 +44,13 @@ function render_slideshow_band($content) {
     // Debug info
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
         echo "<!-- DEBUG: Slideshow content: " . json_encode($content) . " -->";
+        echo "<!-- DEBUG: Number of slides found: " . count($slides) . " -->";
     }
     
     // Slideshow ID for ARIA og kontroller
     $slideshowId = 'slideshow-' . uniqid();
     
-    echo "<div class='slideshow' id='{$slideshowId}' data-autoplay='{$autoplay}' data-interval='{$interval}' role='region' aria-roledescription='carousel' aria-label='{$title}'>";
+    echo "<div class='slideshow' id='{$slideshowId}' data-autoplay='{$autoplay}' data-interval='{$interval}' role='region' aria-roledescription='carousel' aria-label='{$title}' style='border: 1px solid red;'>";
     
     // SEO: Struktureret data med JSON-LD
     if (!empty($content['seo_schema'])) {
@@ -92,7 +93,7 @@ function render_slideshow_band($content) {
         echo "<div class='slideshow-description'>{$description}</div>";
     }
     
-    echo "<div class='slides'>";
+    echo "<div class='slides' style='border: 1px solid blue; display: flex; overflow: hidden;'>";
     
     // Debug-information om antal slides
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
@@ -112,7 +113,7 @@ function render_slideshow_band($content) {
             echo "<!-- DEBUG: Slide " . ($index + 1) . " billede: {$image} -->";
         }
         
-        echo "<div class='slide {$active}' role='group' aria-roledescription='slide' aria-label='Slide " . ($index + 1) . "'>";
+        echo "<div class='slide {$active}' role='group' aria-roledescription='slide' aria-label='Slide " . ($index + 1) . "' style='flex: 0 0 100%; min-width: 100%;'>";
         
         if ($link) {
             echo "<a href='{$link}' aria-label='{$title}'>";
