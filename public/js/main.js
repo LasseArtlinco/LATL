@@ -4,6 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug message
+    console.log('DOMContentLoaded fired - initializing slideshows');
+    
     // Initialiser slideshows
     initSlideshows();
 });
@@ -13,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initSlideshows() {
     var slideshows = document.querySelectorAll('.slideshow');
+    console.log('Found ' + slideshows.length + ' slideshows on page');
     
     for (var i = 0; i < slideshows.length; i++) {
         setupSlideshow(slideshows[i]);
@@ -23,13 +27,20 @@ function initSlideshows() {
  * Opsæt et enkelt slideshow
  */
 function setupSlideshow(slideshow) {
+    console.log('Setting up slideshow:', slideshow.id);
+    
     var slides = slideshow.querySelectorAll('.slide');
     var slidesContainer = slideshow.querySelector('.slides');
     var indicators = slideshow.querySelectorAll('.indicator');
     var prevButton = slideshow.querySelector('.prev');
     var nextButton = slideshow.querySelector('.next');
     
-    if (!slides.length) return;
+    console.log('Found ' + slides.length + ' slides');
+    
+    if (!slides.length) {
+        console.log('No slides found, aborting setup');
+        return;
+    }
     
     var currentIndex = 0;
     var autoplayInterval = null;
