@@ -623,6 +623,14 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     <!-- Bånd-indhold -->
     <main id="main-content" tabindex="-1">
         <?php if (!empty($bands)): ?>
+            <?php if (defined('DEBUG_MODE') && DEBUG_MODE): ?>
+                <div style="background-color: #ffeeee; padding: 10px; margin: 10px 0; border: 1px solid #ffaaaa;">
+                    <h3>Debug Information:</h3>
+                    <p>Antal bånd fundet: <?= count($bands) ?></p>
+                    <pre><?php print_r($bands); ?></pre>
+                </div>
+            <?php endif; ?>
+            
             <?php foreach ($bands as $band): ?>
                 <?php render_band($band); ?>
             <?php endforeach; ?>
