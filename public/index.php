@@ -703,6 +703,6 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     </script>
     
     <!-- Inkluder main.js -->
-    <script src="/js/main.js"></script>
+    <script src="/public/js/main.js"></script>
 </body>
 </html>
