@@ -55,6 +55,9 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
     <!-- Global styling -->
     <style>
         :root {
@@ -276,6 +279,7 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             box-shadow: none;
             height: 400px;
             width: 100%;
+            background-color: #f5f5f5; /* Tilføjet for at give en synlig baggrund */
         }
         
         .slides {
@@ -299,6 +303,7 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
             object-fit: cover;
             object-position: center;
             transition: transform 0.5s ease;
+            display: block; /* Sikrer at der ikke er uønsket whitespace */
         }
         
         .placeholder-image {
@@ -670,9 +675,8 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
         </div>
     </footer>
     
-    <!-- JavaScript -->
+    <!-- Mobile menu JavaScript -->
     <script>
-    // Indlejret JavaScript for at undgå afhængighed af eksterne filer
     document.addEventListener('DOMContentLoaded', function() {
         // Mobile navigation
         const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
@@ -695,96 +699,10 @@ $canonical_url = SITE_URL . ($_SERVER['REQUEST_URI'] != '/' ? $_SERVER['REQUEST_
                 }
             });
         }
-        
-        // Slideshow funktionalitet
-        const slideshows = document.querySelectorAll('.slideshow');
-        
-        slideshows.forEach(function(slideshow) {
-            const slides = slideshow.querySelector('.slides');
-            const slideElements = slideshow.querySelectorAll('.slide');
-            const indicators = slideshow.querySelectorAll('.indicator');
-            const prevBtn = slideshow.querySelector('.prev');
-            const nextBtn = slideshow.querySelector('.next');
-            
-            // Hvis der ikke er noget indhold, afbryd
-            if (!slides || !slideElements.length) return;
-            
-            let currentSlide = 0;
-            let isAnimating = false;
-            const slideCount = slideElements.length;
-            
-            // Hvis der kun er ét slide, gør vi ingenting
-            if (slideCount <= 1) return;
-            
-            function goToSlide(index) {
-                if (isAnimating) return;
-                isAnimating = true;
-                
-                // Sikre at index er indenfor gyldigt område
-                index = (index + slideCount) % slideCount;
-                
-                slides.style.transform = `translateX(-${index * 100}%)`;
-                
-                // Opdater active class
-                slideElements.forEach(function(slide, i) {
-                    slide.classList.toggle('active', i === index);
-                });
-                
-                indicators.forEach(function(indicator, i) {
-                    indicator.classList.toggle('active', i === index);
-                });
-                
-                currentSlide = index;
-                
-                // Nulstil animation flag efter transition
-                setTimeout(function() {
-                    isAnimating = false;
-                }, 500);
-            }
-            
-            function nextSlide() {
-                goToSlide(currentSlide + 1);
-            }
-            
-            function prevSlide() {
-                goToSlide(currentSlide - 1);
-            }
-            
-            // Event listeners
-            if (prevBtn) {
-                prevBtn.addEventListener('click', prevSlide);
-            }
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', nextSlide);
-            }
-            
-            indicators.forEach(function(indicator, i) {
-                indicator.addEventListener('click', function() {
-                    goToSlide(i);
-                });
-            });
-            
-            // Autoplay
-            const autoplay = slideshow.dataset.autoplay === 'true';
-            const interval = parseInt(slideshow.dataset.interval) || 5000;
-            
-            let autoplayTimer;
-            
-            if (autoplay && slideCount > 1) {
-                autoplayTimer = setInterval(nextSlide, interval);
-                
-                // Pause autoplay on hover
-                slideshow.addEventListener('mouseenter', function() {
-                    clearInterval(autoplayTimer);
-                });
-                
-                slideshow.addEventListener('mouseleave', function() {
-                    autoplayTimer = setInterval(nextSlide, interval);
-                });
-            }
-        });
     });
     </script>
+    
+    <!-- Inkluder main.js -->
+    <script src="/js/main.js"></script>
 </body>
 </html>
