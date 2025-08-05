@@ -95,9 +95,15 @@ function render_slideshow_band($content) {
     
     echo "<div class='slides' style='border: 1px solid blue; display: flex; overflow: hidden;'>";
     
-    // Debug-information om antal slides
+    // Tilføj synlige debug-data
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
-        echo "<!-- DEBUG: Antal slides: " . count($slides) . " -->";
+        echo "<div style='background: #ffeeee; padding: 10px; margin: 10px 0; border: 2px solid #ffaaaa; font-size: 14px;'>";
+        echo "<h4>Slideshow Debug Data:</h4>";
+        echo "Slideshow ID: {$slideshowId}<br>";
+        echo "Autoplay: " . ($autoplay ? 'Yes' : 'No') . "<br>";
+        echo "Interval: {$interval}ms<br>";
+        echo "Slides Found: " . count($slides) . "<br>";
+        echo "</div>";
     }
     
     foreach ($slides as $index => $slide) {
@@ -111,6 +117,12 @@ function render_slideshow_band($content) {
         // Debug-information om denne slide
         if (defined('DEBUG_MODE') && DEBUG_MODE) {
             echo "<!-- DEBUG: Slide " . ($index + 1) . " billede: {$image} -->";
+            echo "<div style='background: #eeffee; padding: 5px; margin: 5px; border: 1px dashed green; font-size: 12px;'>";
+            echo "<strong>Slide Debug:</strong><br>";
+            echo "Title: " . htmlspecialchars($title) . "<br>";
+            echo "Subtitle: " . htmlspecialchars($subtitle) . "<br>";
+            echo "Image: " . htmlspecialchars($image) . "<br>";
+            echo "</div>";
         }
         
         echo "<div class='slide {$active}' role='group' aria-roledescription='slide' aria-label='Slide " . ($index + 1) . "' style='flex: 0 0 100%; min-width: 100%;'>";
@@ -127,9 +139,13 @@ function render_slideshow_band($content) {
             if (defined('DEBUG_MODE') && DEBUG_MODE) {
                 echo "<!-- DEBUG: Original image path: {$image} -->";
                 echo "<!-- DEBUG: Formatted image path: {$imagePath} -->";
+                // Test direct URL access
+                echo "<div style='background-color: lightyellow; padding: 5px; margin: 5px; font-size: 12px;'>";
+                echo "Testing image path: <a href='{$imagePath}' target='_blank'>{$imagePath}</a>";
+                echo "</div>";
             }
             
-            echo "<img src='{$imagePath}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
+            echo "<img src='{$imagePath}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "' style='width: 100%; height: 100%; object-fit: cover;'>";
         } else {
             // Vis fejlbesked hvis der ikke er et billede
             echo "<div class='slide-image-placeholder'>Intet billede</div>";
@@ -293,6 +309,12 @@ function format_image_path($path) {
     // Sørg for at stien begynder med en slash
     if (substr($path, 0, 1) !== '/') {
         $path = '/' . $path;
+    }
+    
+    // Debug-udskrift
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        error_log("Original image path: $path");
+        error_log("After formatting: $path");
     }
     
     return $path;
