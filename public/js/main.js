@@ -76,7 +76,7 @@ function initSlideshows() {
         // Funktion til at starte autoplay
         function startAutoplay() {
             if (autoplay) {
-                autoplayInterval = setInterval(() => {
+                autoplayInterval = setInterval(function() {
                     goToSlide(currentIndex + 1);
                 }, interval);
             }
@@ -84,20 +84,20 @@ function initSlideshows() {
         
         // Tilføj event listeners til navigationsknapper
         if (prevButton) {
-            prevButton.addEventListener('click', () => {
+            prevButton.addEventListener('click', function() {
                 goToSlide(currentIndex - 1);
             });
         }
         
         if (nextButton) {
-            nextButton.addEventListener('click', () => {
+            nextButton.addEventListener('click', function() {
                 goToSlide(currentIndex + 1);
             });
         }
         
         // Tilføj event listeners til indicators
-        indicators.forEach((indicator, i) => {
-            indicator.addEventListener('click', () => {
+        indicators.forEach(function(indicator, i) {
+            indicator.addEventListener('click', function() {
                 goToSlide(i);
             });
         });
@@ -106,11 +106,11 @@ function initSlideshows() {
         let touchStartX = 0;
         let touchEndX = 0;
         
-        slideshow.addEventListener('touchstart', e => {
+        slideshow.addEventListener('touchstart', function(e) {
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
         
-        slideshow.addEventListener('touchend', e => {
+        slideshow.addEventListener('touchend', function(e) {
             touchEndX = e.changedTouches[0].screenX;
             
             // Beregn swipe-retning
@@ -129,7 +129,7 @@ function initSlideshows() {
         }, { passive: true });
         
         // Håndter keyboard navigation
-        slideshow.addEventListener('keydown', e => {
+        slideshow.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowLeft') {
                 goToSlide(currentIndex - 1);
             } else if (e.key === 'ArrowRight') {
@@ -139,11 +139,11 @@ function initSlideshows() {
         
         // Håndter pause ved hover
         if (autoplay) {
-            slideshow.addEventListener('mouseenter', () => {
+            slideshow.addEventListener('mouseenter', function() {
                 clearInterval(autoplayInterval);
             });
             
-            slideshow.addEventListener('mouseleave', () => {
+            slideshow.addEventListener('mouseleave', function() {
                 startAutoplay();
             });
             
@@ -164,8 +164,8 @@ function initLazyLoading() {
     if ('IntersectionObserver' in window) {
         const lazyImages = document.querySelectorAll('img[loading="lazy"]');
         
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
+        const imageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
                 if (entry.isIntersecting) {
                     const img = entry.target;
                     
@@ -190,7 +190,7 @@ function initLazyLoading() {
             });
         });
         
-        lazyImages.forEach(img => {
+        lazyImages.forEach(function(img) {
             imageObserver.observe(img);
         });
     } else {
@@ -236,7 +236,7 @@ function initResponsiveMenu() {
     const mobileMenu = document.querySelector('.mobile-menu');
     
     if (menuToggle && mobileMenu) {
-        menuToggle.addEventListener('click', () => {
+        menuToggle.addEventListener('click', function() {
             const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
             
             menuToggle.setAttribute('aria-expanded', !expanded);
@@ -252,7 +252,7 @@ function initResponsiveMenu() {
         });
         
         // Luk menu når der klikkes udenfor
-        document.addEventListener('click', e => {
+        document.addEventListener('click', function(e) {
             if (mobileMenu.classList.contains('active') && 
                 !mobileMenu.contains(e.target) && 
                 !menuToggle.contains(e.target)) {
@@ -279,8 +279,8 @@ function initScrollAnimations() {
             threshold: 0.1
         };
         
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
+        const observer = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('animated');
                     
@@ -290,7 +290,7 @@ function initScrollAnimations() {
             });
         }, options);
         
-        elements.forEach(element => {
+        elements.forEach(function(element) {
             observer.observe(element);
         });
     } else {
@@ -311,18 +311,19 @@ function isMobile() {
 /**
  * Hjælpefunktion til at debounce funktionskald
  */
-function debounce(func, wait = 100) {
-    let timeout;
-    return function(...args) {
+function debounce(func, wait) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
         clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            func.apply(this, args);
-        }, wait);
+        timeout = setTimeout(function() {
+            func.apply(context, args);
+        }, wait || 100);
     };
 }
 
 // Tilføj resize event listener med debounce
-window.addEventListener('resize', debounce(() => {
+window.addEventListener('resize', debounce(function() {
     // Funktioner der skal køres ved vinduesændring
     // ...
 }, 250));
