@@ -121,7 +121,14 @@ function render_slideshow_band($content) {
         // Brug billedet direkte som det er gemt i databasen
         if (!empty($image)) {
             $imagePath = format_image_path($image);
-            echo "<img src='/{$imagePath}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
+            
+            // Debug info om billedsti
+            if (defined('DEBUG_MODE') && DEBUG_MODE) {
+                echo "<!-- DEBUG: Original image path: {$image} -->";
+                echo "<!-- DEBUG: Formatted image path: {$imagePath} -->";
+            }
+            
+            echo "<img src='{$imagePath}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "'>";
         } else {
             // Vis fejlbesked hvis der ikke er et billede
             echo "<div class='slide-image-placeholder'>Intet billede</div>";
@@ -221,7 +228,14 @@ function render_product_band($content) {
     // Brug billedet direkte som det er gemt i databasen
     if (!empty($image)) {
         $imagePath = format_image_path($image);
-        echo "<img src='/{$imagePath}' alt='{$alt}' class='product-image-file' loading='lazy'>";
+        
+        // Debug info om billedsti
+        if (defined('DEBUG_MODE') && DEBUG_MODE) {
+            echo "<!-- DEBUG: Original product image path: {$image} -->";
+            echo "<!-- DEBUG: Formatted product image path: {$imagePath} -->";
+        }
+        
+        echo "<img src='{$imagePath}' alt='{$alt}' class='product-image-file' loading='lazy'>";
     } else {
         // Vis fejlbesked hvis der ikke er et billede
         echo "<div class='product-image-placeholder'>Intet billede</div>";
@@ -267,12 +281,17 @@ function get_full_url($path) {
 
 /**
  * Formaterer billedsti til brug i HTML
- * Fjerner 'public/' fra starten hvis det findes
+ * Fjerner 'public/' fra starten hvis det findes og sikrer korrekt formatering
  */
 function format_image_path($path) {
     // Fjern 'public/' fra starten hvis det findes
     if (strpos($path, 'public/') === 0) {
         $path = substr($path, 7);
+    }
+    
+    // Sørg for at stien begynder med en slash
+    if (substr($path, 0, 1) !== '/') {
+        $path = '/' . $path;
     }
     
     return $path;
