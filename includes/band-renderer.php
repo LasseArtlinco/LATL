@@ -50,7 +50,7 @@ function render_slideshow_band($content) {
     // Slideshow ID for ARIA og kontroller
     $slideshowId = 'slideshow-' . uniqid();
     
-    echo "<div class='slideshow' id='{$slideshowId}' data-autoplay='{$autoplay}' data-interval='{$interval}' role='region' aria-roledescription='carousel' aria-label='{$title}' style='border: 3px solid red; background-color: #f8f8f8; min-height: 400px; width: 100%; display: block; position: relative; overflow: hidden; margin-bottom: 20px;'>";
+    echo "<div class='slideshow' id='{$slideshowId}' data-autoplay='{$autoplay}' data-interval='{$interval}' role='region' aria-roledescription='carousel' aria-label='{$title}' style='background-color: #f8f8f8; min-height: 400px; width: 100%; display: block; position: relative; overflow: hidden; margin-bottom: 20px;'>";
     
     // SEO: Struktureret data med JSON-LD
     if (!empty($content['seo_schema'])) {
@@ -93,40 +93,16 @@ function render_slideshow_band($content) {
         echo "<div class='slideshow-description'>{$description}</div>";
     }
     
-    echo "<div class='slides' style='border: 2px solid blue; display: flex; overflow: hidden; width: 100%; height: 350px; position: relative;'>";
+    echo "<div class='slides' style='display: flex; overflow: hidden; width: 100%; height: 350px; position: relative;'>";
     
-    // Tilføj synlige debug-data og manuel billedupload-mulighed
+    // Tilføj begrænset debug-data til produktion
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
-        echo "<div style='background: #ffeeee; padding: 10px; margin: 10px 0; border: 2px solid #ffaaaa; font-size: 14px;'>";
+        echo "<div style='background: #eef8ff; padding: 10px; margin: 10px 0; border: 2px solid #ccddff; font-size: 14px;'>";
         echo "<h4>Slideshow Debug Data:</h4>";
         echo "Slideshow ID: {$slideshowId}<br>";
         echo "Autoplay: " . ($autoplay ? 'Yes' : 'No') . "<br>";
         echo "Interval: {$interval}ms<br>";
         echo "Slides Found: " . count($slides) . "<br>";
-        
-        // Tilføj et tekstfelt til at indsætte manuel billedsti
-        echo "<div style='margin-top: 10px;'>";
-        echo "<p><strong>Test manual image path:</strong></p>";
-        echo "<input type='text' id='manualImagePath' style='width: 90%; padding: 5px;' placeholder='Enter image URL to test' value='/uploads/slideshow/large/butikken-på-horsens-banegård-leather-and-the-likes-1754214397.webp'>";
-        echo "<button onclick='testManualImage()' style='padding: 5px 10px; margin-left: 5px;'>Test</button>";
-        echo "<div id='manualImageResult' style='margin-top: 5px;'></div>";
-        
-        echo "<script>
-        function testManualImage() {
-            var path = document.getElementById('manualImagePath').value;
-            var img = new Image();
-            img.onload = function() {
-                document.getElementById('manualImageResult').innerHTML = '<p style=\"color: green;\">Image loaded successfully!</p>';
-                document.getElementById('slideImage').src = path;
-            };
-            img.onerror = function() {
-                document.getElementById('manualImageResult').innerHTML = '<p style=\"color: red;\">Failed to load image!</p>';
-            };
-            img.src = path;
-        }
-        </script>";
-        echo "</div>";
-        
         echo "</div>";
     }
     
@@ -157,48 +133,12 @@ function render_slideshow_band($content) {
         
         // Brug billedet direkte som det er gemt i databasen
         if (!empty($image)) {
-            $imagePathData = format_image_path($image);
-            $imagePath = $imagePathData['primary'];
-            $pathVariants = $imagePathData['variants'];
+            $imagePath = format_image_path($image);
             
             // Debug info om billedsti
             if (defined('DEBUG_MODE') && DEBUG_MODE) {
                 echo "<!-- DEBUG: Original image path: {$image} -->";
                 echo "<!-- DEBUG: Formatted image path: {$imagePath} -->";
-                
-                // Vis alle sti-varianter
-                echo "<div style='background: lightyellow; padding: 10px; margin: 5px; border: 1px solid orange; font-size: 12px;'>";
-                echo "<strong>Tester billedstier:</strong><br>";
-                foreach ($pathVariants as $index => $variant) {
-                    echo "Variant " . ($index + 1) . ": <a href='{$variant}' target='_blank'>{$variant}</a><br>";
-                }
-                echo "</div>";
-                
-                // Test alle billedvarianter med JavaScript
-                echo "<script>
-                    (function() {
-                        var variants = " . json_encode($pathVariants) . ";
-                        var successFound = false;
-                        
-                        variants.forEach(function(path, index) {
-                            var img = new Image();
-                            img.onload = function() {
-                                console.log('Billede indlæst korrekt (variant ' + (index + 1) + '): ' + path);
-                                if (!successFound) {
-                                    successFound = true;
-                                    document.querySelector('#slideshow-debug-info').innerHTML += '<p style=\"color: green;\">Billedet blev indlæst korrekt med sti: ' + path + '</p>';
-                                    document.querySelector('#slideImage').src = path;
-                                }
-                            };
-                            img.onerror = function() {
-                                console.error('Billede kunne ikke indlæses (variant ' + (index + 1) + '): ' + path);
-                                document.querySelector('#slideshow-debug-info').innerHTML += '<p style=\"color: red;\">Billedet kunne ikke indlæses: ' + path + '</p>';
-                            };
-                            img.src = path;
-                        });
-                    })();
-                </script>";
-                echo "<div id='slideshow-debug-info' style='position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.8); padding: 5px; font-size: 12px; z-index: 100;'></div>";
             }
             
             echo "<img id='slideImage' src='{$imagePath}' alt='{$alt}' class='slide-image' loading='" . ($index === 0 ? 'eager' : 'lazy') . "' style='width: 100%; height: 100%; object-fit: cover;'>";
@@ -369,24 +309,13 @@ function format_image_path($path) {
         $path = '/' . $path;
     }
     
-    // Prøv andre varianter af stien (til debugging)
-    $path_variants = [
-        $path,                             // Standard sti uden 'public/'
-        '/public' . $path,                 // Med /public/ prefix
-        str_replace('/uploads/', '/', $path),  // Uden /uploads/ folder
-        $original_path,                    // Original sti uden ændringer
-        '/uploads/' . basename($path)      // Direkte i uploads mappen
-    ];
-    
     // Debug-udskrift
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
         error_log("Original image path: $original_path");
-        error_log("Formatted image path: $path");
+        error_log("After formatting: $path");
     }
     
-    return [
-        'primary' => $path,
-        'variants' => $path_variants
-    ];
+    // Baseret på vores test ved vi, at den korrekte sti er /public + path
+    return '/public' . $path;
 }
 ?>
