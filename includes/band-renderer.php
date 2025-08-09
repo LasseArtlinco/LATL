@@ -95,15 +95,12 @@ function render_slideshow_band($content) {
     
     echo "<div class='slides' style='display: flex; overflow: hidden; width: 100%; height: 350px; position: relative;'>";
     
-    // Tilføj begrænset debug-data til produktion
+    // Tilføj debug-data (kun i HTML-kommentarer)
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
-        echo "<div style='background: #eef8ff; padding: 10px; margin: 10px 0; border: 2px solid #ccddff; font-size: 14px;'>";
-        echo "<h4>Slideshow Debug Data:</h4>";
-        echo "Slideshow ID: {$slideshowId}<br>";
-        echo "Autoplay: " . ($autoplay ? 'Yes' : 'No') . "<br>";
-        echo "Interval: {$interval}ms<br>";
-        echo "Slides Found: " . count($slides) . "<br>";
-        echo "</div>";
+        echo "<!-- DEBUG: Slideshow ID: {$slideshowId} -->";
+        echo "<!-- DEBUG: Autoplay: " . ($autoplay ? 'Yes' : 'No') . " -->";
+        echo "<!-- DEBUG: Interval: {$interval}ms -->";
+        echo "<!-- DEBUG: Slides Found: " . count($slides) . " -->";
     }
     
     foreach ($slides as $index => $slide) {
@@ -114,15 +111,11 @@ function render_slideshow_band($content) {
         $alt = htmlspecialchars($slide['alt'] ?? $title);
         $link = htmlspecialchars($slide['link'] ?? '');
         
-        // Debug-information om denne slide
+        // Debug-information om denne slide (kun i HTML-kommentarer)
         if (defined('DEBUG_MODE') && DEBUG_MODE) {
             echo "<!-- DEBUG: Slide " . ($index + 1) . " billede: {$image} -->";
-            echo "<div style='background: #eeffee; padding: 5px; margin: 5px; border: 1px dashed green; font-size: 12px;'>";
-            echo "<strong>Slide Debug:</strong><br>";
-            echo "Title: " . htmlspecialchars($title) . "<br>";
-            echo "Subtitle: " . htmlspecialchars($subtitle) . "<br>";
-            echo "Image: " . htmlspecialchars($image) . "<br>";
-            echo "</div>";
+            echo "<!-- DEBUG: Title: " . htmlspecialchars($title) . " -->";
+            echo "<!-- DEBUG: Subtitle: " . htmlspecialchars($subtitle) . " -->";
         }
         
         echo "<div class='slide {$active}' role='group' aria-roledescription='slide' aria-label='Slide " . ($index + 1) . "' style='flex: 0 0 100%; min-width: 100%; position: relative;'>";
