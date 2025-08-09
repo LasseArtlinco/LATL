@@ -66,7 +66,7 @@ class ImageHandler {
         }
         
         // Optimer og konvertér billedet
-        $optimizedImages = $this->optimizeImage($targetPath);
+        $optimizedImages = $this->optimizeImage($targetPath, $subdir);
         
         // Tilføj metadata til billedet (for SEO)
         $metadata = $this->extractMetadata($targetPath);
@@ -74,7 +74,7 @@ class ImageHandler {
         return [
             'original' => [
                 'filename' => $filename,
-                'path' => str_replace(ROOT_PATH, '', $targetPath),
+                'path' => $this->cleanPath(str_replace(ROOT_PATH . '/public', '', $targetPath)),
                 'full_path' => $targetPath,
                 'size' => filesize($targetPath),
                 'mime' => mime_content_type($targetPath)
@@ -156,9 +156,10 @@ class ImageHandler {
      * Optimér billede og konvertér til WebP
      * 
      * @param string $sourcePath Sti til kildefilen
+     * @param string $subdir Undermappe billedet er i
      * @return array Information om optimerede billeder
      */
-    public function optimizeImage($sourcePath) {
+    public function optimizeImage($sourcePath, $subdir = '') {
         $results = [];
         $sourceInfo = pathinfo($sourcePath);
         $sourceExt = strtolower($sourceInfo['extension']);
@@ -173,90 +174,105 @@ class ImageHandler {
         $originalWidth = imagesx($sourceImage);
         $originalHeight = imagesy($sourceImage);
         
-        // Generer forskellige størrelser
+        // Generer forskellige størrelser - ALTID generer de vigtigste størrelser
         foreach ($this->imageSizes as $size => $dimensions) {
             $width = $dimensions['width'];
             $height = $dimensions['height'];
             $crop = $dimensions['crop'];
             
-            // Skip hvis billedet er mindre end målstørrelsen
-            if ($originalWidth <= $width && (!$height || $originalHeight <= $height)) {
-                continue;
+            // Kun skip hero hvis billedet er for lille
+            $skipResize = false;
+            if ($size === 'hero' && $originalWidth <= $width) {
+                $skipResize = true;
             }
             
-            // Beregn nye dimensioner
-            list($newWidth, $newHeight) = $this->calculateDimensions(
-                $originalWidth, 
-                $originalHeight, 
-                $width, 
-                $height, 
-                $crop
-            );
-            
-            // Opret nyt billede
-            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
-            
-            // Bevar gennemsigtighed hvis PNG eller WebP
-            if ($sourceExt == 'png' || $sourceExt == 'webp') {
-                imagecolortransparent($resizedImage, imagecolorallocate($resizedImage, 0, 0, 0));
-                imagealphablending($resizedImage, false);
-                imagesavealpha($resizedImage, true);
+            // For andre størrelser, generer altid (vil bare bruge original dimensioner hvis mindre)
+            if (!$skipResize) {
+                // Beregn nye dimensioner
+                list($newWidth, $newHeight) = $this->calculateDimensions(
+                    $originalWidth, 
+                    $originalHeight, 
+                    $width, 
+                    $height, 
+                    $crop
+                );
+                
+                // Hvis billedet er mindre end target, brug original dimensioner
+                if ($originalWidth < $width && !$crop) {
+                    $newWidth = $originalWidth;
+                    $newHeight = $originalHeight;
+                }
+                
+                // Opret nyt billede
+                $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                
+                // Bevar gennemsigtighed hvis PNG eller WebP
+                if ($sourceExt == 'png' || $sourceExt == 'webp') {
+                    imagecolortransparent($resizedImage, imagecolorallocate($resizedImage, 0, 0, 0));
+                    imagealphablending($resizedImage, false);
+                    imagesavealpha($resizedImage, true);
+                }
+                
+                // Resample billedet
+                imagecopyresampled(
+                    $resizedImage, 
+                    $sourceImage, 
+                    0, 0, 0, 0, 
+                    $newWidth, 
+                    $newHeight, 
+                    $originalWidth, 
+                    $originalHeight
+                );
+                
+                // Generer output-filstier med subdir
+                $sizeDir = $sourceInfo['dirname'] . '/' . $size;
+                $this->ensureDirectoryExists($sizeDir);
+                
+                $originalOutput = $sizeDir . '/' . $sourceInfo['filename'] . '.' . $sourceExt;
+                $webpOutput = $sizeDir . '/' . $sourceInfo['filename'] . '.webp';
+                
+                // Gem i original format
+                $this->saveImage($resizedImage, $originalOutput, $sourceExt);
+                
+                // Gem som WebP
+                imagewebp($resizedImage, $webpOutput, 85);
+                
+                // Konstruer korrekt sti til database (uden /public prefix)
+                $relativePath = $this->cleanPath(str_replace(ROOT_PATH . '/public', '', $sizeDir));
+                
+                // Tilføj til resultater
+                $results[$size] = [
+                    'original' => [
+                        'path' => $relativePath . '/' . $sourceInfo['filename'] . '.' . $sourceExt,
+                        'full_path' => $originalOutput,
+                        'width' => $newWidth,
+                        'height' => $newHeight,
+                        'size' => filesize($originalOutput),
+                        'mime' => mime_content_type($originalOutput)
+                    ],
+                    'webp' => [
+                        'path' => $relativePath . '/' . $sourceInfo['filename'] . '.webp',
+                        'full_path' => $webpOutput,
+                        'width' => $newWidth,
+                        'height' => $newHeight,
+                        'size' => filesize($webpOutput),
+                        'mime' => 'image/webp'
+                    ]
+                ];
+                
+                // Frigør hukommelse
+                imagedestroy($resizedImage);
             }
-            
-            // Resample billedet
-            imagecopyresampled(
-                $resizedImage, 
-                $sourceImage, 
-                0, 0, 0, 0, 
-                $newWidth, 
-                $newHeight, 
-                $originalWidth, 
-                $originalHeight
-            );
-            
-            // Generer output-filstier
-            $sizeDir = $sourceInfo['dirname'] . '/' . $size;
-            $this->ensureDirectoryExists($sizeDir);
-            
-            $originalOutput = $sizeDir . '/' . $sourceInfo['filename'] . '.' . $sourceExt;
-            $webpOutput = $sizeDir . '/' . $sourceInfo['filename'] . '.webp';
-            
-            // Gem i original format
-            $this->saveImage($resizedImage, $originalOutput, $sourceExt);
-            
-            // Gem som WebP
-            imagewebp($resizedImage, $webpOutput, 80);
-            
-            // Tilføj til resultater
-            $results[$size] = [
-                'original' => [
-                    'path' => str_replace(ROOT_PATH, '', $originalOutput),
-                    'full_path' => $originalOutput,
-                    'width' => $newWidth,
-                    'height' => $newHeight,
-                    'size' => filesize($originalOutput),
-                    'mime' => mime_content_type($originalOutput)
-                ],
-                'webp' => [
-                    'path' => str_replace(ROOT_PATH, '', $webpOutput),
-                    'full_path' => $webpOutput,
-                    'width' => $newWidth,
-                    'height' => $newHeight,
-                    'size' => filesize($webpOutput),
-                    'mime' => 'image/webp'
-                ]
-            ];
-            
-            // Frigør hukommelse
-            imagedestroy($resizedImage);
         }
         
         // Konvertér originalen til WebP
         $webpOutput = $sourceInfo['dirname'] . '/' . $sourceInfo['filename'] . '.webp';
         imagewebp($sourceImage, $webpOutput, 90);
         
+        $relativePath = $this->cleanPath(str_replace(ROOT_PATH . '/public', '', $sourceInfo['dirname']));
+        
         $results['original_webp'] = [
-            'path' => str_replace(ROOT_PATH, '', $webpOutput),
+            'path' => $relativePath . '/' . $sourceInfo['filename'] . '.webp',
             'full_path' => $webpOutput,
             'width' => $originalWidth,
             'height' => $originalHeight,
@@ -268,6 +284,28 @@ class ImageHandler {
         imagedestroy($sourceImage);
         
         return $results;
+    }
+    
+    /**
+     * Renser og formaterer sti
+     */
+    private function cleanPath($path) {
+        // Fjern dobbelte slashes
+        $path = preg_replace('#/+#', '/', $path);
+        
+        // Fjern leading slash hvis den findes
+        $path = ltrim($path, '/');
+        
+        // Sørg for at stien starter med uploads/
+        if (strpos($path, 'uploads/') !== 0) {
+            // Hvis stien ikke starter med uploads/, prøv at finde uploads/ i stien
+            $pos = strpos($path, 'uploads/');
+            if ($pos !== false) {
+                $path = substr($path, $pos);
+            }
+        }
+        
+        return $path;
     }
     
     /**
@@ -305,13 +343,13 @@ class ImageHandler {
         switch ($extension) {
             case 'jpg':
             case 'jpeg':
-                return imagejpeg($image, $path, 85);
+                return imagejpeg($image, $path, 90);
             case 'png':
                 return imagepng($image, $path, 8);
             case 'gif':
                 return imagegif($image, $path);
             case 'webp':
-                return imagewebp($image, $path, 80);
+                return imagewebp($image, $path, 85);
             default:
                 return false;
         }
@@ -391,7 +429,7 @@ class ImageHandler {
                     }
                     
                     if (!empty($exif['Model'])) {
-                        $relevantExif['camera'] = $exif['Make'] . ' ' . $exif['Model'];
+                        $relevantExif['camera'] = ($exif['Make'] ?? '') . ' ' . $exif['Model'];
                     }
                     
                     if (!empty($exif['ImageDescription'])) {
@@ -468,8 +506,8 @@ class ImageHandler {
         foreach ($imageData['optimized'] as $size => $data) {
             if ($size === 'original_webp') continue;
             
-            $srcset[] = BASE_URL . $data['original']['path'] . ' ' . $data['original']['width'] . 'w';
-            $webpSrcset[] = BASE_URL . $data['webp']['path'] . ' ' . $data['webp']['width'] . 'w';
+            $srcset[] = '/' . $data['original']['path'] . ' ' . $data['original']['width'] . 'w';
+            $webpSrcset[] = '/' . $data['webp']['path'] . ' ' . $data['webp']['width'] . 'w';
             
             // Tilføj til sizes attribute baseret på skærmbredde
             switch ($size) {
@@ -490,11 +528,16 @@ class ImageHandler {
         
         // Fald tilbage til original hvis ingen optimerede versioner
         if (empty($srcset)) {
-            $src = BASE_URL . $imageData['original']['path'];
-            $width = $imageData['original']['width'];
-            $height = $imageData['original']['height'];
+            $src = '/' . $imageData['original']['path'];
+            $width = $imageData['metadata']['width'] ?? '';
+            $height = $imageData['metadata']['height'] ?? '';
         } else {
-            $src = BASE_URL . $imageData['original']['path'];
+            // Brug large som default hvis tilgængelig
+            if (isset($imageData['optimized']['large'])) {
+                $src = '/' . $imageData['optimized']['large']['webp']['path'];
+            } else {
+                $src = '/' . $imageData['original']['path'];
+            }
             $width = $imageData['metadata']['width'] ?? '';
             $height = $imageData['metadata']['height'] ?? '';
         }
@@ -516,7 +559,7 @@ class ImageHandler {
             }
             $html .= '>';
         } elseif (isset($imageData['optimized']['original_webp'])) {
-            $html .= '<source type="image/webp" srcset="' . BASE_URL . $imageData['optimized']['original_webp']['path'] . '">';
+            $html .= '<source type="image/webp" srcset="/' . $imageData['optimized']['original_webp']['path'] . '">';
         }
         
         // Original format kilder
@@ -539,6 +582,7 @@ class ImageHandler {
             $html .= ' width="' . $width . '" height="' . $height . '"';
         }
         
+        $html .= ' loading="lazy"';
         $html .= $attrStr . '>';
         $html .= '</picture>';
         
@@ -576,9 +620,11 @@ function responsive_image($imageData, $alt = '', $class = '', $attributes = []) 
  * Konverterer et eksisterende billede til WebP
  * 
  * @param string $path Sti til billedet
+ * @param string $subdir Undermappe billedet er i
  * @return array Optimerede billeddata
  */
-function optimize_image($path) {
+function optimize_image($path, $subdir = '') {
     $handler = new ImageHandler();
-    return $handler->optimizeImage($path);
+    return $handler->optimizeImage($path, $subdir);
 }
+?>
